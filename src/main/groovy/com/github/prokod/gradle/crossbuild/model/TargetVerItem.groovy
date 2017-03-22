@@ -16,12 +16,22 @@
 package com.github.prokod.gradle.crossbuild.model
 
 import org.gradle.api.Named
+import org.gradle.api.Task
 import org.gradle.model.Managed
+import org.gradle.model.Unmanaged
 
 @Managed
 interface TargetVerItem extends Named {
     void setValue(String value)
     String getValue()
+
     void setArchiveAppendix(String archiveAppendix)
     String getArchiveAppendix()
+
+    void setArtifactId(String artifactId)
+    String getArtifactId()
+
+    @Unmanaged
+    Task getTask()
+    void setTask(Task task)
 }

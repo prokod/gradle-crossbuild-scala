@@ -45,6 +45,6 @@ class ScalaVersionInsights {
         underscoredBaseVersion = baseVersion.replaceAll("\\.", "_")
         underscoredCompilerVersion = compilerVersion.replaceAll("\\.", "_")
         underscoredArtifactInlinedVersion = artifactInlinedVersion.replaceAll("\\.", "_")
-        strippedArtifactInlinedVersion = targetVersion.name == targetVersion.value ? artifactInlinedVersion.replaceAll("\\.", "") : targetVersion.name.replaceAll("\\.", "")
+        strippedArtifactInlinedVersion = artifactInlinedVersion.replaceAll("\\.", "")
     }
 }

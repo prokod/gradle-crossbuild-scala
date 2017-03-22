@@ -15,6 +15,10 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+/**
+ * A map of scala version to their latest scala compiler version
+ *
+ */
 class ScalaVersionCatalog {
     Map<String, String> catalog
 
@@ -27,6 +31,6 @@ class ScalaVersionCatalog {
     }
 
     def mkRefTargetVersions() {
-        catalog.keySet().collect { new ScalaVersionInsights(new ScalaVerImpl(it), this).artifactInlinedVersion }
+        catalog.keySet().collect { new ScalaVersionInsights(new DummyScalaVer(it), this).artifactInlinedVersion }
     }
 }

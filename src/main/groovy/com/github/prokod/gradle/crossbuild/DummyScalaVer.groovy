@@ -16,12 +16,13 @@
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ScalaVer
+import org.gradle.api.Task
 
-class ScalaVerImpl extends ScalaVer {
+class DummyScalaVer extends ScalaVer {
     String name
     String value
 
-    ScalaVerImpl(String value) {
+    DummyScalaVer(String value) {
         this.name = value
         this.value = value
     }
@@ -47,7 +48,27 @@ class ScalaVerImpl extends ScalaVer {
     }
 
     @Override
+    void setArtifactId(String artifactId) {
+        throw new UnsupportedOperationException("Unsupported member artifactId.")
+    }
+
+    @Override
+    String getArtifactId() {
+        throw new UnsupportedOperationException("Unsupported member artifactId.")
+    }
+
+    @Override
     String getName() {
         return name
+    }
+
+    @Override
+    Task getTask() {
+        return null
+    }
+
+    @Override
+    void setTask(Task task) {
+
     }
 }

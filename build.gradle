@@ -65,7 +65,7 @@ uploadArchives.repositories.mavenDeployer {
         name 'Gradle cross build (Scala) plugin'
         packaging 'jar'
         description 'Gradle cross build (Scala) plugin.'
-        url 'http://github.com/prokod/gradle-crossbuild-scala'
+        url 'https://github.com/prokod/gradle-crossbuild-scala'
         inceptionYear '2016'
 
         scm {
