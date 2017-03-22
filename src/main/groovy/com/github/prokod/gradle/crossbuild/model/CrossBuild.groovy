@@ -22,19 +22,23 @@ import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
 
 /**
- * Managed object that can be generated using the model DSL from a build.gradle script.
+ * Managed top level object in model space for configuring the plugin.
  *
  * Example:
+ * <code>
  * model {
  *     crossBuild {
- *         archivesBaseName = ''
+ *         archivesBaseName = 'artifact'            // Defaults to project archivesBaseName
+ *
  *         targetVersions {
- *             '2.11'(ScalaVer) {
- *                 archiveAppendix = '_?_2.0.2'
+ *             V211(ScalaVer) {
+ *                 value = '2.11'                   // Defaults to 'V211' in this example, if not set at all
+ *                 archiveAppendix = '_?_2.0.2'     // '?' will be replaced by value. Could be set explicitly also for simplicity.
  *             }
  *         }
  *     }
  * }
+ * <code>
  */
 
 @Managed

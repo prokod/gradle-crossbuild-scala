@@ -16,6 +16,7 @@
 package com.github.prokod.gradle.crossbuild
 
 import org.gradle.testkit.runner.GradleRunner
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -35,7 +36,7 @@ class CrossBuildPluginTest extends Specification {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion should produce expected set of crossbuild jar task/s"() {
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and calling 'tasks' should produce expected set of crossbuild jar task(s)"() {
         given:
         buildFile << """
 import com.github.prokod.gradle.crossbuild.model.*
@@ -47,8 +48,27 @@ plugins {
 model {
     crossBuild {
         targetVersions {
-            '2.10'(ScalaVer)
-            '2.11'(ScalaVer)
+            v210(ScalaVer) {
+                value = '2.10'
+            }
+            v211(ScalaVer) {
+                value = '2.11'
+            }
+        }
+    }
+    
+    publishing {
+        publications {
+            crossBuild210(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.v210.artifactId
+                artifact \$.tasks.crossBuild210Jar
+            }
+            crossBuild211(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.v211.artifactId
+                artifact \$.tasks.crossBuild211Jar
+            }
         }
     }
 }
@@ -59,12 +79,14 @@ model {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(testProjectDir.root)
                 .withPluginClasspath()
-                .withArguments('tasks')
+                .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
         then:
         result.output.contains('crossBuild210Jar')
+        result.output.contains('publishCrossBuild210PublicationToMavenLocal')
         result.output.contains('crossBuild211Jar')
+        result.output.contains('publishCrossBuild211PublicationToMavenLocal')
         result.task(":tasks").outcome == SUCCESS
 
         where:
@@ -72,7 +94,7 @@ model {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion should produce expected set of crossbuild jar task/s with matching archive name"() {
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and calling 'crossBuild2XJar' should produce expected set of crossbuild jar task(s) with matching archive name"() {
         given:
         buildFile << """
 import com.github.prokod.gradle.crossbuild.model.*
@@ -84,8 +106,12 @@ plugins {
 model {
     crossBuild {
         targetVersions {
-            '2.10'(ScalaVer)
-            '2.11'(ScalaVer)
+            v210(ScalaVer) {
+                value = '2.10'
+            }
+            v211(ScalaVer) {
+                value = '2.11'
+            }
         }
     }
 }
@@ -96,7 +122,7 @@ model {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(testProjectDir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info')
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
                 .build()
 
         then:
@@ -110,7 +136,7 @@ model {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with custom archiveAppendix for each specified targetVersion should produce expected set of crossbuild jar task/s with matching archive name"() {
+    def "[#gradleVersion] applying crossbuild plugin with custom archiveAppendix for each specified targetVersion should produce expected set of crossbuild jar task(s) with matching archive name"() {
         given:
         propsFile << 'prop=A'
 
@@ -124,10 +150,12 @@ plugins {
 model {
     crossBuild {
         targetVersions {
-            '2.10'(ScalaVer) {
+            v210(ScalaVer) {
+                value = '2.10'
                 archiveAppendix = "_?_\${prop}"
             }
-            '2.11'(ScalaVer) {
+            v211(ScalaVer) {
+                value = '2.11'
                 archiveAppendix = "_?_\${prop}"
             }
         }
@@ -169,10 +197,12 @@ model {
     crossBuild {
         targetVersions {
             archivesBaseName = 'mylib'
-            '2.10'(ScalaVer) {
+            v210(ScalaVer) {
+                value = '2.10'
                 archiveAppendix = "_?_\${prop}"
             }
-            '2.11'(ScalaVer) {
+            v211(ScalaVer) {
+                value = '2.11'
                 archiveAppendix = "_?_\${prop}"
             }
         }
@@ -199,6 +229,7 @@ model {
     }
 
     @Unroll
+    @Ignore
     def "[#gradleVersion] applying crossbuild plugin with custom target version value for each specified ScalaVer should produce expected set of crossbuild jar task/s with matching archive name"() {
         given:
         propsFile << 'prop=A'
@@ -214,13 +245,17 @@ model {
     crossBuild {
         targetVersions {
             archivesBaseName = 'mylib'
-            '2.10'(ScalaVer)
-            '2.10_A'(ScalaVer) {
+            v210(ScalaVer) {
+                value = '2.10'
+            }
+            v210_A(ScalaVer) {
                 value = '2.10'
                 archiveAppendix = "_?_\${prop}"
             }
-            '2.11'(ScalaVer)
-            '2.11_A'(ScalaVer) {
+            V211(ScalaVer) {
+                value = '2.11'
+            }
+            V211_A(ScalaVer) {
                 value = '2.11'
                 archiveAppendix = "_?_\${prop}"
             }
@@ -246,6 +281,142 @@ model {
         result.task(":crossBuild211Jar").outcome == SUCCESS
         result.task(":crossBuild210_AJar").outcome == SUCCESS
         result.task(":crossBuild211_AJar").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['2.14.1', '3.0']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and calling 'publishToMavenLocal' should produce expected set of crossbuild jar task/s with matching archive name and expected matching publications"() {
+        given:
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+group = 'test'
+
+model {
+    crossBuild {
+        targetVersions {
+            V210(ScalaVer) {
+                value = '2.10'
+            }
+            V211(ScalaVer) {
+                value = '2.11'
+            }
+        }
+    }
+    
+    publishing {
+        publications {
+            crossBuild210(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.V210.artifactId
+                artifact \$.tasks.crossBuild210Jar
+            }
+            crossBuild211(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.V211.artifactId
+                artifact \$.tasks.crossBuild210Jar
+            }
+        }
+    }
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(testProjectDir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.output.contains('_2.10\'')
+        result.output.contains('_2.11\'')
+        result.task(":crossBuild210Jar").outcome == SUCCESS
+        result.task(":publishCrossBuild210PublicationToMavenLocal").outcome == SUCCESS
+        result.task(":crossBuild211Jar").outcome == SUCCESS
+        result.task(":publishCrossBuild211PublicationToMavenLocal").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['2.14.1', '3.0']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying maven publish plugin and crossbuild plugin should throw"() {
+        given:
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+    id 'maven-publish'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            V210(ScalaVer) {
+                value = '2.10'
+            }
+            V211(ScalaVer) {
+                value = '2.11'
+            }
+        }
+    }
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(testProjectDir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info')
+                .build()
+
+        then:
+        thrown(RuntimeException)
+
+        where:
+        gradleVersion << ['2.14.1', '3.0']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and without value should throw"() {
+        given:
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            '2.10'(ScalaVer)
+            '2.11'(ScalaVer)
+        }
+    }
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(testProjectDir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info')
+                .build()
+
+        then:
+        thrown(RuntimeException)
 
         where:
         gradleVersion << ['2.14.1', '3.0']
