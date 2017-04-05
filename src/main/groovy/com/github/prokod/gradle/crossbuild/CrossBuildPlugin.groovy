@@ -40,7 +40,8 @@ class CrossBuildPlugin implements Plugin<Project> {
         CrossBuildPluginRules.DEFAULT_SCALA_VERSION_CATALOG.getCatalog().entrySet().collect {it.key}.each { String scalaVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(new DummyScalaVer(scalaVersion), CrossBuildPluginRules.DEFAULT_SCALA_VERSION_CATALOG)
 
-            def sourceSetId = CrossBuildPluginRules.createCrossBuildScalaSourceSetIfNotExists(scalaVersionInsights, sourceSets)
+            def (sourceSetId, sourceSet) = CrossBuildPluginRules.createCrossBuildScalaSourceSetIfNotExists(scalaVersionInsights, sourceSets)
+
             project.logger.info(LoggerUtils.logTemplate(project, "Creating source set (Pre Evaluate Lifecycle): [${sourceSetId}]"))
         }
     }
