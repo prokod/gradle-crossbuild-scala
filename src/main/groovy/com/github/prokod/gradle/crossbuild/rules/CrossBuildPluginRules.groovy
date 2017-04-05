@@ -16,6 +16,7 @@
 package com.github.prokod.gradle.crossbuild.rules
 
 import com.github.prokod.gradle.crossbuild.BridgingExtension
+import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
 import com.github.prokod.gradle.crossbuild.ScalaVersionCatalog
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.model.CrossBuild
@@ -25,6 +26,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.ExtensionContainer
@@ -36,30 +40,39 @@ import org.gradle.model.*
 
 class CrossBuildPluginRules extends RuleSource {
     static final SOURCE_SET_BASE_NAME = "crossBuild"
-    static final DEFAULT_SCALA_VERSION_CATALOG = new ScalaVersionCatalog(['2.9': '2.9.3', '2.10': '2.10.6', '2.11': '2.11.8', '2.12': '2.12.1'])
+    static
+    final DEFAULT_SCALA_VERSION_CATALOG = new ScalaVersionCatalog(['2.9': '2.9.3', '2.10': '2.10.6', '2.11': '2.11.8', '2.12': '2.12.1'])
 
-    @Model void crossBuild(CrossBuild crossBuild) {
+    @Model
+    void crossBuild(CrossBuild crossBuild) {
     }
 
-    @Defaults void setDefaultVersionCatalog(CrossBuild crossBuild) {
+    @Defaults
+    void setDefaultVersionCatalog(CrossBuild crossBuild) {
         crossBuild.scalaVersionCatalog = DEFAULT_SCALA_VERSION_CATALOG
     }
 
-    @Defaults void setDefaultArchiveAppendix(@Each TargetVerItem item) {
+    @Defaults
+    void setDefaultArchiveAppendix(@Each TargetVerItem item) {
         item.archiveAppendix = '_?'
     }
 
-    @Mutate void setProjectViaBridge(CrossBuild crossBuild, ExtensionContainer extensions) {
+    @Mutate
+    void setProjectViaBridge(CrossBuild crossBuild, ExtensionContainer extensions) {
         def extension = (BridgingExtension) extensions.bridging
         def project = extension.project
         crossBuild.project = project
         crossBuild.archivesBaseName = project.archivesBaseName
     }
 
-    @Mutate void setTargetVerItems(@Each TargetVerItem targetVersion, @Path("crossBuild.archivesBaseName") String archivesBaseName, @Path("crossBuild.scalaVersionCatalog") ScalaVersionCatalog scalaVersionCatalog) {
+    @Mutate
+    void setTargetVerItems(
+            @Each TargetVerItem targetVersion,
+            @Path("crossBuild.archivesBaseName") String archivesBaseName,
+            @Path("crossBuild.scalaVersionCatalog") ScalaVersionCatalog scalaVersionCatalog) {
         validateTargetVersion(targetVersion)
         def scalaVersionInsights = new ScalaVersionInsights(targetVersion, scalaVersionCatalog)
-        def interpretedBaseName = "${archivesBaseName}${qmarkReplace(targetVersion.archiveAppendix, scalaVersionInsights.artifactInlinedVersion)}"
+        def interpretedBaseName = generateCrossArchivesBaseName(archivesBaseName, targetVersion.archiveAppendix, scalaVersionInsights.artifactInlinedVersion)
         targetVersion.artifactId = interpretedBaseName
     }
 
@@ -91,11 +104,14 @@ class CrossBuildPluginRules extends RuleSource {
             project.dependencies.add(sourceSet.compileConfigurationName, "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
 
             configureResolution(project, sourceSet.compileConfigurationName, project.configurations.compile, scalaVersionInsights)
+            configureResolution(project, sourceSet.compileClasspathConfigurationName, project.configurations.compileClasspath, scalaVersionInsights)
             configureResolution(project, sourceSet.compileOnlyConfigurationName, project.configurations.compileOnly, scalaVersionInsights)
             //TODO: From gradle 3.4 runtime should be subtituted with runtimeClasspath
             configureResolution(project, sourceSet.runtimeConfigurationName, project.configurations.runtime, scalaVersionInsights)
 
-            def interpretedBaseName = "${crossBuild.archivesBaseName}${qmarkReplace(scalaVersion.archiveAppendix, scalaVersionInsights.artifactInlinedVersion)}"
+            createPomAidingCompileScopeConfiguration(sourceSet, project, scalaVersionInsights, scalaVersion.archiveAppendix)
+
+            def interpretedBaseName = generateCrossArchivesBaseName(crossBuild.archivesBaseName, scalaVersion.archiveAppendix, scalaVersionInsights.artifactInlinedVersion)
             project.logger.info(LoggerUtils.logTemplate(project, "Cross build jar ${sourceSetId} baseName = '${interpretedBaseName}'"))
 
             tasks.create(sourceSet.getJarTaskName(), Jar) {
@@ -185,7 +201,8 @@ class CrossBuildPluginRules extends RuleSource {
      * @param sourceSets Source set container (per project)
      * @return A tuple of source set id and its {@link SourceSet} instance
      */
-    private static final findScalaCrossBuildSourceSet(ScalaVersionInsights scalaVersionInsights, SourceSetContainer sourceSets) {
+    private static
+    final findScalaCrossBuildSourceSet(ScalaVersionInsights scalaVersionInsights, SourceSetContainer sourceSets) {
         def sourceSetId = generateSourceSetId(scalaVersionInsights)
         def sourceSet = sourceSets.findByName(sourceSetId)
         new Tuple2(sourceSetId, sourceSet)
@@ -204,7 +221,7 @@ class CrossBuildPluginRules extends RuleSource {
         def sourceSetIds = components.collect { targetVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(targetVersion, crossBuild.scalaVersionCatalog)
 
-            def sourceSetId = createCrossBuildScalaSourceSetIfNotExists(scalaVersionInsights, sourceSets)
+            def (sourceSetId, sourceSet) = createCrossBuildScalaSourceSetIfNotExists(scalaVersionInsights, sourceSets)
             project.logger.info(LoggerUtils.logTemplate(project, "Creating source set (Post Evaluate Lifecycle): [${sourceSetId}]"))
             sourceSetId.toString()
         }
@@ -215,29 +232,50 @@ class CrossBuildPluginRules extends RuleSource {
         // disable unused tasks
         def nonActiveSourceSetIds = findNonActiveSourceSetIds(components.collect { targetVersion -> targetVersion.value }.toSet())
         project.logger.info(LoggerUtils.logTemplate(project, "Non active source set ids: [${nonActiveSourceSetIds.join(", ")}]"))
-        cleanTasksContainer(project.tasks, nonActiveSourceSetIds )
+        cleanTasksContainer(project.tasks, nonActiveSourceSetIds)
     }
 
     /**
      * Generates SourceSet id from a scala version info provided through {@link ScalaVersionInsights} object.
      *
      * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
-     * @return SourceSet id String
+     * @return A tuple of source set id and its {@link SourceSet} instance
      */
-    static final generateSourceSetId(ScalaVersionInsights scalaVersionInsights) { "$SOURCE_SET_BASE_NAME${scalaVersionInsights.strippedArtifactInlinedVersion}".toString() }
+    static final generateSourceSetId(ScalaVersionInsights scalaVersionInsights) {
+        "$SOURCE_SET_BASE_NAME${scalaVersionInsights.strippedArtifactInlinedVersion}".toString()
+    }
 
-    static final createCrossBuildScalaSourceSetIfNotExists(ScalaVersionInsights scalaVersionInsights, SourceSetContainer sourceSets) {
+    static
+    final createCrossBuildScalaSourceSetIfNotExists(ScalaVersionInsights scalaVersionInsights, SourceSetContainer sourceSets) {
         def sourceSetId = generateSourceSetId(scalaVersionInsights)
 
-        if (!sourceSets.findByName(sourceSetId)) {
-            // Create source set for specific scala version
-            sourceSets.create(sourceSetId)
-        }
-        sourceSetId
+        def tuple = [sourceSetId]
+                .collect { new Tuple2(sourceSetId, sourceSets.findByName(sourceSetId)) }
+                .collect {
+            if (!it.second) {
+                new Tuple(it.first, sourceSets.create(it.first))
+            } else {
+                new Tuple(it.first, it.second)
+            }
+        }.first()
+        tuple
     }
 
     private static final qmarkReplace(String template, String replacement) {
         template.replaceAll("\\?", replacement)
+    }
+
+    /**
+     * Generates archives base name based on 'archivesBaseName', archiveAppendix which might include '?' placeholder and
+     *  'artifactInlinedVersion' which will be used to fill '?' placeholder.
+     *
+     * @param archivesBaseName Name of archive prefixing '_' For example in lib... => 'lib'
+     * @param archiveAppendix For example in lib_? => '_?'
+     * @param artifactInlinedVersion Scala convention inlined version For example '2.11'
+     * @return Interpreted archivesBaseName
+     */
+    private static final generateCrossArchivesBaseName(archivesBaseName, archiveAppendix, artifactInlinedVersion) {
+        "${archivesBaseName}${qmarkReplace(archiveAppendix, artifactInlinedVersion)}".toString()
     }
 
     private static final cleanSourceSetsContainer(SourceSetContainer sourceSets, List<String> sourceSetIds) {
@@ -268,47 +306,202 @@ class CrossBuildPluginRules extends RuleSource {
     }
 
     /**
-     * Resolve dependencies with globed version '?' for a crossbuild configuration
+     * Creates a Compile Scope configuration that should be used by the user for generating the dependencies for a cross build artifact's pom file.
      *
-     * @param project
-     * @param crossBuildConfigurationName
-     * @param parentConfiguration
-     * @param scalaVersionInsights
+     * @param sourceSet A specific {@link SourceSet} that provides a configuration to use as source of dependencies for the new configuration
+     * @param project Project space {@link Project}
+     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     * @param archiveAppendix {@link TargetVerItem} archiveAppendix to aid with the replacement of non cross build {@link ProjectDependency} with its cross build counterpart
      */
-    private static final configureResolution(Project project, crossBuildConfigurationName, Configuration parentConfiguration, ScalaVersionInsights scalaVersionInsights) {
+    private static
+    final createPomAidingCompileScopeConfiguration(SourceSet sourceSet, Project project, ScalaVersionInsights scalaVersionInsights, archiveAppendix) {
+        def sourceConfig = project.configurations[sourceSet.runtimeConfigurationName]
+        def targetCompileScopeConfig = project.configurations.create("${sourceSet.name}CompileScope4Pom")
+
+        createPomAidingConfiguration(sourceConfig, targetCompileScopeConfig, project, scalaVersionInsights, archiveAppendix)
+    }
+
+    /**
+     * Creates a configuration that should be used by the user for generating the dependencies for a cross build artifact's pom file.
+     *
+     * @param sourceConfig A specific {@link SourceSet} configuration to use as source for dependencies
+     * @param targetCompileScopeConfig Target pom aiding configuration
+     * @param project Project space {@link Project}
+     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     * @param archiveAppendix {@link TargetVerItem} archiveAppendix to aid with the replacement of non cross build {@link ProjectDependency} with its cross build counterpart
+     */
+    private static
+    final createPomAidingConfiguration(sourceConfig, targetCompileScopeConfig, Project project, ScalaVersionInsights scalaVersionInsights, archiveAppendix) {
+        def allDependencies = sourceConfig.allDependencies
+        def dependencySets = findAllNonMatchingScalaVersionDependenciesWithCounterparts(allDependencies, scalaVersionInsights.artifactInlinedVersion)
+
+        def moduleNames = findAllNamesForCrossBuildPluginAppliedProjects(project)
+        def crossBuildProjectDependencySet = allDependencies.findAll {
+            it instanceof ProjectDependency
+        }.findAll {
+            moduleNames.contains(it.name)
+        }
+
+        targetCompileScopeConfig.dependencies.addAll(crossBuildProjectDependencySet.collect {
+            project.dependencies.create(
+                    group: it.group,
+                    name: "${it.name}${qmarkReplace(archiveAppendix, scalaVersionInsights.artifactInlinedVersion)}",
+                    version: it.version)
+        })
+
+        def crossBuildExternalDependencySet = dependencySets.collect {
+            it.findAll {
+                it[1].equals(scalaVersionInsights.artifactInlinedVersion)
+            }.toSorted {
+                t1, t2 -> t1[2].version <=> t2[2].version
+            }
+        }.findAll {
+            !it.isEmpty()
+        }.collect {
+            it.last()[2]
+        }.toSet()
+        targetCompileScopeConfig.dependencies.addAll(crossBuildExternalDependencySet)
+
+        def nonCrossBuildExternalDependencySet = allDependencies - crossBuildProjectDependencySet - dependencySets.collect { it.collect { it[2] } }.flatten().toSet()
+        targetCompileScopeConfig.dependencies.addAll(nonCrossBuildExternalDependencySet)
+    }
+
+    /**
+     * Resolve dependencies with globed version '?' for a crossbuild configuration and prepare dependency resolution
+     *  by trying to convert invalid scala version parent dependencies to valid ones.
+     *
+     * @param project Project space {@link Project}
+     * @param crossBuildConfigurationName A specific {@link SourceSet} configuration to use as source for dependencies
+     * @param parentConfiguration A {@link Configuration} to link as extendedFrom
+     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     */
+    private static
+    final configureResolution(Project project, crossBuildConfigurationName, Configuration parentConfiguration, ScalaVersionInsights scalaVersionInsights) {
         def config = project.configurations[crossBuildConfigurationName]
         config.extendsFrom(parentConfiguration)
-        def allDependenciesNames = ""
-        config.dependencies.each { allDependenciesNames += ", ${it.name}" }
-        config.extendsFrom
-                .findAll { it.name.contains(scalaVersionInsights.underscoredArtifactInlinedVersion) }
-                .each { it.dependencies.each { allDependenciesNames += ", " + it.name } }
-        project.logger.info(LoggerUtils.logTemplate(project, "${crossBuildConfigurationName} | Inherited dependendencies to consider while resolving this configuration dependencies: [${allDependenciesNames}]"))
+        def allDependencies = config.allDependencies
+        project.logger.info(LoggerUtils.logTemplate(project,
+                "Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} configuration dependencies: [${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
+        ))
 
-        config.resolutionStrategy.eachDependency { details ->
-            def requested = details.requested
-            // Replace 3d party scala which end with '_?'
-            if (requested.name.endsWith("_?")) {
-                def forceReplace = allDependenciesNames.contains(requested.name.replace("_?", ""))
-                def resolvedName = requested.name.replace("_?", "_${scalaVersionInsights.artifactInlinedVersion}")
-                project.logger.info(LoggerUtils.logTemplate(project, "${crossBuildConfigurationName} | Found dependency ${requested.name} to further process. Custom replacement dependency was specified in build.gradle ? ${forceReplace}. ${forceReplace ? 'Going to use it.' : "Going to use by convention replacement [${resolvedName}]"}"))
-                if (forceReplace) {
-                    details.useTarget group: requested.group, name: requested.name.replace("_?", "_${scalaVersionInsights.artifactInlinedVersion}"), version: requested.version
-                } else {
-                    details.useTarget group: requested.group, name: resolvedName, version: requested.version
+        project.configurations.all { c ->
+            if (c.name.equals(crossBuildConfigurationName) || c.name.equals(parentConfiguration.name)) {
+                c.resolutionStrategy.eachDependency { details ->
+                    def requested = details.requested
+                    // Replace 3d party scala which end with '_?'
+                    if (requested.name.endsWith("_?")) {
+                        def resolvedName = requested.name.replace("_?", "_${scalaVersionInsights.artifactInlinedVersion}")
+                        project.logger.info(LoggerUtils.logTemplate(
+                                project,
+                                "${crossBuildConfigurationName} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
+                                        "Going to subtitute with [${resolvedName}]"
+                        ))
+                        details.useTarget group: requested.group, name: resolvedName, version: requested.version
+                    } else {
+                        def underscoreIndex = requested.name.indexOf("_")
+                        if (underscoreIndex > 0) {
+                            def baseName = requested.name.substring(0, underscoreIndex)
+                            def matchingDeps = allDependencies.findAll {
+                                it.group.equals(requested.group) && it.name.startsWith(baseName)
+                            }
+                            def supposedRequestedScalaVersion = requested.name.substring(underscoreIndex + 1)
+                            def sameVersionDeps = matchingDeps.findAll {
+                                it.name.endsWith("_$supposedRequestedScalaVersion")
+                            }
+                            if (matchingDeps.size() == 2 && sameVersionDeps.size() == 1 && !supposedRequestedScalaVersion.equals(scalaVersionInsights.artifactInlinedVersion)) {
+                                def correctDep = (matchingDeps - sameVersionDeps).first()
+                                details.useTarget group: correctDep.group, name: correctDep.name, version: correctDep.version
+                                project.logger.info(LoggerUtils.logTemplate(project,
+                                        "${crossBuildConfigurationName} | Dependency Scan " +
+                                                "| Replacing ${requested.name}:${requested.version} => ${correctDep.name}:${correctDep.version}"
+                                ))
+                            }
+                        }
+                    }
+                    if (requested.group.equals("org.scala-lang") && requested.name.equals("scala-library")) {
+                        details.useVersion(scalaVersionInsights.compilerVersion)
+                    }
                 }
-            } else {
-                def versionToReplace = requested.name.substring(requested.name.lastIndexOf("_"))
-                def forceReplace = allDependenciesNames.contains(requested.name.replace(versionToReplace, ""))
-                project.logger.info(LoggerUtils.logTemplate(project, "${crossBuildConfigurationName} | name: ${requested.name} v2replace: ${versionToReplace} forceReplace: ${forceReplace}"))
-                if (forceReplace) {
-                    details.useTarget group: requested.group, name: requested.name.replace(versionToReplace, "_${scalaVersionInsights.artifactInlinedVersion}"), version: requested.version
-                }
-            }
-            if (requested.group.equals("org.scala-lang") && requested.name.equals("scala-library")) {
-                details.useVersion(scalaVersionInsights.compilerVersion)
             }
         }
         config
+    }
+
+    /**
+     * Parses given dependency name to its baseName part and its scala version part.
+     * Throws Assertion Exception if dependency name does not contain separating char '_'
+     *
+     * @param depName dependency name to parse
+     * @return tuple in the form of (baseName, scalaVersion) i.e. ('lib', '2.11')
+     */
+    private static final parseDependencyName(Dependency dep) {
+        def index = dep.name.indexOf("_")
+        assertWithMsg("Scala dependency naming convention expected") {
+            assert index > 0
+        }
+        def baseName = dep.name.substring(0, index)
+        def supposedScalaVersionRaw = dep.name.substring(index + 1)
+        def innerIndex = supposedScalaVersionRaw.indexOf("_")
+        def supposedScalaVersion = innerIndex > 0 ? supposedScalaVersionRaw.substring(0, innerIndex) : supposedScalaVersionRaw
+        new Tuple2("${dep.group}:$baseName", supposedScalaVersion)
+    }
+
+    /**
+     * Filters all dependencies that do not match given 'scalaVersion' from a set of dependencies.
+     *
+     * @param dependencySet set of dependencies in the form of {@link DependencySet} to scan
+     * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
+     * @return a list of tuples in the form of (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency}) i.e. ('lib', '2.11', ...)
+     */
+    private static final findAllNonMatchingScalaVersionDependencies(DependencySet dependencySet, scalaVersion) {
+        def maybeNonMatchingDeps = dependencySet.findAll {
+            it.name.length() - it.name.replaceAll("_", "").length() == 1
+        }.collect {
+            def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it)
+            new Tuple(groupAndBaseName, supposedScalaVersion, it)
+        }.findAll {
+            !it[1].equals(scalaVersion)
+        }
+        maybeNonMatchingDeps
+    }
+
+    /**
+     * Filters all dependencies that do not match given 'scalaVersion' from a set of dependencies and then
+     * enriches this list by converting each found dependency to a set containing itself and its counterparts.
+     *
+     * @param dependencySet set of dependencies in the form of {@link DependencySet} to scan
+     * @param scalaVersion Scala Version to match against i.e '2.10', '2.11'
+     * @return a list containing sets of tuples in the form of (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
+     *         i.e. [[('lib', '2.11', ...), ('lib', '2.10', ...)], [...], ...]
+     */
+    private static final findAllNonMatchingScalaVersionDependenciesWithCounterparts(DependencySet dependencySet, scalaVersion) {
+        def maybeNonMatchingDeps = findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion)
+        def dependencySets = maybeNonMatchingDeps.collect { depTuple ->
+            dependencySet.findAll {
+                it.name.length() - it.name.replaceAll("_", "").length() == 1
+            }.collect {
+                def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it)
+                new Tuple(groupAndBaseName, supposedScalaVersion, it)
+            }.findAll {
+                it[0].equals(depTuple[0])
+            }.toSet()
+        }
+        dependencySets
+    }
+
+    /**
+     * Finds all the projects (modules) in a multi module project which has {@link CrossBuildPlugin} plugin applied
+     *  and return their respective names.
+     *
+     * @param project project space {@link Project}
+     * @return list of project(module) names for multi module project
+     */
+    private static final findAllNamesForCrossBuildPluginAppliedProjects(Project project) {
+        def moduleNames = project.rootProject.allprojects.findAll {
+            it.plugins.hasPlugin(CrossBuildPlugin)
+        }.collect {
+            it.name
+        }
+        moduleNames
     }
 }
