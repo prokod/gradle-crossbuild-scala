@@ -27,6 +27,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.SourceDirectorySet
@@ -108,6 +109,8 @@ class CrossBuildPluginRules extends RuleSource {
             configureResolution(project, sourceSet.compileOnlyConfigurationName, project.configurations.compileOnly, scalaVersionInsights)
             //TODO: From gradle 3.4 runtime should be subtituted with runtimeClasspath
             configureResolution(project, sourceSet.runtimeConfigurationName, project.configurations.runtime, scalaVersionInsights)
+
+            configureTestResolution(project, scalaVersionInsights)
 
             createPomAidingCompileScopeConfiguration(sourceSet, project, scalaVersionInsights, scalaVersion.archiveAppendix)
 
@@ -367,13 +370,13 @@ class CrossBuildPluginRules extends RuleSource {
     }
 
     /**
-     * Resolve dependencies with globed version '?' for a crossbuild configuration and prepare dependency resolution
-     *  by trying to convert invalid scala version parent dependencies to valid ones.
+     * Resolve dependencies with place holder version '?' for a crossbuild configuration and
+     * try to convert mismatched scala version in dependencies coming from parent configuration to matching ones.
      *
      * @param project Project space {@link Project}
      * @param crossBuildConfigurationName A specific {@link SourceSet} configuration to use as source for dependencies
      * @param parentConfiguration A {@link Configuration} to link as extendedFrom
-     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     * @param scalaVersionInsights Holds all version permutations for a specific Scala version
      */
     private static
     final configureResolution(Project project, crossBuildConfigurationName, Configuration parentConfiguration, ScalaVersionInsights scalaVersionInsights) {
@@ -388,34 +391,21 @@ class CrossBuildPluginRules extends RuleSource {
             if (c.name.equals(crossBuildConfigurationName) || c.name.equals(parentConfiguration.name)) {
                 c.resolutionStrategy.eachDependency { details ->
                     def requested = details.requested
-                    // Replace 3d party scala which end with '_?'
+                    // Replace 3d party scala dependency which ends with '_?'
                     if (requested.name.endsWith("_?")) {
-                        def resolvedName = requested.name.replace("_?", "_${scalaVersionInsights.artifactInlinedVersion}")
+                        updateTargetName(details, scalaVersionInsights)
                         project.logger.info(LoggerUtils.logTemplate(
                                 project,
                                 "${crossBuildConfigurationName} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
-                                        "Going to subtitute with [${resolvedName}]"
+                                        "Subtituted with [${details.target.name}]"
                         ))
-                        details.useTarget group: requested.group, name: resolvedName, version: requested.version
                     } else {
-                        def underscoreIndex = requested.name.indexOf("_")
-                        if (underscoreIndex > 0) {
-                            def baseName = requested.name.substring(0, underscoreIndex)
-                            def matchingDeps = allDependencies.findAll {
-                                it.group.equals(requested.group) && it.name.startsWith(baseName)
-                            }
-                            def supposedRequestedScalaVersion = requested.name.substring(underscoreIndex + 1)
-                            def sameVersionDeps = matchingDeps.findAll {
-                                it.name.endsWith("_$supposedRequestedScalaVersion")
-                            }
-                            if (matchingDeps.size() == 2 && sameVersionDeps.size() == 1 && !supposedRequestedScalaVersion.equals(scalaVersionInsights.artifactInlinedVersion)) {
-                                def correctDep = (matchingDeps - sameVersionDeps).first()
-                                details.useTarget group: correctDep.group, name: correctDep.name, version: correctDep.version
-                                project.logger.info(LoggerUtils.logTemplate(project,
-                                        "${crossBuildConfigurationName} | Dependency Scan " +
-                                                "| Replacing ${requested.name}:${requested.version} => ${correctDep.name}:${correctDep.version}"
-                                ))
-                            }
+                        def updated = tryUpdatingTargetNameVersion(details, allDependencies, scalaVersionInsights)
+                        if (updated) {
+                            project.logger.info(LoggerUtils.logTemplate(project,
+                                    "${crossBuildConfigurationName} | Dependency Scan " +
+                                            "| Replaced ${requested.name}:${requested.version} => ${details.target.name}:${details.target.version}"
+                            ))
                         }
                     }
                     if (requested.group.equals("org.scala-lang") && requested.name.equals("scala-library")) {
@@ -424,7 +414,77 @@ class CrossBuildPluginRules extends RuleSource {
                 }
             }
         }
-        config
+    }
+
+    /**
+     * Resolve dependencies with place holder scala version '?' for testCompile configuration.
+     *
+     * @param project Project space {@link Project}
+     * @param scalaVersionInsights Holds all version permutations for a specific Scala version
+     */
+    private static
+    final configureTestResolution(Project project, ScalaVersionInsights scalaVersionInsights) {
+
+        project.configurations.all { c ->
+            if (c.name.startsWith('test')) {
+                c.resolutionStrategy.eachDependency { details ->
+                    def requested = details.requested
+                    // Replace 3d party scala dependency which ends with '_?'
+                    if (requested.name.endsWith("_?")) {
+                        updateTargetName(details, scalaVersionInsights)
+                        project.logger.info(LoggerUtils.logTemplate(
+                                project,
+                                "${c.name} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
+                                        "Subtituted with [${details.target.name}]"
+                        ))
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolve dependency names containing question mark to the actual scala version.
+     *
+     * @param details {@link DependencyResolveDetails} from resolution strategy
+     * @param scalaVersionInsights Holds all version permutations for a specific Scala version
+     */
+    private static final updateTargetName(DependencyResolveDetails details, ScalaVersionInsights scalaVersionInsights) {
+        def requested = details.requested
+        def resolvedName = requested.name.replace("_?", "_${scalaVersionInsights.artifactInlinedVersion}")
+        details.useTarget group: requested.group, name: resolvedName, version: requested.version
+    }
+
+    /**
+     * Tries to detect and substitute mismatched scala based dependencies.
+     * This can happen when default configurations (compile, compileOnly ...) "pollute"
+     * cross build configuration, which inherits from them,
+     * with mismatched scala version dependencies.
+     *
+     * @param details {@link DependencyResolveDetails} from resolution strategy
+     * @param dependencies All dependencies of the specified cross build configuration.
+     * @param scalaVersionInsights Holds all version permutations for a specific Scala version
+     * @return true when target was updated, false when not.
+     */
+    private static final tryUpdatingTargetNameVersion(DependencyResolveDetails details, DependencySet dependencies, ScalaVersionInsights scalaVersionInsights) {
+        def requested = details.requested
+        def underscoreIndex = requested.name.indexOf("_")
+        if (underscoreIndex > 0) {
+            def baseName = requested.name.substring(0, underscoreIndex)
+            def matchingDeps = dependencies.findAll {
+                it.group.equals(requested.group) && it.name.startsWith(baseName)
+            }
+            def supposedRequestedScalaVersion = requested.name.substring(underscoreIndex + 1)
+            def sameVersionDeps = matchingDeps.findAll {
+                it.name.endsWith("_$supposedRequestedScalaVersion")
+            }
+            if (matchingDeps.size() == 2 && sameVersionDeps.size() == 1 && !supposedRequestedScalaVersion.equals(scalaVersionInsights.artifactInlinedVersion)) {
+                def correctDep = (matchingDeps - sameVersionDeps).first()
+                details.useTarget group: correctDep.group, name: correctDep.name, version: correctDep.version
+                return true
+            }
+            false
+        }
     }
 
     /**
