@@ -301,10 +301,10 @@ group = 'test'
 model {
     crossBuild {
         targetVersions {
-            V210(ScalaVer) {
+            v210(ScalaVer) {
                 value = '2.10'
             }
-            V211(ScalaVer) {
+            v211(ScalaVer) {
                 value = '2.11'
             }
         }
@@ -314,12 +314,12 @@ model {
         publications {
             crossBuild210(MavenPublication) {
                 groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.V210.artifactId
+                artifactId = \$.crossBuild.targetVersions.v210.artifactId
                 artifact \$.tasks.crossBuild210Jar
             }
             crossBuild211(MavenPublication) {
                 groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.V211.artifactId
+                artifactId = \$.crossBuild.targetVersions.v211.artifactId
                 artifact \$.tasks.crossBuild210Jar
             }
         }
@@ -361,10 +361,10 @@ plugins {
 model {
     crossBuild {
         targetVersions {
-            V210(ScalaVer) {
+            v210(ScalaVer) {
                 value = '2.10'
             }
-            V211(ScalaVer) {
+            v211(ScalaVer) {
                 value = '2.11'
             }
         }
@@ -373,7 +373,7 @@ model {
 """
 
         when:
-        def result = GradleRunner.create()
+        GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(testProjectDir.root)
                 .withPluginClasspath()
@@ -408,7 +408,7 @@ model {
 """
 
         when:
-        def result = GradleRunner.create()
+        GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(testProjectDir.root)
                 .withPluginClasspath()
