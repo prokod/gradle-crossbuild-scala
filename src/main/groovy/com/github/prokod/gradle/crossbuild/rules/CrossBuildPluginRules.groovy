@@ -319,7 +319,7 @@ class CrossBuildPluginRules extends RuleSource {
     private static
     final createPomAidingCompileScopeConfiguration(SourceSet sourceSet, Project project, ScalaVersionInsights scalaVersionInsights, archiveAppendix) {
         def sourceConfig = project.configurations[sourceSet.runtimeConfigurationName]
-        def targetCompileScopeConfig = project.configurations.create("${sourceSet.name}CompileScope4Pom")
+        def targetCompileScopeConfig = project.configurations.create("${sourceSet.name}MavenCompileScope")
 
         createPomAidingConfiguration(sourceConfig, targetCompileScopeConfig, project, scalaVersionInsights, archiveAppendix)
     }
@@ -345,12 +345,13 @@ class CrossBuildPluginRules extends RuleSource {
             moduleNames.contains(it.name)
         }
 
-        targetCompileScopeConfig.dependencies.addAll(crossBuildProjectDependencySet.collect {
+        def crossBuildProjectDependencySetTransformed = crossBuildProjectDependencySet.collect {
             project.dependencies.create(
                     group: it.group,
                     name: "${it.name}${qmarkReplace(archiveAppendix, scalaVersionInsights.artifactInlinedVersion)}",
                     version: it.version)
-        })
+        }
+        targetCompileScopeConfig.dependencies.addAll(crossBuildProjectDependencySetTransformed)
 
         def crossBuildExternalDependencySet = dependencySets.collect {
             it.findAll {
@@ -366,7 +367,23 @@ class CrossBuildPluginRules extends RuleSource {
         targetCompileScopeConfig.dependencies.addAll(crossBuildExternalDependencySet)
 
         def nonCrossBuildExternalDependencySet = allDependencies - crossBuildProjectDependencySet - dependencySets.collect { it.collect { it[2] } }.flatten().toSet()
-        targetCompileScopeConfig.dependencies.addAll(nonCrossBuildExternalDependencySet)
+        def groupedByGroupAndName = nonCrossBuildExternalDependencySet.groupBy { dep -> dep.group+dep.name}
+        def nonCrossBuildExternalDependencySetSanitized = groupedByGroupAndName.collect {entry ->
+            if (entry.getValue().size() > 1) {
+                entry.getValue().findAll { dep ->
+                    !dep.version.contains('+')
+                }.findAll { dep ->
+                    if (dep.group.equals("org.scala-lang") && dep.name.equals("scala-library")) {
+                        dep.version.startsWith(scalaVersionInsights.baseVersion)
+                    } else {
+                        true
+                    }
+                }.head()
+            } else {
+                entry.value.head()
+            }
+        }
+        targetCompileScopeConfig.dependencies.addAll(nonCrossBuildExternalDependencySetSanitized)
     }
 
     /**
