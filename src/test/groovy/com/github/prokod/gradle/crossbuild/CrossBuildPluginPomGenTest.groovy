@@ -44,7 +44,7 @@ class CrossBuildPluginPomGenTest extends Specification {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and calling 'tasks' should produce expected set of crossbuild jar task(s)"() {
+    def "[#gradleVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
         buildFile << """
 import com.github.prokod.gradle.crossbuild.model.*
