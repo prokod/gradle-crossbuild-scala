@@ -37,7 +37,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         assert sourceSets != null: "Missing 'sourceSets' property under Project ${project.name} properties."
 
         // Create default source sets early enough to be used in build.gradle dependencies block
-        CrossBuildPluginRules.DEFAULT_SCALA_VERSION_CATALOG.getCatalog().entrySet().collect {it.key}.each { String scalaVersion ->
+        CrossBuildPluginRules.DEFAULT_SCALA_VERSION_CATALOG.catalog.collect {it.key}.each { String scalaVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(new DummyScalaVer(scalaVersion), CrossBuildPluginRules.DEFAULT_SCALA_VERSION_CATALOG)
 
             def (sourceSetId, sourceSet) = CrossBuildPluginRules.createCrossBuildScalaSourceSetIfNotExists(scalaVersionInsights, sourceSets)
