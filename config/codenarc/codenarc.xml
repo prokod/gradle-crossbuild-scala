@@ -45,4 +45,7 @@
         <exclude name="FactoryMethodName"/>
         <exclude name="ClassNameSameAsSuperclass"/>
     </ruleset-ref>
+    <ruleset-ref path='rulesets/formatting.xml'>
+        <exclude name="ClassJavadoc"/>
+    </ruleset-ref>
 </ruleset>

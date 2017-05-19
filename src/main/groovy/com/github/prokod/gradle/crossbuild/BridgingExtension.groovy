@@ -18,8 +18,8 @@ package com.github.prokod.gradle.crossbuild
 import org.gradle.api.Project
 
 /**
- * As it's name suggests, This extension is used to "bridge" between "Project" space and "Model" space, injecting {@link Project}
- * to the "Model" space
+ * As it's name suggests, This extension is used to "bridge" between "Project" space and "Model" space,
+ *  injecting {@link Project} to the "Model" space
  */
 class BridgingExtension {
     final Project project
