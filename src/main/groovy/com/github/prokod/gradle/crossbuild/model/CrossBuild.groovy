@@ -33,7 +33,8 @@ import org.gradle.model.Unmanaged
  *         targetVersions {
  *             V211(ScalaVer) {
  *                 value = '2.11'                   // Defaults to 'V211' in this example, if not set at all
- *                 archiveAppendix = '_?_2.0.2'     // '?' will be replaced by value. Could be set explicitly also for simplicity.
+ *                 archiveAppendix = '_?_2.0.2'     // '?' will be replaced by value.
+ *                                                  // Could be set explicitly also for simplicity.
  *             }
  *         }
  *     }
@@ -42,8 +43,7 @@ import org.gradle.model.Unmanaged
  */
 
 @Managed
-interface CrossBuild
-{
+interface CrossBuild {
     ModelMap<TargetVerItem> getTargetVersions()
 
     void setArchivesBaseName( String archivesBaseName )

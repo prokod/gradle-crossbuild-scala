@@ -32,14 +32,18 @@ class ScalaVersionInsights {
         if (dotsCount == 1) {
             baseVersion = targetVersion.value
             compilerVersion = scalaVersionCatalog.getScalaCompilerVersion(targetVersion.value)
-            artifactInlinedVersion = targetVersionAsNumber < 100 ? compilerVersion : targetVersion.value // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
+            // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
+            artifactInlinedVersion = targetVersionAsNumber < 100 ? compilerVersion : targetVersion.value
         }
         else if (dotsCount == 2) {
             baseVersion = targetVersion.value.substring(0, targetVersion.lastIndexOf("\\."))
             compilerVersion = targetVersion.value
-            artifactInlinedVersion = targetVersionAsNumber > 1000 ? targetVersion.value.substring(0, targetVersion.value.lastIndexOf("\\.")) : targetVersion.value // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
+            // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
+            artifactInlinedVersion = targetVersionAsNumber > 1000 ?
+                    targetVersion.value.substring(0, targetVersion.value.lastIndexOf("\\.")) : targetVersion.value
         } else {
-            throw new IllegalArgumentException("Too many dot separator chars in targetVersion [${targetVersion.value}].")
+            throw new IllegalArgumentException("Too many dot separator chars " +
+                    "in targetVersion [${targetVersion.value}].")
         }
 
         underscoredBaseVersion = baseVersion.replaceAll("\\.", "_")
