@@ -90,7 +90,7 @@ model {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -132,7 +132,7 @@ model {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -178,7 +178,7 @@ model {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -225,7 +225,7 @@ model {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -283,7 +283,7 @@ model {
         result.task(":crossBuild211_AJar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -344,7 +344,7 @@ model {
         result.task(":publishCrossBuild211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -384,7 +384,7 @@ model {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -419,6 +419,6 @@ model {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['2.14.1', '3.0']
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 }

@@ -38,6 +38,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.model.*
 
 class CrossBuildPluginRules extends RuleSource {
@@ -142,13 +143,20 @@ class CrossBuildPluginRules extends RuleSource {
                 from sourceSet.output
             }
 
-            def compileScala = project.tasks.findByName(sourceSet.getTaskName("compile", "scala"))
+            tasks.get(main.getClassesTaskName()).setEnabled(false)
+            tasks.get(main.getCompileTaskName('scala')).setEnabled(false)
+            tasks.get(main.getCompileTaskName('java')).setEnabled(false)
+            tasks.get(main.getJarTaskName()).setEnabled(false)
 
-            compileScala.configure {
-                scalaCompileOptions.incrementalOptions.with {
+            tasks.withType(ScalaCompile) { t ->
+                if (t.name == sourceSet.getCompileTaskName('scala')) {
+                    def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
                     if (!analysisFile) {
-                        analysisFile = new File(
-                                "$project.buildDir/tmp/scala/compilerAnalysis/${project.name}.analysis")
+                        t.scalaCompileOptions
+                                .incrementalOptions
+                                .setAnalysisFile(new File(
+                                "$project.buildDir/tmp/scala/compilerAnalysis/" +
+                                        "${scalaVersionInsights.compilerVersion}/${project.name}.analysis"))
                     }
                 }
             }
@@ -383,6 +391,7 @@ class CrossBuildPluginRules extends RuleSource {
             moduleNames.contains(it.name)
         }
 
+        // Add internal dependencies(modules) as qualified dependencies
         def crossBuildProjectDependencySetTransformed = crossBuildProjectDependencySet.collect {
             project.dependencies.create(
                     group:it.group,
@@ -391,10 +400,11 @@ class CrossBuildPluginRules extends RuleSource {
         }
         targetCompileScopeConfig.dependencies.addAll(crossBuildProjectDependencySetTransformed)
 
-        def crossBuildExternalDependencySet = dependencySets.collect {
-            it.findAll {
-                it[1].equals(scalaVersionInsights.artifactInlinedVersion)
-            }.toSorted {
+        // Add external cross built valid dependencies
+        //  (pick latest version if the same dependency module appears multiple times with different versions)
+        def crossBuildExternalDependencySet = dependencySets.collect { entry ->
+            Set<Tuple> matchingDepTuples = entry[1]
+            matchingDepTuples.toSorted {
                 t1, t2 -> t1[2].version <=> t2[2].version
             }
         }.findAll {
@@ -404,9 +414,16 @@ class CrossBuildPluginRules extends RuleSource {
         }.toSet()
         targetCompileScopeConfig.dependencies.addAll(crossBuildExternalDependencySet)
 
-        def counterPartsSet = dependencySets.collect { it.collect { it[2] } }.flatten().toSet()
-        def nonCrossBuildExternalDependencySet =
-                allDependencies - crossBuildProjectDependencySet - counterPartsSet
+        // Add external non crossed built dependencies
+        def crossBuiltExternalDependencySet = dependencySets.collect { entry ->
+            Set<Tuple> matchingDepTuples = entry[1]
+            matchingDepTuples.collect { it[2] } }.flatten().toSet()
+        def probablyCrossBuiltExternalDependencySet = dependencySets.collect { entry ->
+            Tuple nonMatchingDepTuple = entry[0]
+            nonMatchingDepTuple[2] }.toSet()
+        def nonCrossBuildExternalDependencySet = allDependencies -
+                        crossBuildProjectDependencySet -
+                (crossBuiltExternalDependencySet + probablyCrossBuiltExternalDependencySet)
         def groupedByGroupAndName = nonCrossBuildExternalDependencySet.groupBy { dep -> dep.group + dep.name }
         def nonCrossBuildExternalDependencySetSanitized = groupedByGroupAndName.collect { entry ->
             if (entry.getValue().size() > 1) {
@@ -424,6 +441,20 @@ class CrossBuildPluginRules extends RuleSource {
             }
         }
         targetCompileScopeConfig.dependencies.addAll(nonCrossBuildExternalDependencySetSanitized)
+
+        def resolvedCrossBuiltExternalDependencySet = dependencySets.collect { entry ->
+            Tuple nonMatchingDepTuple = entry[0]
+            nonMatchingDepTuple
+        }.findAll {
+            it[1] == '?'
+        }.collect {
+            Dependency dep = it[2]
+            project.dependencies.create(
+                    group:dep.group,
+                    name:"${dep.name.replace('?', scalaVersionInsights.artifactInlinedVersion)}",
+                    version:dep.version)
+        }
+        targetCompileScopeConfig.dependencies.addAll(resolvedCrossBuiltExternalDependencySet)
     }
 
     /**
@@ -531,7 +562,7 @@ class CrossBuildPluginRules extends RuleSource {
     private static final updateTargetName(DependencyResolveDetails details, ScalaVersionInsights scalaVersionInsights) {
         def requested = details.requested
         def resolvedName = requested.name.replace("_?", "_${scalaVersionInsights.artifactInlinedVersion}")
-        details.useTarget group:requested.group, name:resolvedName, version:requested.version
+        details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
     }
 
     /**
@@ -563,7 +594,7 @@ class CrossBuildPluginRules extends RuleSource {
         }
         def probableScalaVersion = probableScalaVersionRaw.head().first
         def resolvedName = requested.name.replace("_?", "_${probableScalaVersion}")
-        details.useTarget group:requested.group, name:resolvedName, version:requested.version
+        details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
     }
 
     /**
@@ -595,7 +626,7 @@ class CrossBuildPluginRules extends RuleSource {
             if (matchingDeps.size() == 2 && sameVersionDeps.size() == 1 &&
                     !supposedRequestedScalaVersion.equals(scalaVersionInsights.artifactInlinedVersion)) {
                 def correctDep = (matchingDeps - sameVersionDeps).first()
-                details.useTarget group:correctDep.group, name:correctDep.name, version:correctDep.version
+                details.useTarget correctDep.group + ':' + correctDep.name + ':' + correctDep.version
                 return true
             }
             false
@@ -628,7 +659,8 @@ class CrossBuildPluginRules extends RuleSource {
      * @param dependencySet set of dependencies in the form of {@link DependencySet} to scan
      * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
      * @return a list of tuples in the form of
-     *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency}) i.e. ('lib', '2.11', ...)
+     *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
+     *          i.e. ('lib', '2.11', ...)
      */
     private static final findAllNonMatchingScalaVersionDependencies(DependencySet dependencySet, scalaVersion) {
         def maybeNonMatchingDeps = dependencySet.findAll {
@@ -637,7 +669,7 @@ class CrossBuildPluginRules extends RuleSource {
             def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it)
             new Tuple(groupAndBaseName, supposedScalaVersion, it)
         }.findAll {
-            !it[1].equals(scalaVersion)
+            it[1] != scalaVersion
         }
         maybeNonMatchingDeps
     }
@@ -649,12 +681,13 @@ class CrossBuildPluginRules extends RuleSource {
      * @param dependencySet set of dependencies in the form of {@link DependencySet} to scan
      * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
      * @return a list of tuples in the form of
-     *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency}) i.e. ('lib', '2.11', ...)
+     *          (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
+     *          i.e. ('lib', '2.11', ...)
      */
     private static final findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
             DependencySet dependencySet, scalaVersion) {
         findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion).findAll { tuples ->
-            !tuples[1].equals('?')
+            tuples[1] != '?'
         }
     }
 
@@ -665,21 +698,23 @@ class CrossBuildPluginRules extends RuleSource {
      * @param dependencySet set of dependencies in the form of {@link DependencySet} to scan
      * @param scalaVersion Scala Version to match against i.e '2.10', '2.11'
      * @return a list containing sets of tuples in the form of
-     *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
-     *          i.e. [[('lib', '2.11', ...), ('lib', '2.10', ...)], [...], ...]
+     *          (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
+     *          i.e. [[('lib', '2.11', ...), [('lib', '2.10', ...), ('lib', '2.12', ...)]],
+     *          [(...), [(...), (...)]], ...]
      */
     private static final findAllNonMatchingScalaVersionDependenciesWithCounterparts(
             DependencySet dependencySet, scalaVersion) {
         def maybeNonMatchingDeps = findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion)
-        def dependencySets = maybeNonMatchingDeps.collect { depTuple ->
-            dependencySet.findAll {
-                it.name.length() - it.name.replaceAll("_", "").length() == 1
-            }.collect {
-                def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it)
-                new Tuple(groupAndBaseName, supposedScalaVersion, it)
+        def dependencySets = maybeNonMatchingDeps.collect { nonMatchingDepTuple ->
+            def matchingDepTupleSet = dependencySet.findAll { dep ->
+                dep.name.length() - dep.name.replaceAll("_", "").length() > 0
+            }.collect { dep ->
+                def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(dep)
+                new Tuple(groupAndBaseName, supposedScalaVersion, dep)
             }.findAll {
-                it[0].equals(depTuple[0])
-            }.toSet()
+                it[0] == nonMatchingDepTuple[0] && it[1] == scalaVersion
+            }.collect().toSet()
+            [nonMatchingDepTuple, matchingDepTupleSet]
         }
         dependencySets
     }
