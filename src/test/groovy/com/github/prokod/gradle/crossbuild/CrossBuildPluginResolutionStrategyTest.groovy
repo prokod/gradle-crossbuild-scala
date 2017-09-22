@@ -22,13 +22,16 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.nio.file.Files
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class CrossBuildPluginPomGenTest extends Specification {
+class CrossBuildPluginResolutionStrategyTest extends Specification {
     @Rule
     final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
     File propsFile
+    File scalaFile
 
     def testMavenCentralAccess() {
         URL u = new URL ( "https://repo1.maven.org/maven2/")
@@ -41,11 +44,26 @@ class CrossBuildPluginPomGenTest extends Specification {
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
         propsFile = testProjectDir.newFile('gradle.properties')
+        File folder = testProjectDir.newFolder('src', 'main', 'scala')
+        scalaFile = Files.createFile(folder.toPath().resolve('helloWorld.scala')).toFile()
     }
 
     @Unroll
     def "[#gradleVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
+        scalaFile << """
+import org.scalatest._
+
+object HelloWorld {
+   /* This is my first java program.  
+   * This will print 'Hello World' as the output
+   */
+   def main(args: Array[String]) {
+      println("Hello, world!") // prints Hello World
+   }
+}
+"""
+
         buildFile << """
 import com.github.prokod.gradle.crossbuild.model.*
 
@@ -122,6 +140,7 @@ model {
 }
 
 dependencies {
+    compile "org.scalatest:scalatest_?:3.0.1"
     compile "com.google.guava:guava:18.0"
     compile "org.scala-lang:scala-library:2.11.+"
 }
@@ -133,7 +152,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(testProjectDir.root)
                 .withPluginClasspath()
-                .withArguments('publishToMavenLocal', '--info', '--stacktrace')
+                .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
@@ -144,9 +163,11 @@ dependencies {
         !pom210.contains('2.11.+')
         pom210.contains('2.10.6')
         pom210.contains('18.0')
+        pom210.contains('3.0.1')
         !pom211.contains('2.11.+')
         pom211.contains('2.11.8')
         pom211.contains('18.0')
+        pom211.contains('3.0.1')
         where:
         gradleVersion << ['2.14.1', '3.0', '4.1']
     }
