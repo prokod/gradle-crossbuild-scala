@@ -15,8 +15,9 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import com.github.prokod.gradle.crossbuild.model.TargetVerItem
-
+/**
+ * Scala versioning semantics class
+ */
 class ScalaVersionInsights {
     String baseVersion
     String underscoredBaseVersion
@@ -26,29 +27,66 @@ class ScalaVersionInsights {
     String underscoredArtifactInlinedVersion
     String strippedArtifactInlinedVersion
 
-    ScalaVersionInsights(TargetVerItem targetVersion, ScalaVersionCatalog scalaVersionCatalog) {
-        def dotsCount = targetVersion.value.length() - targetVersion.value.replaceAll("\\.", "").length()
-        def targetVersionAsNumber = Integer.parseInt(targetVersion.value.replaceAll("\\.", ""))
-        if (dotsCount == 1) {
-            baseVersion = targetVersion.value
-            compilerVersion = scalaVersionCatalog.getScalaCompilerVersion(targetVersion.value)
+    ScalaVersionInsights(String targetVersion, ScalaVersions scalaVersions = null) {
+        insightFor(targetVersion, scalaVersions)
+
+        underscoredBaseVersion = baseVersion.replaceAll('\\.', '_')
+        underscoredCompilerVersion = compilerVersion.replaceAll('\\.', '_')
+        underscoredArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '_')
+        strippedArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '')
+    }
+
+    private void insightFor(String version, ScalaVersions scalaVersions) {
+        def dotsCount = version.length() - version.replaceAll('\\.', '').length()
+        def (verifiedVersion, versionAsNumber) = parseTargetVersion(version, dotsCount, scalaVersions)
+
+        if (dotsCount == 1 && scalaVersions != null) {
+            baseVersion = verifiedVersion
+            compilerVersion = scalaVersions.getCompilerVersion(baseVersion)
             // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
-            artifactInlinedVersion = targetVersionAsNumber < 100 ? compilerVersion : targetVersion.value
+            artifactInlinedVersion = versionAsNumber < 100 ? compilerVersion : baseVersion
         }
         else if (dotsCount == 2) {
-            baseVersion = targetVersion.value.substring(0, targetVersion.lastIndexOf("\\."))
-            compilerVersion = targetVersion.value
+            baseVersion = verifiedVersion[0..verifiedVersion.lastIndexOf('.') - 1]
+            compilerVersion = verifiedVersion
             // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
-            artifactInlinedVersion = targetVersionAsNumber > 1000 ?
-                    targetVersion.value.substring(0, targetVersion.value.lastIndexOf("\\.")) : targetVersion.value
+            artifactInlinedVersion = versionAsNumber > 1000 ?
+                    compilerVersion[0..compilerVersion.lastIndexOf('.') - 1] : compilerVersion
         } else {
-            throw new IllegalArgumentException("Too many dot separator chars " +
-                    "in targetVersion [${targetVersion.value}].")
+            throw new IllegalArgumentException('Too many dot separator chars ' +
+                    "in targetVersion [${version}].")
         }
+    }
 
-        underscoredBaseVersion = baseVersion.replaceAll("\\.", "_")
-        underscoredCompilerVersion = compilerVersion.replaceAll("\\.", "_")
-        underscoredArtifactInlinedVersion = artifactInlinedVersion.replaceAll("\\.", "_")
-        strippedArtifactInlinedVersion = artifactInlinedVersion.replaceAll("\\.", "")
+    /**
+     * Parses target Scala version
+     *
+     * @param version Target version to parse
+     * @param dotsCount No. of dots in target version
+     * @param scalaVersions Scala versions catalog
+     * @return A tuple containing the parsed version
+     * @throws AssertionError if scalaVersions is not supplied in case that the original target version,
+     *                         after removing dots, is not a number (2.10.+ -> 210+ not a number)
+     * @throws IllegalStateException when target version cannot be parsed
+     */
+    private static Tuple2<String, Integer> parseTargetVersion(String version,
+                                                              int dotsCount,
+                                                              ScalaVersions scalaVersions) {
+        def strippedDotsVersion = version.replaceAll('\\.', '')
+        if (strippedDotsVersion.isNumber()) {
+            def versionAsNumber = Integer.parseInt(strippedDotsVersion)
+            return new Tuple2(version, versionAsNumber)
+        } else {
+            assert scalaVersions != null : "Supplied 'targetVersion' is probably of range type. In such" +
+                    " cases supplied 'scalaVersions' (catalog) should not be null."
+            def versionComponents = version.split('\\.')
+            if (dotsCount == 2 && !versionComponents.last().isNumber()) {
+                def newVersion = scalaVersions.getCompilerVersion("${versionComponents[0]}.${versionComponents[1]}")
+                def newVersionAsNumber = Integer.parseInt(newVersion.replaceAll('\\.', ''))
+                return new Tuple2(newVersion, newVersionAsNumber)
+            } else {
+                throw new IllegalStateException("Cannot get scala version insights from '$version'")
+            }
+        }
     }
 }

@@ -15,7 +15,7 @@
  */
 package com.github.prokod.gradle.crossbuild.model
 
-import com.github.prokod.gradle.crossbuild.ScalaVersionCatalog
+import com.github.prokod.gradle.crossbuild.ScalaVersions
 import org.gradle.api.Project
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
@@ -50,8 +50,8 @@ interface CrossBuild {
     String getArchivesBaseName()
 
     @Unmanaged
-    ScalaVersionCatalog getScalaVersionCatalog()
-    void setScalaVersionCatalog(ScalaVersionCatalog scalaVersionCatalog)
+    ScalaVersions getScalaVersions()
+    void setScalaVersions(ScalaVersions scalaVersions)
 
     @Unmanaged
     Project getProject()
