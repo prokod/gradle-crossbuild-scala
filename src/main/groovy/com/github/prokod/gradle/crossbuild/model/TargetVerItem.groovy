@@ -20,6 +20,9 @@ import org.gradle.api.Task
 import org.gradle.model.Managed
 import org.gradle.model.Unmanaged
 
+/**
+ * Gradle Managed type used in plugin's DSL
+ */
 @Managed
 interface TargetVerItem extends Named {
     void setValue(String value)

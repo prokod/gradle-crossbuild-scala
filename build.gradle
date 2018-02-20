@@ -7,7 +7,7 @@ apply plugin: 'codenarc'
 targetCompatibility = '1.6'
 
 group = 'com.github.prokod'
-version = '0.2.0'
+version = '0.3.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -88,6 +88,14 @@ uploadArchives.repositories.mavenDeployer {
             }
         }
     }
+}
+
+codenarc {
+    toolVersion = "1.1"
+}
+
+codenarcMain {
+    configFile = rootProject.file("config/codenarc/CodenarcMain.groovy")
 }
 
 codenarcTest.enabled = false
