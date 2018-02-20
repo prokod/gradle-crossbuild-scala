@@ -105,11 +105,11 @@ class PomAidingConfigurations {
         targetCompileScopeConfig.dependencies.addAll(crossBuildExternalDependencySet)
 
         // Add external non crossed built dependencies
-        def crossBuiltExternalDependencySet = dependenciesView.collect { entry ->
-            Set<Tuple> matchingDepTuples = entry[1]
-            matchingDepTuples.collectMany { it[2] } }.toSet()
+        def crossBuiltExternalDependencySet = dependenciesView.collectMany { entry ->
+            Set<Tuple> matchingDepTuples = entry.second
+            matchingDepTuples.collect { it[2] } }.toSet()
         def probablyCrossBuiltExternalDependencySet = dependenciesView.collect { entry ->
-            Tuple nonMatchingDepTuple = entry[0]
+            Tuple nonMatchingDepTuple = entry.first
             nonMatchingDepTuple[2] }.toSet()
         def nonCrossBuildExternalDependencySet = allDependencies -
                 crossBuildProjectDependencySet -
