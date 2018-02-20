@@ -24,7 +24,7 @@ import org.gradle.api.Project
 class BridgingExtension {
     final Project project
 
-    public BridgingExtension(Project project) {
+    BridgingExtension(Project project) {
         this.project = project
     }
 }

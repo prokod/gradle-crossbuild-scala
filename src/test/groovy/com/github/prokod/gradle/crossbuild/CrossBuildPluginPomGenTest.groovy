@@ -145,7 +145,7 @@ dependencies {
         pom210.contains('2.10.6')
         pom210.contains('18.0')
         !pom211.contains('2.11.+')
-        pom211.contains('2.11.8')
+        pom211.contains('2.11.11')
         pom211.contains('18.0')
         where:
         gradleVersion << ['2.14.1', '3.0', '4.1']
