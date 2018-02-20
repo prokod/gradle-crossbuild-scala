@@ -17,6 +17,9 @@ package com.github.prokod.gradle.crossbuild.model
 
 import org.gradle.model.Managed
 
+/**
+ * Gradle Managed impl. of {@link TargetVerItem}
+ */
 @Managed
-abstract class ScalaVer implements TargetVerItem {
+interface ScalaVer extends TargetVerItem {
 }

@@ -165,10 +165,10 @@ dependencies {
         pom210.contains('18.0')
         pom210.contains('3.0.1')
         !pom211.contains('2.11.+')
-        pom211.contains('2.11.8')
+        pom211.contains('2.11.11')
         pom211.contains('18.0')
         pom211.contains('3.0.1')
         where:
-        gradleVersion << ['2.14.1', '3.0', '4.1']
+        gradleVersion << ['2.14.1', '3.0', '4.5.1']
     }
 }

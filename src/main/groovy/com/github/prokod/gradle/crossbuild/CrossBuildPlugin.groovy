@@ -21,30 +21,29 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.api.tasks.SourceSetContainer
 
+/**
+ * Crossbuild plugin entry point
+ */
 class CrossBuildPlugin implements Plugin<Project> {
     void apply(Project project) {
         if (project.plugins.hasPlugin(MavenPublishPlugin)) {
             throw new GradleException("Applying both 'maven-publish' and '${this.class.getSimpleName()}' " +
                     "is Illegal. Please remove relevant apply code from build.gradle for 'maven-publish' plugin.")
         }
-        project.pluginManager.apply("scala")
-        project.extensions.create("bridging", BridgingExtension, project)
+        project.pluginManager.apply('scala')
+        project.extensions.create('bridging', BridgingExtension, project)
         project.pluginManager.apply(CrossBuildPluginRules)
         project.pluginManager.apply(MavenPublishPlugin)
         // enforce maven-publish plugin AFTER cross build plugin (Model shortcomings - cyclic rules)
 
-        def sourceSets = project.hasProperty('sourceSets') ? (SourceSetContainer) project.sourceSets : null
-        assert sourceSets != null: "Missing 'sourceSets' property under Project ${project.name} properties."
+        def crossBuildSourceSets = new CrossBuildSourceSets(project, ScalaVersions.DEFAULT_SCALA_VERSIONS)
 
         // Create default source sets early enough to be used in build.gradle dependencies block
-        CrossBuildPluginRules.DEFAULT_SCALA_VERSION_CATALOG.catalog.collect { it.key }.each { String scalaVersion ->
-            def scalaVersionInsights = new ScalaVersionInsights(new DummyScalaVer(scalaVersion),
-                    CrossBuildPluginRules.DEFAULT_SCALA_VERSION_CATALOG)
+        ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog*.key.each { String scalaVersion ->
+            def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, ScalaVersions.DEFAULT_SCALA_VERSIONS)
 
-            def (sourceSetId, sourceSet) = CrossBuildPluginRules
-                    .createCrossBuildScalaSourceSetIfNotExists(scalaVersionInsights, sourceSets)
+            def sourceSetId = crossBuildSourceSets.getOrCreateCrossBuildScalaSourceSet(scalaVersionInsights).first
 
             project.logger.info(LoggerUtils.logTemplate(project,
                     "Creating source set (Pre Evaluate Lifecycle): [${sourceSetId}]"))

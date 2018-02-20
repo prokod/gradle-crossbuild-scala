@@ -17,9 +17,12 @@ package com.github.prokod.gradle.crossbuild.utils
 
 import org.gradle.api.Project
 
+/**
+ * Logger utils
+ */
 class LoggerUtils {
 
     static String logTemplate(Project project, String msg) {
-            return "[${project.path}] | ${msg}"
+        "[${project.path}] | ${msg}".toString()
     }
 }
