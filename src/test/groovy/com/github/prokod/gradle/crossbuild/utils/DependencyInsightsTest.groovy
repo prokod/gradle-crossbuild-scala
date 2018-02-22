@@ -36,7 +36,7 @@ class DependencyInsightsTest extends Specification {
                     'someDisplayName',
                     new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3)))
         when:
-            def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet, '2.10')
+            def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet.collect(), '2.10')
         then:
             tupleList.size() == 2
             tupleList[0][0] == 'some.group:somescalalib'
@@ -60,7 +60,7 @@ class DependencyInsightsTest extends Specification {
                     'someDisplayName',
                     new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep31, dep4, dep5, dep6)))
         when:
-            def tuplesList = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(dependencySet, '2.10')
+            def tuplesList = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(dependencySet.collect(), '2.10')
         then:
             tuplesList.size() == 4
             tuplesList[0].first[0] == 'some.group:somescalalib'

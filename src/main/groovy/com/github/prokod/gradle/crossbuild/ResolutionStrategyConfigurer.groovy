@@ -65,6 +65,20 @@ class ResolutionStrategyConfigurer {
                     }
                 }
             }
+
+            // Cover the cases where two sub projects, for instance, are using cross build plugin and one is being used
+            //  as dependency for the other.
+            def crossBuildProjectDependencySet = DependencyInsights.extractCrossBuildProjectDependencySet(
+                    project.gradle, parentConfiguration.allDependencies)
+
+            crossBuildProjectDependencySet.collect { projectDep ->
+                def configuration = project.configurations[parentConfiguration.name]
+                configuration.resolutionStrategy.eachDependency { details ->
+                    def requested = details.requested
+                    String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
+                    strategyForNonCrossBuildConfiguration(configuration, supposedScalaVersion, details)
+                }
+            }
         }
     }
 
@@ -112,7 +126,7 @@ class ResolutionStrategyConfigurer {
 
         // Replace 3d party scala dependency which ends with '_?' in parent configuration scope
         if (supposedScalaVersion == '?') {
-            if (tryForceTargetDependencyName(details, parentConfiguration.allDependencies, scalaVersions)) {
+            if (tryForceTargetDependencyName(details, parentConfiguration, scalaVersions)) {
                 project.logger.info(LoggerUtils.logTemplate(project,
                         "${parentConfiguration.name} | Found crossbuild glob '?' in " +
                                 "dependency name ${requested.name}." +
@@ -125,7 +139,7 @@ class ResolutionStrategyConfigurer {
                                 'Reason: scala-library dependency version not found or ' +
                                 'multiple versions'
                 ))
-                updateTargetName(details, parentConfiguration.allDependencies, scalaVersions)
+                updateTargetName(details, parentConfiguration, scalaVersions)
             }
         }
     }
@@ -147,7 +161,7 @@ class ResolutionStrategyConfigurer {
                     def requested = details.requested
                     // Replace 3d party scala dependency which ends with '_?'
                     if (requested.name.endsWith('_?')) {
-                        updateTargetName(details, c.allDependencies, scalaVersions)
+                        updateTargetName(details, c, scalaVersions)
                         project.logger.info(LoggerUtils.logTemplate(
                                 project,
                                 "${c.name} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
@@ -180,14 +194,21 @@ class ResolutionStrategyConfigurer {
      *  and scala-library dep. version.
      *
      * @param details {@link DependencyResolveDetails} from resolution strategy
-     * @param dependencySet All dependencies of the specified configuration.
+     * @param configuration Specified configuration to retrieve all dependencies from.
+     * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      */
-    private static boolean tryForceTargetDependencyName(
+    private boolean tryForceTargetDependencyName(
             DependencyResolveDetails details,
-            DependencySet dependencySet,
+            Configuration configuration,
             ScalaVersions scalaVersions) {
+        def dependencySet = configuration.allDependencies
 
-        def scalaDeps = DependencyInsights.findScalaDependencies(dependencySet, scalaVersions)
+        def crossBuildProjectDependencySet = DependencyInsights.extractCrossBuildProjectDependencyDependencies(
+                project.gradle, dependencySet, configuration.name)
+
+        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
+
+        def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
 
         def requested = details.requested
         def versions = scalaDeps.collect { it[1] }.toSet()
@@ -236,19 +257,25 @@ class ResolutionStrategyConfigurer {
      *  by consensus of Scala 3rd lib dependencies found and their Scala base version
      *
      * @param details {@link DependencyResolveDetails} from resolution strategy
-     * @param dependencySet All dependencies of the specified configuration.
+     * @param configuration Specified configuration to retrieve all dependencies from.
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      * @throws AssertionError if Scala version cannot be inferred
      */
-    private static void updateTargetName(
+    private void updateTargetName(
             DependencyResolveDetails details,
-            DependencySet dependencySet,
+            Configuration configuration,
             ScalaVersions scalaVersions) {
+        def dependencySet = configuration.allDependencies
+
+        def crossBuildProjectDependencySet = DependencyInsights.extractCrossBuildProjectDependencyDependencies(
+                project.gradle, dependencySet, configuration.name)
+
+        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
 
         def probableScalaVersionRaw = scalaVersions.catalog*.key.collect { String scalaVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, scalaVersions)
             def deps = DependencyInsights.findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
-                    dependencySet, scalaVersionInsights.artifactInlinedVersion)
+                    allDependencySet, scalaVersionInsights.artifactInlinedVersion)
             new Tuple2(scalaVersionInsights.artifactInlinedVersion, deps.size())
         }.findAll { tuple ->
             tuple.second == 0

@@ -17,18 +17,11 @@ package com.github.prokod.gradle.crossbuild
 
 import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.nio.file.Files
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class CrossBuildPluginResolutionStrategyTest extends Specification {
-    @Rule
-    final TemporaryFolder testProjectDir = new TemporaryFolder()
+class CrossBuildPluginResolutionStrategyTest extends CrossBuildGradleRunnerSpec {
     File buildFile
     File propsFile
     File scalaFile
@@ -42,14 +35,13 @@ class CrossBuildPluginResolutionStrategyTest extends Specification {
     }
 
     def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
-        propsFile = testProjectDir.newFile('gradle.properties')
-        File folder = testProjectDir.newFolder('src', 'main', 'scala')
-        scalaFile = Files.createFile(folder.toPath().resolve('helloWorld.scala')).toFile()
+        buildFile = file('build.gradle')
+        propsFile = file('gradle.properties')
+        scalaFile = file('src/main/scala/helloWorld.scala')
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
         scalaFile << """
 import org.scalatest._
@@ -142,7 +134,7 @@ model {
 dependencies {
     compile "org.scalatest:scalatest_?:3.0.1"
     compile "com.google.guava:guava:18.0"
-    compile "org.scala-lang:scala-library:2.11.+"
+    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
 """
 
@@ -150,25 +142,26 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":publishToMavenLocal").outcome == SUCCESS
-        def pom210 = new File("${testProjectDir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
-        def pom211 = new File("${testProjectDir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
+        def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
 
-        !pom210.contains('2.11.+')
+        !pom210.contains('2.11.')
         pom210.contains('2.10.6')
         pom210.contains('18.0')
         pom210.contains('3.0.1')
         !pom211.contains('2.11.+')
+        !pom211.contains('2.10.')
         pom211.contains('2.11.11')
         pom211.contains('18.0')
         pom211.contains('3.0.1')
         where:
-        gradleVersion << ['2.14.1', '3.0', '4.5.1']
+        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
     }
 }
