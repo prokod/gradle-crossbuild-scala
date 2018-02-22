@@ -70,9 +70,9 @@ class PomAidingConfigurations {
             String archiveAppendix) {
         def allDependencies = sourceConfig.allDependencies
         def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-                allDependencies, scalaVersionInsights.artifactInlinedVersion)
+                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
 
-        def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(project)
+        def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(project.gradle)
         def crossBuildProjectDependencySet = allDependencies.findAll {
             it instanceof ProjectDependency
         }.findAll {

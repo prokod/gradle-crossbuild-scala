@@ -3,6 +3,7 @@ package com.github.prokod.gradle.crossbuild.utils
 import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.invocation.Gradle
 
 /**
  * Util class for CrossBuildPlugin/Rules
@@ -38,11 +39,11 @@ class CrossBuildPluginUtils {
      *  {@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin} plugin applied
      *  and return their respective names.
      *
-     * @param project project space {@link Project}
+     * @param gradle gradle space to retrieve rootProject ({@link Project}) from
      * @return list of project(module) names for multi module project
      */
-    static List<String> findAllNamesForCrossBuildPluginAppliedProjects(Project project) {
-        def moduleNames = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(CrossBuildPlugin) }*.name
+    static List<String> findAllNamesForCrossBuildPluginAppliedProjects(Gradle gradle) {
+        def moduleNames = gradle.rootProject.allprojects.findAll { it.plugins.hasPlugin(CrossBuildPlugin) }*.name
         moduleNames
     }
 

@@ -17,16 +17,16 @@ package com.github.prokod.gradle.crossbuild
 
 import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
+class CrossBuildPluginJarTest extends CrossBuildGradleRunnerSpec {
+
     File buildFile
     File propsFile
+    File scalaFile
+    File javaFile
 
     def testMavenCentralAccess() {
         URL u = new URL ( "https://repo1.maven.org/maven2/")
@@ -39,11 +39,42 @@ class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
     def setup() {
         buildFile = file('build.gradle')
         propsFile = file('gradle.properties')
+        scalaFile = file('src/main/scala/HelloWorldA.scala')
+        javaFile = file('src/main/java/HelloWorldB.java')
     }
 
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with crossBuild dsl should produce expected jars"() {
         given:
+        scalaFile << """
+import org.scalatest._
+
+object HelloWorldA {
+   /* This is my first java program.  
+   * This will print 'Hello World' as the output
+   */
+   def main(args: Array[String]) {
+      println("Hello, world A!")
+   }
+   
+   def runIt() {
+         println("Visit, world B!")
+   }
+}
+"""
+
+        javaFile << """
+
+public class HelloWorldB {
+   /* This is my first java program.  
+   * This will print 'Hello World' as the output
+   */
+   public static void main(String[] args) {
+      HelloWorldA.runIt();
+   }
+}
+"""
+
         buildFile << """
 import com.github.prokod.gradle.crossbuild.model.*
 
@@ -119,6 +150,17 @@ model {
     }
 }
 
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
 dependencies {
     compile "org.scalatest:scalatest_?:3.0.1"
     compile "com.google.guava:guava:18.0"
@@ -132,23 +174,17 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('publishToMavenLocal', '--info', '--stacktrace')
+                .withDebug(true)
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.task(":publishToMavenLocal").outcome == SUCCESS
-        def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
-        def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        result.task(":crossBuild210Jar").outcome == SUCCESS
+        result.task(":crossBuild211Jar").outcome == SUCCESS
 
-        !pom210.contains('2.11.')
-        pom210.contains('2.10.6')
-        pom210.contains('18.0')
-        pom210.contains('3.0.1')
-        !pom211.contains('2.11.+')
-        !pom211.contains('2.10.')
-        pom211.contains('2.11.11')
-        pom211.contains('18.0')
-        pom211.contains('3.0.1')
+        fileExists("$dir.root.absolutePath/build/libs/junit*_2.10.jar")
+        fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
+
         where:
         [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
     }
