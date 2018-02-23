@@ -31,6 +31,8 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.scala.ScalaCompile
@@ -69,6 +71,7 @@ class CrossBuildPluginRules extends RuleSource {
             @Each TargetVerItem targetVersion,
             @Path('crossBuild.archivesBaseName') String archivesBaseName,
             @Path('crossBuild.scalaVersions') ScalaVersions scalaVersions) {
+        trySettingDefaultValue(targetVersion, scalaVersions)
         validateTargetVersion(targetVersion)
         def scalaVersionInsights = new ScalaVersionInsights(targetVersion.value, scalaVersions)
         def interpretedBaseName = generateCrossArchivesBaseName(
@@ -140,6 +143,53 @@ class CrossBuildPluginRules extends RuleSource {
         }
     }
 
+    @Mutate
+    void updateCrossBuildPublications(PublishingExtension publishing, CrossBuild crossBuild) {
+        def crossBuildSourceSets = new CrossBuildSourceSets(crossBuild)
+        crossBuild.targetVersions.findAll { targetVersion ->
+            def scalaVersionInsights = new ScalaVersionInsights(targetVersion.value, crossBuild.scalaVersions)
+            def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByVersion(scalaVersionInsights)
+            def pomAidingConfigName = PomAidingConfigurations.compileScopeConfigurationNameFor(sourceSet)
+
+            def project = crossBuild.project
+            publishing.publications.all { MavenPublication pub ->
+                if (pub instanceof MavenPublication && probablyRelatedPublication(pub, targetVersion, sourceSetId)) {
+                    pub.pom.withXml {
+                        def dependenciesNode = asNode().appendNode("dependencies")
+
+                        if (dependenciesNode != null) {
+                            project.configurations[pomAidingConfigName].allDependencies.each { dep ->
+                                def dependencyNode = dependenciesNode.appendNode('dependency')
+                                dependencyNode.appendNode('groupId', dep.group)
+                                dependencyNode.appendNode('artifactId', dep.name)
+                                dependencyNode.appendNode('version', dep.version)
+                                dependencyNode.appendNode('scope', 'runtime')
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean probablyRelatedPublication(MavenPublication pub,
+                                                       TargetVerItem targetVersion,
+                                                       String sourceSetId) {
+        pub.artifactId == targetVersion.artifactId || pub.name.contains(sourceSetId)
+    }
+
+    private static boolean trySettingDefaultValue(TargetVerItem targetVersion, ScalaVersions scalaVersions) {
+        if (targetVersion.value == null) {
+            scalaVersions.catalog.collect { new ScalaVersionInsights(it.value) }.each { versionInsights ->
+                if (targetVersion.name.toLowerCase() == "v${versionInsights.strippedArtifactInlinedVersion}") {
+                    targetVersion.value = versionInsights.artifactInlinedVersion
+                    return true
+                }
+            }
+        }
+        false
+    }
+
     /**
      * Validation of the value for a given {@link TargetVerItem} instance.
      *
@@ -151,9 +201,29 @@ class CrossBuildPluginRules extends RuleSource {
 
             Example:
             -------
+            - by convention
+            
             model {
                 crossBuild {
-                    V211(ScalaVer) {
+                    V211(ScalaVer)
+                    ...
+                }
+            }
+            
+            or
+            
+            model {
+                crossBuild {
+                    v211(ScalaVer)
+                    ...
+                }
+            }
+            
+            - custom naming
+          
+            model {
+                crossBuild {
+                    A(ScalaVer) {
                         value = '2.11'
                     }
                     ...
