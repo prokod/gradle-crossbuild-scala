@@ -25,7 +25,9 @@ import com.github.prokod.gradle.crossbuild.model.CrossBuild
 import com.github.prokod.gradle.crossbuild.model.TargetVerItem
 import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
+import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.file.SourceDirectorySet
@@ -145,28 +147,17 @@ class CrossBuildPluginRules extends RuleSource {
 
     @Mutate
     void updateCrossBuildPublications(PublishingExtension publishing, CrossBuild crossBuild) {
+        def project = crossBuild.project
         def crossBuildSourceSets = new CrossBuildSourceSets(crossBuild)
+
         crossBuild.targetVersions.findAll { targetVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(targetVersion.value, crossBuild.scalaVersions)
             def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByVersion(scalaVersionInsights)
             def pomAidingConfigName = PomAidingConfigurations.compileScopeConfigurationNameFor(sourceSet)
 
-            def project = crossBuild.project
             publishing.publications.all { MavenPublication pub ->
                 if (pub instanceof MavenPublication && probablyRelatedPublication(pub, targetVersion, sourceSetId)) {
-                    pub.pom.withXml {
-                        def dependenciesNode = asNode().appendNode("dependencies")
-
-                        if (dependenciesNode != null) {
-                            project.configurations[pomAidingConfigName].allDependencies.each { dep ->
-                                def dependencyNode = dependenciesNode.appendNode('dependency')
-                                dependencyNode.appendNode('groupId', dep.group)
-                                dependencyNode.appendNode('artifactId', dep.name)
-                                dependencyNode.appendNode('version', dep.version)
-                                dependencyNode.appendNode('scope', 'runtime')
-                            }
-                        }
-                    }
+                    pub.pom.withXml { withXmlHandler(it, pomAidingConfigName, project) }
                 }
             }
         }
@@ -176,6 +167,20 @@ class CrossBuildPluginRules extends RuleSource {
                                                        TargetVerItem targetVersion,
                                                        String sourceSetId) {
         pub.artifactId == targetVersion.artifactId || pub.name.contains(sourceSetId)
+    }
+
+    private static void withXmlHandler(XmlProvider xmlProvider, String pomAidingConfigName, Project project ) {
+        def dependenciesNode = xmlProvider.asNode().appendNode('dependencies')
+
+        if (dependenciesNode != null) {
+            project.configurations[pomAidingConfigName].allDependencies.each { dep ->
+                def dependencyNode = dependenciesNode.appendNode('dependency')
+                dependencyNode.appendNode('groupId', dep.group)
+                dependencyNode.appendNode('artifactId', dep.name)
+                dependencyNode.appendNode('version', dep.version)
+                dependencyNode.appendNode('scope', 'runtime')
+            }
+        }
     }
 
     private static boolean trySettingDefaultValue(TargetVerItem targetVersion, ScalaVersions scalaVersions) {
@@ -195,6 +200,7 @@ class CrossBuildPluginRules extends RuleSource {
      *
      * @param targetVersion Target version item created using Gradle model DSL
      */
+    @SuppressWarnings('TrailingWhitespace')
     private static void validateTargetVersion(TargetVerItem targetVersion) {
         def message = """\
             Property value is not set. Set a value in the model configuration.
