@@ -40,6 +40,7 @@ buildscript {
     ```
 
 - `gradle tasks`
+
     `gradle-crossbuild` plugin adds the following user faced tasks to the project `crossBuild210Classes`, `crossBuild210Jar`, `crossBuild211Classes`, `crossBuild211Jar`
 
     ```sh
@@ -137,6 +138,7 @@ model {
 ```
 
 - `gradle tasks`
+
     Notice that `gradle-crossbuild` plugin now adds the following publish related user faced tasks to the project:
 
     ```sh
