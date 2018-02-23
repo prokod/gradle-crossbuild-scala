@@ -106,37 +106,11 @@ model {
                 groupId = project.group
                 artifactId = \$.crossBuild.targetVersions.v210.artifactId
                 artifact \$.tasks.crossBuild210Jar
-                pom.withXml {
-                    def dependenciesNode = asNode().appendNode("dependencies")
-
-                    if (dependenciesNode != null) {
-                        configurations.crossBuild210MavenCompileScope.allDependencies.each { dep ->
-                            def dependencyNode = dependenciesNode.appendNode('dependency')
-                            dependencyNode.appendNode('groupId', dep.group)
-                            dependencyNode.appendNode('artifactId', dep.name)
-                            dependencyNode.appendNode('version', dep.version)
-                            dependencyNode.appendNode('scope', 'runtime')
-                        }
-                    }
-                }
             }
             crossBuild211(MavenPublication) {
                 groupId = project.group
                 artifactId = \$.crossBuild.targetVersions.v211.artifactId
                 artifact \$.tasks.crossBuild211Jar
-                pom.withXml {
-                    def dependenciesNode = asNode().appendNode("dependencies")
-
-                    if (dependenciesNode != null) {
-                        configurations.crossBuild211MavenCompileScope.allDependencies.each { dep ->
-                            def dependencyNode = dependenciesNode.appendNode('dependency')
-                            dependencyNode.appendNode('groupId', dep.group)
-                            dependencyNode.appendNode('artifactId', dep.name)
-                            dependencyNode.appendNode('version', dep.version)
-                            dependencyNode.appendNode('scope', 'runtime')
-                        }
-                    }
-                }
             }
         }
     }

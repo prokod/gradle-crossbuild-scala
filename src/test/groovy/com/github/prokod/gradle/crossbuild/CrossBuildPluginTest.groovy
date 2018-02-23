@@ -20,19 +20,96 @@ import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 
-class CrossBuildPluginTest extends Specification {
-    @Rule
-    final TemporaryFolder testProjectDir = new TemporaryFolder()
+class CrossBuildPluginTest extends CrossBuildGradleRunnerSpec {
     File buildFile
     File propsFile
 
     def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
-        propsFile = testProjectDir.newFile('gradle.properties')
+        buildFile = file('build.gradle')
+        propsFile = file('gradle.properties')
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix and value for each specified targetVersion and no publishing block should produce expected set of crossbuild jar task(s) when calling 'tasks'"() {
+        given:
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+        }
+    }
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withArguments('tasks', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.output.contains('crossBuild210Jar')
+        !result.output.contains('publishCrossBuild210PublicationToMavenLocal')
+        result.output.contains('crossBuild211Jar')
+        !result.output.contains('publishCrossBuild211PublicationToMavenLocal')
+        result.task(":tasks").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['2.14.1', '3.0', '4.1']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and no publishing block should produce expected set of crossbuild jar task(s) when calling 'tasks'"() {
+        given:
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer) {
+                value = '2.10'
+            }
+            v211(ScalaVer) {
+                value = '2.11'
+            }
+        }
+    }
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withArguments('tasks', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.output.contains('crossBuild210Jar')
+        !result.output.contains('publishCrossBuild210PublicationToMavenLocal')
+        result.output.contains('crossBuild211Jar')
+        !result.output.contains('publishCrossBuild211PublicationToMavenLocal')
+        result.task(":tasks").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['2.14.1', '3.0', '4.1']
     }
 
     @Unroll
@@ -77,7 +154,7 @@ model {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
@@ -120,7 +197,7 @@ model {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
                 .build()
@@ -166,7 +243,7 @@ model {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info')
                 .build()
@@ -213,7 +290,7 @@ model {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info')
                 .build()
@@ -267,7 +344,7 @@ model {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'crossBuild210_AJar', 'crossBuild211_AJar', '--info', '--stacktrace')
                 .build()
@@ -330,7 +407,7 @@ model {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
@@ -375,7 +452,7 @@ model {
         when:
         GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info')
                 .build()
@@ -410,7 +487,43 @@ model {
         when:
         GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info')
+                .build()
+
+        then:
+        thrown(RuntimeException)
+
+        where:
+        gradleVersion << ['2.14.1', '3.0', '4.1']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix and value for each specified targetVersion should throw when scalaVersions catalog is missing needed version'"() {
+        given:
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        scalaVersion = [2.9':'2.9.3', '2.10':'2.10.6']
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+        }
+    }
+}
+"""
+
+        when:
+        GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info')
                 .build()
