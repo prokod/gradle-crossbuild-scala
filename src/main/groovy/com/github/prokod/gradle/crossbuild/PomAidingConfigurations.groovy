@@ -46,10 +46,14 @@ class PomAidingConfigurations {
             ScalaVersionInsights scalaVersionInsights,
             String archiveAppendix) {
         def sourceConfig = project.configurations[sourceSet.runtimeConfigurationName]
-        def targetCompileScopeConfig = project.configurations.create("${sourceSet.name}${CONFIGURATION_NAME_SUFFIX}")
+        def targetCompileScopeConfig = project.configurations.create(compileScopeConfigurationNameFor(sourceSet))
 
         populatePomAidingConfiguration(
                 sourceConfig, targetCompileScopeConfig, scalaVersionInsights, archiveAppendix)
+    }
+
+    static String compileScopeConfigurationNameFor(SourceSet sourceSet) {
+        "${sourceSet.name}${CONFIGURATION_NAME_SUFFIX}".toString()
     }
 
     /**
