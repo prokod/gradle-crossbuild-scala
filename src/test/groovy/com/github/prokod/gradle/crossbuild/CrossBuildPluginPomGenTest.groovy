@@ -17,9 +17,6 @@ package com.github.prokod.gradle.crossbuild
 
 import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -27,14 +24,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
     File buildFile
     File propsFile
-
-    def testMavenCentralAccess() {
-        URL u = new URL ( "https://repo1.maven.org/maven2/")
-        HttpURLConnection huc =  ( HttpURLConnection )  u.openConnection ()
-        huc.setRequestMethod ("HEAD")
-        huc.connect ()
-        huc.getResponseCode() == HttpURLConnection.HTTP_OK
-    }
 
     def setup() {
         buildFile = file('build.gradle')
@@ -75,37 +64,11 @@ model {
                 groupId = project.group
                 artifactId = \$.crossBuild.targetVersions.v210.artifactId
                 artifact \$.tasks.crossBuild210Jar
-                pom.withXml {
-                    def dependenciesNode = asNode().appendNode("dependencies")
-
-                    if (dependenciesNode != null) {
-                        configurations.crossBuild210MavenCompileScope.allDependencies.each { dep ->
-                            def dependencyNode = dependenciesNode.appendNode('dependency')
-                            dependencyNode.appendNode('groupId', dep.group)
-                            dependencyNode.appendNode('artifactId', dep.name)
-                            dependencyNode.appendNode('version', dep.version)
-                            dependencyNode.appendNode('scope', 'runtime')
-                        }
-                    }
-                }
             }
             crossBuild211(MavenPublication) {
                 groupId = project.group
                 artifactId = \$.crossBuild.targetVersions.v211.artifactId
                 artifact \$.tasks.crossBuild211Jar
-                pom.withXml {
-                    def dependenciesNode = asNode().appendNode("dependencies")
-
-                    if (dependenciesNode != null) {
-                        configurations.crossBuild211MavenCompileScope.allDependencies.each { dep ->
-                            def dependencyNode = dependenciesNode.appendNode('dependency')
-                            dependencyNode.appendNode('groupId', dep.group)
-                            dependencyNode.appendNode('artifactId', dep.name)
-                            dependencyNode.appendNode('version', dep.version)
-                            dependencyNode.appendNode('scope', 'runtime')
-                        }
-                    }
-                }
             }
         }
     }
