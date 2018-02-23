@@ -1,4 +1,5 @@
 ## gradle crossbuild scala plugin
+[![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)
 
 ### Getting the plugin
 ----------------------
