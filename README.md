@@ -1,7 +1,7 @@
-## gradle crossbuild scala plugin
+# gradle crossbuild scala plugin
 [![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)
 
-### Getting the plugin
+## Getting the plugin
 ----------------------
 ```groovy
 buildscript {
@@ -11,9 +11,9 @@ buildscript {
 }
 ```
 
-### Quick start
+## Quick start
 ---------------
-#### cross building
+### cross building
 - Applying the plugin and using its DSL
 
     ```groovy
@@ -97,14 +97,14 @@ buildscript {
 
     ```
 
-##### Notes
+#### Notes
 - When defining `targetVersions` a short hand convention can be used for default values.
 To be able to use that targetVersion item should be named by the following convention for example:
 `[v|V]210(ScalaVer)` is translated to `{ "targetVersion": { "value": "2.10", "name": "[v|V]210" }`
 - When using a dependency with '?' in compile configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will try to deduce the scala version for task build
 based on the neighboring dependencies and explicit `scala-library` dependency if any. If it fails to deduce an exception will be thrown.
 
-#### cross building with publishing  
+### cross building with publishing  
 Leveraging gradle maven-publish plugin for the actual publishing
 
 ```groovy
@@ -174,7 +174,7 @@ model {
 
     ```
 
-##### Notes
+#### Notes
 - To tap into the lifecycle of 'maven-publish' plugin it is being applied from within crossbuild-scala plugins.
 When using this plugin and applying 'maven-publish' plugin explicitly in build.gradle for the same module, an Exception will be raised.
 - Behind the scenes Configuration crossBuild2XXMavenCompileScope is being populated and used with in `pom.withXml` block.
@@ -183,7 +183,7 @@ When using this plugin and applying 'maven-publish' plugin explicitly in build.g
     - Either ensuring `artifactId = $.crossBuild.targetVersions.v211.artifactId` in the model
     - Or giving the publication item a name of the following convention `crossBuildXXX(MavenPublication)` where XXX can be 210, 211, 212 etc.
 
-#### cross building DSL
+### cross building DSL
 `targetVersionItem.archiveAppendix`, `crossBuild.scalaVersions`, `crossBuild211XXX` pre defined configurations
 
 ```groovy
@@ -217,7 +217,7 @@ dependencies {
 }
 ```
 
-### Notes
+#### Notes
 - If `crossBuild.scalaVersions` catalog is not defined a default one will be used (might get outdated).
 - The plugin provides pre defined configurations being used by the matching pre generated Jar tasks:
 crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly
