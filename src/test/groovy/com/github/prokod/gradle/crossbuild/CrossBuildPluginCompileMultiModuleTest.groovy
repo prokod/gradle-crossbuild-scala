@@ -39,8 +39,8 @@ class CrossBuildPluginCompileMultiModuleTest extends CrossBuildGradleRunnerSpec 
         libBuildFile = file('lib/build.gradle')
         libScalaFile = file('lib/src/main/scala/HelloWorldLibApi.scala')
         libJavaFile = file('lib/src/main/java/HelloWorldLibImpl.java')
-        appBuildFile = file('mapp/build.gradle')
-        appScalaFile = file('mapp/src/main/scala/HelloWorldApp.scala')
+        appBuildFile = file('app/build.gradle')
+        appScalaFile = file('app/src/main/scala/HelloWorldApp.scala')
     }
 
     @Unroll
@@ -49,7 +49,7 @@ class CrossBuildPluginCompileMultiModuleTest extends CrossBuildGradleRunnerSpec 
         // root project settings.gradle
         settingsFile << """
 include 'lib'
-include 'mapp'
+include 'app'
 """
 
         buildFile << """
@@ -193,8 +193,8 @@ dependencies {
 
         fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10.jar")
         fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11.jar")
-        fileExists("$dir.root.absolutePath/mapp/build/libs/mapp_2.10.jar")
-        fileExists("$dir.root.absolutePath/mapp/build/libs/mapp_2.11.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
 
         def pom210 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def pom211 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml").text

@@ -95,7 +95,7 @@ class ResolutionStrategyConfigurer {
         }
         // A cross built dependency - globbed (implicit)
         else if (supposedScalaVersion == '?') {
-            resolveQMarkDep(details, scalaVersionInsights)
+            resolveQMarkDep(details, scalaVersionInsights.artifactInlinedVersion)
             project.logger.info(LoggerUtils.logTemplate(project,
                     "${crossBuildConfigurationName} | " +
                             "Found crossbuild glob '?' in dependency name ${requested.name}. " +
@@ -159,11 +159,11 @@ class ResolutionStrategyConfigurer {
             if (c.name.startsWith('test')) {
                 c.resolutionStrategy.eachDependency { details ->
                     def requested = details.requested
-                    // Replace 3d party scala dependency which ends with '_?'
-                    if (requested.name.endsWith('_?')) {
+                    // Replace 3d party scala dependency which contains '_?'
+                    def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
+                    if (probableScalaVersion == '?') {
                         updateTargetName(details, c, scalaVersions)
-                        project.logger.info(LoggerUtils.logTemplate(
-                                project,
+                        project.logger.info(LoggerUtils.logTemplate(project,
                                 "${c.name} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
                                         "Subtituted with [${details.target.name}]"
                         ))
@@ -182,9 +182,9 @@ class ResolutionStrategyConfigurer {
      */
     private static void resolveQMarkDep(
             DependencyResolveDetails details,
-            ScalaVersionInsights scalaVersionInsights) {
+            String replacementScalaVersion) {
         def requested = details.requested
-        def resolvedName = requested.name.replace('_?', "_${scalaVersionInsights.artifactInlinedVersion}")
+        def resolvedName = requested.name.replace('_?', "_$replacementScalaVersion")
         details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
     }
 
@@ -210,13 +210,11 @@ class ResolutionStrategyConfigurer {
 
         def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
 
-        def requested = details.requested
-        def versions = scalaDeps.collect { it[1] }.toSet()
+        def versions = scalaDeps.collect { it[1].toString() }.toSet()
         if (versions.size() == 1) {
             def scalaVersion = versions.head()
 
-            def resolvedName = requested.name.replace('_?', "_${scalaVersion}")
-            details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
+            resolveQMarkDep(details, scalaVersion)
             return true
         }
         false
@@ -283,8 +281,7 @@ class ResolutionStrategyConfigurer {
         def requested = details.requested
         assert probableScalaVersionRaw.size() == 1 : 'Could not infer Scala version to be applied to dependency ' +
                 "'$requested.group:$requested.name'"
-        def probableScalaVersion = probableScalaVersionRaw.head().first
-        def resolvedName = requested.name.replace('_?', "_${probableScalaVersion}")
-        details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
+        def probableScalaVersion = probableScalaVersionRaw.head().first.toString()
+        resolveQMarkDep(details, probableScalaVersion)
     }
 }
