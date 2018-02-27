@@ -6,7 +6,7 @@
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.3.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.3.1")
     }
 }
 ```
