@@ -193,13 +193,18 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 
 model {
     crossBuild {
-        scalaVersions = ['2.11': '2.11.11', ...]
         targetVersions {
             v211(ScalaVer) {
                 value = '2.11'
                 archiveAppendix = "_?_$spark20SparkVersion" // By default the value is "_?" 
                                                             // In the default case will yield '_2.11')
             }
+        }
+
+        scalaVersions = ['2.11': '2.11.11', ...]
+
+        dependencyResolution {
+            includes = [configurations.someUserConfiguration]
         }
     }
 }
@@ -221,3 +226,33 @@ dependencies {
 - If `crossBuild.scalaVersions` catalog is not defined a default one will be used (might get outdated).
 - The plugin provides pre defined configurations being used by the matching pre generated Jar tasks:
 crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly
+- `dependencyResolution.includes = [...]` provides users the option to create their own Configuration/SourceSet and then specify dependency within on a cross build sub project.
+  For instance:
+  ```groovy
+  apply plugin: 'com.github.prokod.gradle-crossbuild'
+
+  crossBuild {
+    ...
+
+    dependencyResolution.includes = [
+        configurations.integrationTestCompileClasspath,
+        configurations.integrationTestRuntimeClasspath
+    ]
+  }
+  ...
+
+  sourceSets {
+    integrationTest {
+        ...
+    }
+  }
+
+  configurations {
+    integrationTestCompile.extendsFrom testCompile
+    ...
+  }
+
+  dependencies {
+      ...
+  }
+  ```
