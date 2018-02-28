@@ -154,15 +154,15 @@ class DependencyInsights {
     static List<Dependency> extractCrossBuildProjectDependencyDependencies(Gradle gradle,
                                                                            DependencySet dependencySet,
                                                                            String configurationName) {
-        def crossBuildProjectDependencySetDeps = extractCrossBuildProjectDependencySet(gradle, dependencySet)
-                .collect { it.dependencyProject }.collect { Project dependencyProject ->
-                    def dependencyProjectConfiguration = dependencyProject.configurations.findByName(configurationName)
-                    // We are guarding against null here as configurationName is not guaranteed to be part of the
-                    //  configurations of each of the dependencyProjects that have been found.
-                    dependencyProjectConfiguration != null ? dependencyProjectConfiguration.allDependencies : []
-                }.collectMany { depSet ->
-                    depSet.collect()
-                }
+        def crossBuildProjectDependencySetDeps =
+                extractCrossBuildProjectDependencySet(gradle, dependencySet)*.dependencyProject.collect { depPrj ->
+            def dependencyProjectConfiguration = depPrj.configurations.findByName(configurationName)
+            // We are guarding against null here as configurationName is not guaranteed to be part of the
+            //  configurations of each of the dependencyProjects that have been found.
+            dependencyProjectConfiguration != null ? dependencyProjectConfiguration.allDependencies : []
+        }.collectMany { depSet ->
+            depSet.collect()
+        }
         crossBuildProjectDependencySetDeps
     }
 
