@@ -172,7 +172,6 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withDebug(true)
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
@@ -200,6 +199,134 @@ dependencies {
         pom211.contains('2.11.11')
         pom211.contains('18.0')
         pom211.contains('3.0.1')
+        where:
+        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+    }
+
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project and calling crossBuildXXJar tasks on it should build correctly"() {
+        given:
+        // root project settings.gradle
+        settingsFile << """
+include 'lib'
+include 'app'
+"""
+
+        buildFile << """
+
+allprojects {
+    group = 'com.github.prokod.it'
+    version = '1.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+"""
+
+        libScalaFile << """
+import org.scalatest._
+
+trait HelloWorldLibApi {
+   def greet()
+}
+"""
+
+        libJavaFile << """
+
+public class HelloWorldLibImpl implements HelloWorldLibApi {
+   public void greet() {
+      System.out.println("Hello, world!");
+   }
+}
+"""
+
+        libBuildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+        }
+    }
+}
+
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    compile "org.scalatest:scalatest_?:3.0.1"
+    compile "com.google.guava:guava:18.0"
+    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+}
+"""
+
+        appScalaFile << """
+import HelloWorldLibImpl._
+
+object HelloWorldApp {
+   def main(args: Array[String]) {
+      new HelloWorldLibImpl().greet()
+   }
+}
+"""
+
+        appBuildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+        }
+    }
+}
+
+dependencies {
+    compile project(':lib')
+}
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withDebug(true)
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.task(":lib:crossBuild210Jar").outcome == SUCCESS
+        result.task(":lib:crossBuild211Jar").outcome == SUCCESS
+        result.task(":app:crossBuild210Jar").outcome == SUCCESS
+        result.task(":app:crossBuild211Jar").outcome == SUCCESS
+
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
+
         where:
         [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
     }

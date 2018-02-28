@@ -46,8 +46,10 @@ class ResolutionStrategyConfigurer {
                             "[${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
             ))
 
-            def allDependenciesAsDisplayNameSet = allDependencies.collect {
-                "${it.group}:${it.name}:${it.version}"
+            def projectDependencies = DependencyInsights.extractCrossBuildProjectDependencyDependencies(project.gradle,
+                    allDependencies, parentConfiguration.name)
+            def allDependenciesAsDisplayNameSet = (allDependencies + projectDependencies).collect { dep ->
+                "${dep.group}:${dep.name}:${dep.version}"
             }.toSet()
 
             project.configurations.all { c ->
@@ -63,20 +65,6 @@ class ResolutionStrategyConfigurer {
                             strategyForNonCrossBuildConfiguration(parentConfiguration, supposedScalaVersion, details)
                         }
                     }
-                }
-            }
-
-            // Cover the cases where two sub projects, for instance, are using cross build plugin and one is being used
-            //  as dependency for the other.
-            def crossBuildProjectDependencySet = DependencyInsights.extractCrossBuildProjectDependencySet(
-                    project.gradle, parentConfiguration.allDependencies)
-
-            crossBuildProjectDependencySet.collect { projectDep ->
-                def configuration = project.configurations[parentConfiguration.name]
-                configuration.resolutionStrategy.eachDependency { details ->
-                    def requested = details.requested
-                    String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
-                    strategyForNonCrossBuildConfiguration(configuration, supposedScalaVersion, details)
                 }
             }
         }
