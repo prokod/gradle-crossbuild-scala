@@ -425,6 +425,52 @@ model {
     }
 
     @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and adding user defined configurations should not cause any exception"() {
+        given:
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+group = 'test'
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+            
+            dependencyResolution.includes = [configurations.integrationTestCompile]
+        }
+    }
+}
+
+sourceSets {
+    integrationTest
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.output.contains('_2.10\'')
+        result.output.contains('_2.11\'')
+        result.task(":crossBuild210Jar").outcome == SUCCESS
+        result.task(":crossBuild211Jar").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['2.14.1', '3.0', '4.1']
+    }
+
+    @Unroll
     def "[#gradleVersion] applying maven publish plugin and crossbuild plugin should throw"() {
         given:
         buildFile << """
