@@ -108,12 +108,15 @@ class CrossBuildPluginRules extends RuleSource {
 
             //TODO: From gradle 3.4 runtime should be subtituted with runtimeClasspath
             def configurer = new ResolutionStrategyConfigurer(project, crossBuild.scalaVersions, scalaVersionInsights)
-            configurer.applyFor([
+            configurer.applyForLinkWith([
                     (sourceSet.compileConfigurationName):project.configurations.compile,
                     (sourceSet.compileClasspathConfigurationName):project.configurations.compileClasspath,
                     (sourceSet.compileOnlyConfigurationName):project.configurations.compileOnly,
                     (sourceSet.runtimeConfigurationName):project.configurations.runtime])
-            configurer.applyForTest()
+
+            def configs = project.configurations.findAll { it.name.startsWith('test') } +
+                    crossBuild.dependencyResolution?.includes
+            configurer.applyFor(configs)
 
             def pomAidingConfigurations = new PomAidingConfigurations(project, sourceSet)
             pomAidingConfigurations.addCompileScopeConfiguration(scalaVersionInsights, targetVersion.archiveAppendix)

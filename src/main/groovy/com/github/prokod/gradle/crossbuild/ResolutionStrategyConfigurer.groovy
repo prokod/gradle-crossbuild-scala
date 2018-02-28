@@ -32,7 +32,7 @@ class ResolutionStrategyConfigurer {
      *                          a source for dependencies
      *                       - A {@link Configuration} to link as extendedFrom
      */
-    void applyFor(List<Tuple2<String, Configuration>> configurations) {
+    void applyForLinkWith(List<Tuple2<String, Configuration>> configurations) {
         configurations.findAll { configTuple ->
             def crossBuildConfigurationName = configTuple.first
             def parentConfiguration = configTuple.second
@@ -144,8 +144,8 @@ class ResolutionStrategyConfigurer {
         }
     }
 
-    void applyFor(Map<String, Configuration> map) {
-        applyFor(map.collect { new Tuple2<>(it.key, it.value) })
+    void applyForLinkWith(Map<String, Configuration> map) {
+        applyForLinkWith(map.collect { new Tuple2<>(it.key, it.value) })
     }
 
     /**
@@ -154,9 +154,9 @@ class ResolutionStrategyConfigurer {
      * @param project Project space {@link Project}
      * @param scalaVersions Scala version catalog
      */
-    void applyForTest() {
+    void applyFor(Set<Configuration> configurations) {
         project.configurations.all { c ->
-            if (c.name.startsWith('test')) {
+            if (configurations.contains(c)) {
                 c.resolutionStrategy.eachDependency { details ->
                     def requested = details.requested
                     // Replace 3d party scala dependency which contains '_?'

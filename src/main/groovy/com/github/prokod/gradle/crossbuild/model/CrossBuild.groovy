@@ -28,14 +28,20 @@ import org.gradle.model.Unmanaged
  * <code>
  * model {
  *     crossBuild {
- *         archivesBaseName = 'artifact'            // Defaults to project archivesBaseName
- *
  *         targetVersions {
  *             V211(ScalaVer) {
  *                 value = '2.11'                   // Defaults to 'V211' in this example, if not set at all
  *                 archiveAppendix = '_?_2.0.2'     // '?' will be replaced by value.
  *                                                  // Could be set explicitly also for simplicity.
  *             }
+ *         }
+ *
+ *         archivesBaseName = 'artifact'            // Defaults to project archivesBaseName
+ *
+ *         scalaVersions = ['2.11':'2.11.11', ...]  // Defaults to {@link ScalaVersions#DEFAULT_SCALA_VERSIONS}
+ *
+ *         dependencyResolution {
+ *             includes = [...]
  *         }
  *     }
  * }
@@ -52,6 +58,8 @@ interface CrossBuild {
     @Unmanaged
     ScalaVersions getScalaVersions()
     void setScalaVersions(ScalaVersions scalaVersions)
+
+    DependencyResolution getDependencyResolution()
 
     @Unmanaged
     Project getProject()
