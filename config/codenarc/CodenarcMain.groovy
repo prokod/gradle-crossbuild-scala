@@ -300,7 +300,9 @@ ruleset {
     ClassNameSameAsFilename
     ClassNameSameAsSuperclass
     ConfusingMethodName
-    FactoryMethodName
+    FactoryMethodName {
+        regex = /(build.*)/
+    }
     FieldName
     InterfaceName
     InterfaceNameSameAsSuperInterface

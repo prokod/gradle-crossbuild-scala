@@ -14,10 +14,10 @@ import org.gradle.api.tasks.SourceSet
  *
  */
 class PomAidingConfigurations {
-    static final String CONFIGURATION_NAME_SUFFIX = 'MavenCompileScope'
-
     private final Project project
     private final SourceSet sourceSet
+    private final ScalaVersionInsights scalaVersionInsights
+    private final String archiveAppendix
 
     /**
      * Constructor
@@ -25,56 +25,85 @@ class PomAidingConfigurations {
      * @param project Project space {@link org.gradle.api.Project}
      * @param sourceSet A specific {@link org.gradle.api.tasks.SourceSet} that provides a configuration
      *                   to use as source of dependencies for the new configuration
+     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     * @param archiveAppendix {@link com.github.prokod.gradle.crossbuild.model.TargetVerItem} archiveAppendix
+     *                         to aid with the replacement of non cross build
+     *                         {@link org.gradle.api.artifacts.ProjectDependency} with its cross build counterpart
      *
      */
-    PomAidingConfigurations(Project project, SourceSet sourceSet) {
+    PomAidingConfigurations(Project project,
+                            SourceSet sourceSet,
+                            ScalaVersionInsights scalaVersionInsights,
+                            String archiveAppendix) {
         this.project = project
         this.sourceSet = sourceSet
+        this.scalaVersionInsights = scalaVersionInsights
+        this.archiveAppendix = archiveAppendix
     }
+
+    PomAidingConfigurations(Project project,
+                            SourceSet sourceSet,
+                            ScalaVersionInsights scalaVersionInsights) {
+        this.project = project
+        this.sourceSet = sourceSet
+        this.scalaVersionInsights = scalaVersionInsights
+        this.archiveAppendix = null
+    }
+
     /**
      * Creates a Compile Scope configuration that should be used by the user for generating the dependencies
      *  for a cross build artifact's pom file.
      *
      * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
-     * @param archiveAppendix {@link com.github.prokod.gradle.crossbuild.model.TargetVerItem} archiveAppendix
-     *                         to aid with the replacement of non cross build
-     *                         {@link org.gradle.api.artifacts.ProjectDependency} with its cross build counterpart
+     * @return Created configuration
      * @throws org.gradle.api.InvalidUserDataException if an object with the given name already exists in this
      *         container.
      */
-    void addCompileScopeConfiguration(
-            ScalaVersionInsights scalaVersionInsights,
-            String archiveAppendix) {
-        def sourceConfig = project.configurations[sourceSet.runtimeConfigurationName]
-        def targetCompileScopeConfig = project.configurations.create(compileScopeConfigurationNameFor(sourceSet))
+    Configuration createAndSetForMavenScope(ScopeType scopeType) {
+        def dependencySetFunction = { ScopeType scope ->
+            switch (scope) {
+                case ScopeType.COMPILE:
+                    return project.configurations[sourceSet.compileConfigurationName].allDependencies
+                case ScopeType.PROVIDED:
+                    def compileOnlySet = project.configurations[sourceSet.compileOnlyConfigurationName].allDependencies
+                    def compileSet = project.configurations[sourceSet.compileConfigurationName].allDependencies
+                    return (compileOnlySet - compileSet)
+            }
+        }
 
-        populatePomAidingConfiguration(
-                sourceConfig, targetCompileScopeConfig, scalaVersionInsights, archiveAppendix)
+        def createdTargetMavenScopeConfig =
+                project.configurations.create(mavenScopeConfigurationNameFor(scopeType))
+
+        set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType))
+        createdTargetMavenScopeConfig
     }
 
-    static String compileScopeConfigurationNameFor(SourceSet sourceSet) {
-        "${sourceSet.name}${CONFIGURATION_NAME_SUFFIX}".toString()
+    private void set(Configuration target, Set<Dependency> sourceDependencies) {
+        target.dependencies.addAll(assembleProjectTypeDependencies(sourceDependencies))
+        target.dependencies.addAll(assemble3rdPartyDependencies(sourceDependencies))
+        target.dependencies.addAll(assemble3rdPartyScalaLibDependencies(sourceDependencies))
+        target.dependencies.addAll(assemble3rdPartyGlobedScalaLibDependencies(sourceDependencies))
+    }
+
+    String mavenScopeConfigurationNameFor(ScopeType scopeType) {
+        "${sourceSet.name}${MAVEN_SCOPE_SUFFIX_FUNC(scopeType)}".toString()
+    }
+
+    @SuppressWarnings('FieldTypeRequired')
+    private static final MAVEN_SCOPE_SUFFIX_FUNC = { ScopeType scopeType ->
+        "Maven${scopeType.toString()}Scope"
     }
 
     /**
-     * Creates a configuration that should be used by the user for generating the dependencies
-     *  for a cross build artifact's pom file.
+     * Assembles Project type dependencies {@link ProjectDependency} that are cross built
      *
      * @param sourceConfig A specific {@link SourceSet} configuration to use as source for dependencies
-     * @param targetCompileScopeConfig Target pom aiding configuration
-     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
-     * @param archiveAppendix {@link com.github.prokod.gradle.crossbuild.model.TargetVerItem} archiveAppendix
-     *                         to aid with the replacement of non cross build
-     *                         {@link org.gradle.api.artifacts.ProjectDependency} with its cross build counterpart
+     * @return List of generated dependencies based on the original assembled ones
      */
-    private void populatePomAidingConfiguration(
-            Configuration sourceConfig,
-            Configuration targetCompileScopeConfig,
-            ScalaVersionInsights scalaVersionInsights,
-            String archiveAppendix) {
-        def allDependencies = sourceConfig.allDependencies
-        def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
+    private Set<Dependency> assembleProjectTypeDependencies(Set<Dependency> sourceDependencies) {
+        assert archiveAppendix != null:'archiveAppendix must be set'
+
+        def allDependencies = sourceDependencies
 
         def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(project.gradle)
         def crossBuildProjectDependencySet = allDependencies.findAll {
@@ -83,7 +112,7 @@ class PomAidingConfigurations {
             moduleNames.contains(it.name)
         }
 
-        // Add internal dependencies(modules) as qualified dependencies
+        // Internal dependencies(modules) as qualified dependencies
         def crossBuildProjectDependencySetTransformed = crossBuildProjectDependencySet.collect {
             project.dependencies.create(
                     group:it.group,
@@ -92,13 +121,27 @@ class PomAidingConfigurations {
                                     archiveAppendix, scalaVersionInsights.artifactInlinedVersion),
                     version:it.version)
         }
-        targetCompileScopeConfig.dependencies.addAll(crossBuildProjectDependencySetTransformed)
+        crossBuildProjectDependencySetTransformed.toSet()
+    }
 
-        // Add external cross built valid dependencies
+    /**
+     * Assembles external cross built valid dependencies (3rd party Scala libs)
+     * (pick latest version if the same dependency module appears multiple times with different versions)
+     *
+     * @param sourceConfig A specific {@link SourceSet} configuration to use as source for dependencies
+     * @return List of dependencies assembled
+     */
+    private Set<Dependency> assemble3rdPartyScalaLibDependencies(Set<Dependency> sourceDependencies) {
+        def allDependencies = sourceDependencies
+
+        def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
+                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
+
+        // External cross built valid dependencies
         //  (pick latest version if the same dependency module appears multiple times with different versions)
         def crossBuildExternalDependencySet = dependenciesView.collect { tuple2 ->
-            Set<Tuple> matchingDepTuples = tuple2.second
-            matchingDepTuples.toSorted {
+            Set<Tuple> matchingDependencyTuples = tuple2.second
+            matchingDependencyTuples.toSorted {
                 t1, t2 -> t1[2].version <=> t2[2].version
             }
         }.findAll {
@@ -106,17 +149,36 @@ class PomAidingConfigurations {
         }.collect {
             it.last()[2]
         }.toSet()
-        targetCompileScopeConfig.dependencies.addAll(crossBuildExternalDependencySet)
+        crossBuildExternalDependencySet
+    }
 
-        // Add external non crossed built dependencies
+    /**
+     * Assembles external non cross built valid dependencies (3rd party libs)
+     *
+     * @param sourceConfig A specific {@link SourceSet} configuration to use as source for dependencies
+     * @return List of dependencies assembled
+     */
+    private Set<Dependency> assemble3rdPartyDependencies(Set<Dependency> sourceDependencies) {
+        def allDependencies = sourceDependencies
+
+        def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(project.gradle)
+        def crossBuildProjectDependencySet = allDependencies.findAll {
+            it instanceof ProjectDependency
+        }.findAll {
+            moduleNames.contains(it.name)
+        }
+
+        def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
+                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
+
+        // External non cross built dependencies
         def crossBuiltExternalDependencySet = dependenciesView.collectMany { entry ->
             Set<Tuple> matchingDepTuples = entry.second
             matchingDepTuples.collect { it[2] } }.toSet()
         def probablyCrossBuiltExternalDependencySet = dependenciesView.collect { entry ->
             Tuple nonMatchingDepTuple = entry.first
             nonMatchingDepTuple[2] }.toSet()
-        def nonCrossBuildExternalDependencySet = allDependencies -
-                crossBuildProjectDependencySet -
+        def nonCrossBuildExternalDependencySet = allDependencies - crossBuildProjectDependencySet -
                 (crossBuiltExternalDependencySet + probablyCrossBuiltExternalDependencySet)
         def groupedByGroupAndName = nonCrossBuildExternalDependencySet.groupBy { dep -> dep.group + dep.name }
         def nonCrossBuildExternalDependencySetSanitized = groupedByGroupAndName.collect { entry ->
@@ -134,8 +196,22 @@ class PomAidingConfigurations {
                 entry.value.head()
             }
         }
-        targetCompileScopeConfig.dependencies.addAll(nonCrossBuildExternalDependencySetSanitized)
+        nonCrossBuildExternalDependencySetSanitized
+    }
 
+    /**
+     * Assembles external cross built valid dependencies (3rd party Scala libs) that are glob annotated (_?)
+     *
+     * @param sourceConfig A specific {@link SourceSet} configuration to use as source for dependencies
+     * @return List of dependencies assembled
+     */
+    private Set<Dependency> assemble3rdPartyGlobedScalaLibDependencies(Set<Dependency> sourceDependencies) {
+        def allDependencies = sourceDependencies
+
+        def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
+                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
+
+        // External cross built globed (_?) dependencies
         def resolvedCrossBuiltExternalDependencySet = dependenciesView.collect { entry ->
             Tuple nonMatchingDepTuple = entry[0]
             nonMatchingDepTuple
@@ -148,6 +224,11 @@ class PomAidingConfigurations {
                     name:"${dep.name.replace('?', scalaVersionInsights.artifactInlinedVersion)}",
                     version:dep.version)
         }
-        targetCompileScopeConfig.dependencies.addAll(resolvedCrossBuiltExternalDependencySet)
+        resolvedCrossBuiltExternalDependencySet
+    }
+
+    static enum ScopeType {
+        COMPILE,
+        PROVIDED
     }
 }
