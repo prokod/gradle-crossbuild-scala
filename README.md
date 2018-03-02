@@ -79,24 +79,17 @@ buildscript {
 
     ```sh
     > ./gradlew crossBuild210Jar crossBuild211Jar
-
     ...
-
     Tasks to be executed: [task ':compileCrossBuild210Java', task ':compileCrossBuild210Scala', task ':processCrossBuild210Resources', task ':crossBuild210Classes', task ':crossBuild210Jar', task ':compileCrossBuild211Java', task ':compileCrossBuild211Scala', task ':processCrossBuild211Resources', task ':crossBuild211Classes', task ':crossBuild211Jar']
-
     ...
-
     :crossBuild210Jar (Thread[Connection worker,5,main]) completed. Took 0.04 secs.
-
     ...
-
     :crossBuild211Jar (Thread[Connection worker,5,main]) completed. Took 0.007 secs.
 
     > ls ./build/libs
     lib_2.10.jar  lib_2.11.jar
-
     ```
-
+    
 #### Notes
 - When defining `targetVersions`, a short hand convention can be used for default values.
   To be able to use that, `targetVersion` item should be named by the following convention, for example:
@@ -133,7 +126,6 @@ model {
         }
     }
 }
-
 ...
 ```
 
@@ -147,9 +139,7 @@ model {
     ------------------------------------------------------------
     All tasks runnable from project :lib
     ------------------------------------------------------------
-
     ...
-
     Publishing tasks
     ----------------
     generatePomFileForCrossBuild211Publication - Generates the Maven POM file for publication 'crossBuild211'.
@@ -157,20 +147,15 @@ model {
     publishCrossBuild211PublicationToMavenLocal - Publishes Maven publication 'crossBuild211' to the local Maven repository.
     publishCrossBuild211PublicationToMavenRepository - Publishes Maven publication 'crossBuild211' to Maven repository 'maven'.
     publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
-
     ```
 
 - `gradle publishToMavenLocal`
 
     ```sh
     > ./gradlew publishToMavenLocal
-
     ...
-
     Tasks to be executed: [task ':compileCrossBuild211Java', task ':compileCrossBuild211Scala', task ':processCrossBuild211Resources', task ':crossBuild211Classes', task ':crossBuild211Jar', task ':generatePomFileForCrossBuild211Publication', task ':publishCrossBuild211PublicationToMavenLocal', task ':publishToMavenLocal']
-
     ...
-
     ```
 
 #### Notes
@@ -232,14 +217,12 @@ crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly
 
   crossBuild {
     ...
-
     dependencyResolution.includes = [
         configurations.integrationTestCompileClasspath,
         configurations.integrationTestRuntimeClasspath
     ]
   }
   ...
-
   sourceSets {
     integrationTest {
         ...
