@@ -15,6 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild.rules
 
+import static com.github.prokod.gradle.crossbuild.PomAidingConfigurations.*
+
 import com.github.prokod.gradle.crossbuild.BridgingExtension
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
 import com.github.prokod.gradle.crossbuild.PomAidingConfigurations
@@ -118,8 +120,10 @@ class CrossBuildPluginRules extends RuleSource {
                     crossBuild.dependencyResolution?.includes
             configurer.applyFor(configs)
 
-            def pomAidingConfigurations = new PomAidingConfigurations(project, sourceSet)
-            pomAidingConfigurations.addCompileScopeConfiguration(scalaVersionInsights, targetVersion.archiveAppendix)
+            def pomAidingConfigurations =
+                    new PomAidingConfigurations(project, sourceSet, scalaVersionInsights, targetVersion.archiveAppendix)
+            pomAidingConfigurations.createAndSetForMavenScope(ScopeType.COMPILE)
+            pomAidingConfigurations.createAndSetForMavenScope(ScopeType.PROVIDED)
 
             def interpretedBaseName = generateCrossArchivesBaseName(
                     crossBuild.archivesBaseName, targetVersion.archiveAppendix,
@@ -156,11 +160,21 @@ class CrossBuildPluginRules extends RuleSource {
         crossBuild.targetVersions.findAll { targetVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(targetVersion.value, crossBuild.scalaVersions)
             def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByVersion(scalaVersionInsights)
-            def pomAidingConfigName = PomAidingConfigurations.compileScopeConfigurationNameFor(sourceSet)
+
+            def pomAidingConfigurations = new PomAidingConfigurations(project, sourceSet, scalaVersionInsights)
+            def pomAidingCompileScopeConfigName =
+                    pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.COMPILE)
+            def pomAidingProvidedScopeConfigName =
+                    pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.PROVIDED)
 
             publishing.publications.all { MavenPublication pub ->
                 if (pub instanceof MavenPublication && probablyRelatedPublication(pub, targetVersion, sourceSetId)) {
-                    pub.pom.withXml { withXmlHandler(it, pomAidingConfigName, project) }
+                    pub.pom.withXml {
+                        withXmlHandler(it, pomAidingCompileScopeConfigName, ScopeType.COMPILE, project)
+                    }
+                    pub.pom.withXml {
+                        withXmlHandler(it, pomAidingProvidedScopeConfigName, ScopeType.PROVIDED, project)
+                    }
                 }
             }
         }
@@ -172,17 +186,26 @@ class CrossBuildPluginRules extends RuleSource {
         pub.artifactId == targetVersion.artifactId || pub.name.contains(sourceSetId)
     }
 
-    private static void withXmlHandler(XmlProvider xmlProvider, String pomAidingConfigName, Project project ) {
-        def dependenciesNode = xmlProvider.asNode().appendNode('dependencies')
-
-        if (dependenciesNode != null) {
-            project.configurations[pomAidingConfigName].allDependencies.each { dep ->
-                def dependencyNode = dependenciesNode.appendNode('dependency')
-                dependencyNode.appendNode('groupId', dep.group)
-                dependencyNode.appendNode('artifactId', dep.name)
-                dependencyNode.appendNode('version', dep.version)
-                dependencyNode.appendNode('scope', 'runtime')
+    private static void withXmlHandler(XmlProvider xmlProvider,
+                                       String pomAidingConfigName,
+                                       ScopeType scopeType,
+                                       Project project) {
+        def dependenciesNodeFunction = { XmlProvider xml ->
+            def dependenciesNode = xml.asNode()['dependencies']?.getAt(0)
+            if (dependenciesNode == null) {
+                return xmlProvider.asNode().appendNode('dependencies')
             }
+            dependenciesNode
+        }
+
+        def dependenciesNode = dependenciesNodeFunction(xmlProvider)
+
+        project.configurations[pomAidingConfigName].allDependencies.each { dep ->
+            def dependencyNode = dependenciesNode.appendNode('dependency')
+            dependencyNode.appendNode('groupId', dep.group)
+            dependencyNode.appendNode('artifactId', dep.name)
+            dependencyNode.appendNode('version', dep.version)
+            dependencyNode.appendNode('scope', scopeType.toString().toLowerCase())
         }
     }
 
