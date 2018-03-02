@@ -65,14 +65,12 @@ buildscript {
     crossBuild211Jar - Assembles a jar archive containing 211 classes
     jar - Assembles a jar archive containing the main classes.
     testClasses - Assembles test classes.
-
     ...
 
     Publishing tasks
     ----------------
     publish - Publishes all publications produced by this project.
     publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
-
     ```
 
 - `gradle crossBuild210Jar crossBuild211Jar`
@@ -180,8 +178,11 @@ model {
         targetVersions {
             v211(ScalaVer) {
                 value = '2.11'
-                archiveAppendix = "_?_$spark20SparkVersion" // By default the value is "_?" 
+                archiveAppendix = "-$spark20SparkVersion_?" // By default the value is "_?" 
                                                             // In the default case will yield '_2.11')
+            }
+            v212(ScalaVer) {
+                ...
             }
         }
 
@@ -200,17 +201,17 @@ dependencies {
     compile ("joda-time:joda-time:$jodaVersion")
     // The question mark is being replaced based on the scala version being built [3]
     compile ("org.scalaz:scalaz_?:$scalazVersion")
-    compileOnly ("org.apache.spark:spark-sql_$spark16ScalaVersion:$spark16SparkVersion")
+    compileOnly ('org.apache.spark:spark-sql_2.10:1.6.3')
     // A configuration supplied by the plugin [4]
-    crossBuild211CompileOnly ("org.apache.spark:spark-sql_$spark20ScalaVersion:$spark20SparkVersion")
+    crossBuild211CompileOnly ('org.apache.spark:spark-sql_2.11:2.2.1')
 }
 ```
 
 #### Notes
 - If `crossBuild.scalaVersions` catalog is not defined a default one will be used (might get outdated).
-- The plugin provides pre defined configurations being used by the matching pre generated Jar tasks:
-crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly
-- `dependencyResolution.includes = [...]` provides users the option to create their own Configuration/SourceSet and then specify dependency within on a cross build sub project.
+- The plugin provides pre defined configurations (sourceSets) being used by the matching pre generated Jar tasks:
+crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
+- `dependencyResolution.includes = [...]` provides users with the option to tie their own Configuration (SourceSet) with the cross build plugin workings. Needed for instance when specifying dependency within that Configuration on a cross build sub project.
   For instance:
   ```groovy
   apply plugin: 'com.github.prokod.gradle-crossbuild'
@@ -235,6 +236,6 @@ crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly
   }
 
   dependencies {
-      ...
+    ...
   }
   ```
