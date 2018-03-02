@@ -86,12 +86,17 @@ dependencies {
     compile "org.scalatest:scalatest_?:3.0.1"
     compile "com.google.guava:guava:18.0"
     compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+
+    compileOnly "org.apache.spark:spark-sql_${defaultScalaVersion}:${defaultScalaVersion == '2.10' ? '1.6.3' : '2.2.1'}"
+    crossBuild210CompileOnly "org.apache.spark:spark-sql_2.10:1.6.3"
+    crossBuild211CompileOnly "org.apache.spark:spark-sql_2.11:2.2.1"
 }
 """
 
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
+                .withDebug(true)
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
@@ -103,15 +108,44 @@ dependencies {
         def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
 
-        !pom210.contains('2.11.')
-        pom210.contains('2.10.6')
-        pom210.contains('18.0')
-        pom210.contains('3.0.1')
-        !pom211.contains('2.11.+')
-        !pom211.contains('2.10.')
-        pom211.contains('2.11.11')
-        pom211.contains('18.0')
-        pom211.contains('3.0.1')
+        def project210 = new XmlSlurper().parseText(pom210)
+        project210.dependencies.dependency.size() == 4
+        project210.dependencies.dependency[0].groupId == 'org.scala-lang'
+        project210.dependencies.dependency[0].artifactId == 'scala-library'
+        project210.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
+        project210.dependencies.dependency[0].scope == 'compile'
+        project210.dependencies.dependency[1].groupId == 'com.google.guava'
+        project210.dependencies.dependency[1].artifactId == 'guava'
+        project210.dependencies.dependency[1].version == '18.0'
+        project210.dependencies.dependency[1].scope == 'compile'
+        project210.dependencies.dependency[2].groupId == 'org.scalatest'
+        project210.dependencies.dependency[2].artifactId == 'scalatest_2.10'
+        project210.dependencies.dependency[2].version == '3.0.1'
+        project210.dependencies.dependency[2].scope == 'compile'
+        project210.dependencies.dependency[3].groupId == 'org.apache.spark'
+        project210.dependencies.dependency[3].artifactId == 'spark-sql_2.10'
+        project210.dependencies.dependency[3].version == '1.6.3'
+        project210.dependencies.dependency[3].scope == 'provided'
+
+        def project211 = new XmlSlurper().parseText(pom211)
+        project211.dependencies.dependency.size() == 4
+        project211.dependencies.dependency[0].groupId == 'org.scala-lang'
+        project211.dependencies.dependency[0].artifactId == 'scala-library'
+        project211.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
+        project211.dependencies.dependency[0].scope == 'compile'
+        project211.dependencies.dependency[1].groupId == 'com.google.guava'
+        project211.dependencies.dependency[1].artifactId == 'guava'
+        project211.dependencies.dependency[1].version == '18.0'
+        project211.dependencies.dependency[1].scope == 'compile'
+        project211.dependencies.dependency[2].groupId == 'org.scalatest'
+        project211.dependencies.dependency[2].artifactId == 'scalatest_2.11'
+        project211.dependencies.dependency[2].version == '3.0.1'
+        project211.dependencies.dependency[2].scope == 'compile'
+        project211.dependencies.dependency[3].groupId == 'org.apache.spark'
+        project211.dependencies.dependency[3].artifactId == 'spark-sql_2.11'
+        project211.dependencies.dependency[3].version == '2.2.1'
+        project211.dependencies.dependency[3].scope == 'provided'
+
         where:
         [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
     }
