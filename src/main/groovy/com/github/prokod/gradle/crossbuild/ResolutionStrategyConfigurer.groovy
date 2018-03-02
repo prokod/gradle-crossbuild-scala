@@ -86,23 +86,22 @@ class ResolutionStrategyConfigurer {
             resolveQMarkDep(details, scalaVersionInsights.artifactInlinedVersion)
             project.logger.info(LoggerUtils.logTemplate(project,
                     "${crossBuildConfigurationName} | " +
-                            "Found crossbuild glob '?' in dependency name ${requested.name}. " +
+                            "Dependency Scan | Found crossbuild glob '?' in dependency name ${requested.name}. " +
                             "Subtituted with [${details.target.name}]"
             ))
             // Replace 3d party scala dependency which ends with '_?' in cross build config scope
         } else {
             // A cross built dependency - explicit
-            // Try updating target name version only if contains wrong scala version
-            //   and only in cross build config context.
+            // Try "removing" offending target dependency only if contains wrong scala version
+            //  and only in cross build config context.
             if (supposedScalaVersion != scalaVersionInsights.artifactInlinedVersion) {
-                def updated = tryForceTargetDependencyName(details, scalaVersionInsights)
-                if (updated) {
-                    project.logger.info(LoggerUtils.logTemplate(project,
-                            "${crossBuildConfigurationName} | Dependency Scan " +
-                                    "| Replaced ${requested.name}:${requested.version} => " +
-                                    "${details.target.name}:${details.target.version}"
-                    ))
-                }
+                useScalaLibTargetDependencyInstead(details, scalaVersionInsights)
+
+                project.logger.info(LoggerUtils.logTemplate(project,
+                        "${crossBuildConfigurationName} | Dependency Scan " +
+                                "| Found polluting dependency ${requested.name}:${requested.version}. Replacing all " +
+                                "together with [${details.target.name}:${details.target.version}]"
+                ))
             }
         }
     }
@@ -114,7 +113,7 @@ class ResolutionStrategyConfigurer {
 
         // Replace 3d party scala dependency which ends with '_?' in parent configuration scope
         if (supposedScalaVersion == '?') {
-            if (tryForceTargetDependencyName(details, parentConfiguration, scalaVersions)) {
+            if (tryResolvingQMarkInTargetDependencyName(details, parentConfiguration, scalaVersions)) {
                 project.logger.info(LoggerUtils.logTemplate(project,
                         "${parentConfiguration.name} | Found crossbuild glob '?' in " +
                                 "dependency name ${requested.name}." +
@@ -127,7 +126,7 @@ class ResolutionStrategyConfigurer {
                                 'Reason: scala-library dependency version not found or ' +
                                 'multiple versions'
                 ))
-                updateTargetName(details, parentConfiguration, scalaVersions)
+                resolveQMarkInTargetDependencyName(details, parentConfiguration, scalaVersions)
             }
         }
     }
@@ -150,7 +149,7 @@ class ResolutionStrategyConfigurer {
                     // Replace 3d party scala dependency which contains '_?'
                     def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
                     if (probableScalaVersion == '?') {
-                        updateTargetName(details, c, scalaVersions)
+                        resolveQMarkInTargetDependencyName(details, c, scalaVersions)
                         project.logger.info(LoggerUtils.logTemplate(project,
                                 "${c.name} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
                                         "Subtituted with [${details.target.name}]"
@@ -185,7 +184,7 @@ class ResolutionStrategyConfigurer {
      * @param configuration Specified configuration to retrieve all dependencies from.
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      */
-    private boolean tryForceTargetDependencyName(
+    private boolean tryResolvingQMarkInTargetDependencyName(
             DependencyResolveDetails details,
             Configuration configuration,
             ScalaVersions scalaVersions) {
@@ -209,34 +208,6 @@ class ResolutionStrategyConfigurer {
     }
 
     /**
-     * Tries to detect and substitute mismatched scala based dependencies.
-     * This can happen when default configurations (compile, compileOnly ...) "pollute"
-     * cross build configuration, which inherits from them,
-     * with mismatched scala version dependencies.
-     *
-     * @param details {@link DependencyResolveDetails} from resolution strategy
-     * @param dependencies All dependencies of the specified cross build configuration.
-     * @param scalaVersionInsights Holds all version permutations for a specific Scala version
-     * @return true when target was updated, false when not needed.
-     */
-    private static boolean tryForceTargetDependencyName(
-            DependencyResolveDetails details,
-            ScalaVersionInsights scalaVersionInsights) {
-        def requested = details.requested
-        def (baseName, supposedRequestedScalaVersion, nameSuffix) =
-                DependencyInsights.parseDependencyName(requested.name)
-        if (supposedRequestedScalaVersion != scalaVersionInsights.artifactInlinedVersion) {
-            if (nameSuffix != null) {
-                return false
-            }
-            def correctName = "${baseName}_${scalaVersionInsights.artifactInlinedVersion}"
-            details.useTarget requested.group + ':' + correctName + ':' + requested.version
-            return true
-        }
-        false
-    }
-
-    /**
      * Resolve dependency names containing question mark to the actual scala version,
      *  based on provided {@link DependencySet} (of the configuration being handled) and {@link ScalaVersions}.
      * The resolution is going over the tree of dependencies and tries to figure out the scala version being used
@@ -247,7 +218,7 @@ class ResolutionStrategyConfigurer {
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      * @throws AssertionError if Scala version cannot be inferred
      */
-    private void updateTargetName(
+    private void resolveQMarkInTargetDependencyName(
             DependencyResolveDetails details,
             Configuration configuration,
             ScalaVersions scalaVersions) {
@@ -271,5 +242,22 @@ class ResolutionStrategyConfigurer {
                 "'$requested.group:$requested.name'"
         def probableScalaVersion = probableScalaVersionRaw.head().first.toString()
         resolveQMarkDep(details, probableScalaVersion)
+    }
+
+    /**
+     * Resolution rule: replace original requested dependency with relevant Scala Lib dependency
+     * This is useful when default configurations (compile, compileOnly ...) "pollute" cross build configuration,
+     *  which inherits from them, with mismatched scala version dependencies.
+     * In this case we want to eliminate the dependency - this cannot be done directly so as an alternative
+     *  that polluting dependency is being replaced by un-harmful (surely needed) dependency - scala-lib
+     *
+     * @param details {@link DependencyResolveDetails} from resolution strategy
+     * @param scalaVersionInsights Holds all version permutations for a specific Scala version
+     * @return true when target was updated, false when not needed.
+     */
+    private static void useScalaLibTargetDependencyInstead(
+            DependencyResolveDetails details,
+            ScalaVersionInsights scalaVersionInsights) {
+        details.useTarget "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}"
     }
 }

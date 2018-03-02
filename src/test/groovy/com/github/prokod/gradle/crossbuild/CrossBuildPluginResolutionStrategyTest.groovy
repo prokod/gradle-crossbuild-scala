@@ -101,6 +101,11 @@ dependencies {
     compile "org.scalatest:scalatest_?:3.0.1"
     compile "com.google.guava:guava:18.0"
     compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+    // flink-connector-kafka-0.10 dependency is only built for Scala 2.11
+    // In this case, when cross building this project to Scala 2.10, that dependency should be excluded
+    //  from 'crossBuild210Compile' configurations which inherit from 'compile'. 
+    compile 'org.apache.flink:flink-connector-kafka-0.10_2.11:1.4.1'
+    crossBuild210Compile 'org.apache.flink:flink-connector-kafka-0.10_2.10:1.3.2'
 }
 """
 
