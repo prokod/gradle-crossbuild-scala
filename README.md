@@ -98,11 +98,10 @@ buildscript {
     ```
 
 #### Notes
-- When defining `targetVersions` a short hand convention can be used for default values.
-To be able to use that targetVersion item should be named by the following convention for example:
-`[v|V]210(ScalaVer)` is translated to `{ "targetVersion": { "value": "2.10", "name": "[v|V]210" }`
-- When using a dependency with '?' in compile configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will try to deduce the scala version for task build
-based on the neighboring dependencies and explicit `scala-library` dependency if any. If it fails to deduce an exception will be thrown.
+- When defining `targetVersions`, a short hand convention can be used for default values.
+  To be able to use that, `targetVersion` item should be named by the following convention, for example:
+  `[v|V]210(ScalaVer)` is translated to `{ "targetVersion": { "value": "2.10", "name": "[v|V]210" }`
+- When using a dependency with '?' in `compile` configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will try to deduce the scala version for task `build` based on the neighboring dependencies and explicit `scala-library` dependency if any. If it fails to deduce an exception will be thrown.
 
 ### cross building with publishing  
 Leveraging gradle maven-publish plugin for the actual publishing
