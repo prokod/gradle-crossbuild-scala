@@ -6,7 +6,7 @@
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.4.1")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.4.2")
     }
 }
 ```
@@ -176,17 +176,17 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 model {
     crossBuild {
         targetVersions {
+            v210(ScalaVer) {
+                ...
+            }
             v211(ScalaVer) {
                 value = '2.11'
                 archiveAppendix = "-$spark20SparkVersion_?" // By default the value is "_?" 
                                                             // In the default case will yield '_2.11')
             }
-            v212(ScalaVer) {
-                ...
-            }
         }
 
-        scalaVersions = ['2.11': '2.11.11', ...]
+        scalaVersions = ['2.10': '2.10.6', '2.11': '2.11.11', ...]
 
         dependencyResolution {
             includes = [configurations.someUserConfiguration]
@@ -199,16 +199,25 @@ model {
 dependencies {
     compile ("com.google.protobuf:protobuf-java:$protobufVersion") 
     compile ("joda-time:joda-time:$jodaVersion")
-    // The question mark is being replaced based on the scala version being built [3]
+    // The question mark is being replaced based on the scala version being built
     compile ("org.scalaz:scalaz_?:$scalazVersion")
+    
     compileOnly ('org.apache.spark:spark-sql_2.10:1.6.3')
-    // A configuration supplied by the plugin [4]
-    crossBuild211CompileOnly ('org.apache.spark:spark-sql_2.11:2.2.1')
+    crossBuild211CompileOnly ('org.apache.spark:spark-sql_2.11:2.2.1')     // A configuration supplied by the plugin
 }
 ```
 
 #### Notes
 - If `crossBuild.scalaVersions` catalog is not defined a default one will be used (might get outdated).
+- The dependecies "duo":
+  ```groovy
+  dependencies {
+    compileOnly ('org.apache.spark:spark-sql_2.10:1.6.3')
+    crossBuild211CompileOnly ('org.apache.spark:spark-sql_2.11:2.2.1')
+  }
+  ```
+  is resolved as follows: the spark version of the dependency specified for `compile/Only` configuartion is the default one for `build`, `test/check` tasks. It is also the one to be use when calling `crossBuild210Jar` and `publishToMavenLocal`.
+  The other dependency specified for Scala version 2.11 (`crossBuild211Compile/Only`), will be used only for `crossBuild211Jar` and `publishToMavenLocal`
 - The plugin provides pre defined configurations (sourceSets) being used by the matching pre generated Jar tasks:
 crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
 - `dependencyResolution.includes = [...]` provides users with the option to tie their own Configuration (SourceSet) with the cross build plugin workings. Needed for instance when specifying dependency within that Configuration on a cross build sub project.
