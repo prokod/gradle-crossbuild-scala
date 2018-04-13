@@ -46,8 +46,9 @@ class ResolutionStrategyConfigurer {
                             "[${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
             ))
 
-            def projectDependencies = DependencyInsights.extractCrossBuildProjectDependencyDependencies(project.gradle,
-                    allDependencies, parentConfiguration.name)
+            def projectDependencies =
+                    DependencyInsights.extractAllCrossBuildProjectTypeDependenciesDependencies(project.gradle,
+                            allDependencies, parentConfiguration.name)
             def allDependenciesAsDisplayNameSet = (allDependencies + projectDependencies).collect { dep ->
                 "${dep.group}:${dep.name}:${dep.version}"
             }.toSet()
@@ -190,7 +191,7 @@ class ResolutionStrategyConfigurer {
             ScalaVersions scalaVersions) {
         def dependencySet = configuration.allDependencies
 
-        def crossBuildProjectDependencySet = DependencyInsights.extractCrossBuildProjectDependencyDependencies(
+        def crossBuildProjectDependencySet = DependencyInsights.extractAllCrossBuildProjectTypeDependenciesDependencies(
                 project.gradle, dependencySet, configuration.name)
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
@@ -224,7 +225,7 @@ class ResolutionStrategyConfigurer {
             ScalaVersions scalaVersions) {
         def dependencySet = configuration.allDependencies
 
-        def crossBuildProjectDependencySet = DependencyInsights.extractCrossBuildProjectDependencyDependencies(
+        def crossBuildProjectDependencySet = DependencyInsights.extractAllCrossBuildProjectTypeDependenciesDependencies(
                 project.gradle, dependencySet, configuration.name)
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
