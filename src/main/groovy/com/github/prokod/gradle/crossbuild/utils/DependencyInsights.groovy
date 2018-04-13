@@ -139,40 +139,77 @@ class DependencyInsights {
     }
 
     /**
-     * The dependencySet is being searched for a project {@link Project}
-     *  that is used as a dependency {@link ProjectDependency}, which the cross build plugin
+     * The dependencySet is being searched for projects {@link Project}
+     *  that are used as a dependency of type {@link ProjectDependency}, which the cross build plugin
      *  ({@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin}) been applied on.
-     * After being found, all the related (direct) dependencies for the specified configuration are being returned.
+     * After being found, all the related (direct) dependencies for the specified configuration within those projects
+     *  are being returned.
      *
      * @param gradle gradle space to retrieve rootProject ({@link Project}) from
-     * @param dependencySet A {@link DependencySet} originated from a specified configuration.
+     * @param initialDependencySet A {@link DependencySet} originated from a specified configuration.
      * @param configurationName configuration to have the dependencies extracted from
      *
-     * @return List of {@link Dependency} from relevant projects that are themselves defined as dependencies within
-     *          dependencySet
+     * @return List of {@link Dependency} from relevant projects that are themselves defined as dependencies and share
+     *          the same dependency graph with the ones originated from within initialDependencySet
      */
-    static List<Dependency> extractCrossBuildProjectDependencyDependencies(Gradle gradle,
-                                                                           DependencySet dependencySet,
-                                                                           String configurationName) {
-        def crossBuildProjectDependencySetDeps =
-                extractCrossBuildProjectDependencySet(gradle, dependencySet)*.dependencyProject.collect { depPrj ->
-            def dependencyProjectConfiguration = depPrj.configurations.findByName(configurationName)
-            // We are guarding against null here as configurationName is not guaranteed to be part of the
-            //  configurations of each of the dependencyProjects that have been found.
-            dependencyProjectConfiguration != null ? dependencyProjectConfiguration.allDependencies : []
-        }.collectMany { depSet ->
-            depSet.collect()
+    static List<Dependency> extractAllCrossBuildProjectTypeDependenciesDependencies(Gradle gradle,
+                                                                                    DependencySet initialDependencySet,
+                                                                                    String configurationName) {
+        def projectTypeDeps = extractCrossBuildProjectTypeDependencies(gradle, initialDependencySet, configurationName)
+        def crossBuildProjectDependencySetDeps = projectTypeDeps.collectMany { prjDep ->
+            extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
         }
         crossBuildProjectDependencySetDeps
     }
 
-    static Set<ProjectDependency> extractCrossBuildProjectDependencySet(Gradle gradle, DependencySet dependencySet) {
+    /**
+     * The dependencySet is being searched for projects {@link Project}
+     *  that are used as a dependency of type {@link ProjectDependency}, which the cross build plugin
+     *  ({@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin}) has been applied on.
+     * After being found, The dependency graph is being searched for all the related (direct and transient) project
+     *  type dependencies for the specified configuration.
+     *
+     * @param gradle gradle space to retrieve rootProject ({@link Project}) from
+     * @param initialDependencySet A {@link DependencySet} originated from a specified configuration.
+     * @param configurationName configuration to have the dependencies extracted from
+     * @return A set of {@link ProjectDependency} that are part of one dependency graph originated from the initial
+     *          ones found in the initial dependency set
+     */
+    private static Set<ProjectDependency> extractCrossBuildProjectTypeDependencies(Gradle gradle,
+                                                                                   DependencySet initialDependencySet,
+                                                                                   String configurationName) {
         def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(gradle)
-        def crossBuildProjectDependencySet = dependencySet.findAll {
+        extractCrossBuildProjectTypeDependenciesRecursively(moduleNames, initialDependencySet.toSet(),
+                configurationName, [] as Set)
+    }
+
+    private static Set<Dependency> extractCrossBuildProjectTypeDependencyDependencies(ProjectDependency dependency,
+                                                                                      String configurationName) {
+        def crossBuildProjectTypeDependencyDeps =
+                dependency.dependencyProject.configurations.findByName(configurationName)?.allDependencies
+
+        crossBuildProjectTypeDependencyDeps != null ? crossBuildProjectTypeDependencyDeps.toSet() : [] as Set
+    }
+
+    private static Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(
+            List<String> moduleNames,
+            Set<Dependency> inputDependencySet,
+            String configurationName,
+            Set<ProjectDependency> accum) {
+        def currentProjectTypDeps = inputDependencySet.findAll {
             it instanceof ProjectDependency
         }.findAll {
-            moduleNames.contains(it.name)
-        }.collect { (ProjectDependency)it }
-        crossBuildProjectDependencySet.toSet()
+            moduleNames.contains(it.name) && !accum*.name.contains(it.name)
+        }.collect { (ProjectDependency) it }
+        if (currentProjectTypDeps.size() > 0) {
+            accum.addAll(currentProjectTypDeps)
+            def currentProjectTypeDependenciesDependencies = currentProjectTypDeps.collectMany { prjDep ->
+                extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
+            }
+            extractCrossBuildProjectTypeDependenciesRecursively(moduleNames,
+                    currentProjectTypeDependenciesDependencies.toSet(), configurationName, accum)
+        } else {
+            accum
+        }
     }
 }

@@ -29,6 +29,9 @@ class CrossBuildPluginCompileMultiModuleTest extends CrossBuildGradleRunnerSpec 
     File libBuildFile
     File libScalaFile
     File libJavaFile
+    File lib2BuildFile
+    File lib2ScalaFile
+    File lib2ScalaImplFile
     File appBuildFile
     File appScalaFile
 
@@ -39,6 +42,9 @@ class CrossBuildPluginCompileMultiModuleTest extends CrossBuildGradleRunnerSpec 
         libBuildFile = file('lib/build.gradle')
         libScalaFile = file('lib/src/main/scala/HelloWorldLibApi.scala')
         libJavaFile = file('lib/src/main/java/HelloWorldLibImpl.java')
+        lib2BuildFile = file('lib2/build.gradle')
+        lib2ScalaFile = file('lib2/src/main/scala/HelloWorldLib2Api.scala')
+        lib2ScalaImplFile = file('lib2/src/main/scala/HelloWorldLib2Impl.scala')
         appBuildFile = file('app/build.gradle')
         appScalaFile = file('app/src/main/scala/HelloWorldApp.scala')
     }
@@ -327,6 +333,248 @@ dependencies {
         fileExists("$dir.root.absolutePath/app/build/libs/app_2.10.jar")
         fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
 
+        where:
+        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+    }
+
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
+        given:
+        // root project settings.gradle
+        settingsFile << """
+include 'lib'
+include 'lib2'
+include 'app'
+"""
+
+        buildFile << """
+
+allprojects {
+    group = 'com.github.prokod.it'
+    version = '1.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+"""
+
+        libScalaFile << """
+import org.scalatest._
+
+trait HelloWorldLibApi {
+   def greet(): String
+}
+"""
+
+        libJavaFile << """
+
+public class HelloWorldLibImpl implements HelloWorldLibApi {
+   public String greet() {
+      return "Hello, world!";
+   }
+}
+"""
+
+        libBuildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+        }
+    }
+    
+    publishing {
+        publications {
+            crossBuild210(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.v210.artifactId
+                artifact \$.tasks.crossBuild210Jar
+            }
+            crossBuild211(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.v211.artifactId
+                artifact \$.tasks.crossBuild211Jar
+            }
+        }
+    }
+    
+    tasks.generatePomFileForCrossBuild210Publication {
+        destination = file("\$buildDir/generated-pom_2.10.xml")
+    }
+    
+    tasks.generatePomFileForCrossBuild211Publication {
+        destination = file("\$buildDir/generated-pom_2.11.xml")
+    }
+}
+
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    compile "org.scalatest:scalatest_?:3.0.1"
+    compile "com.google.guava:guava:18.0"
+    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+}
+"""
+
+        lib2ScalaFile << """
+trait HelloWorldLib2Api extends HelloWorldLibApi {
+   def greet2(): String = greet() + " x2"
+}
+"""
+
+        lib2ScalaImplFile << """
+
+class HelloWorldLib2Impl extends HelloWorldLib2Api {
+   def greet(): String = "Hello, world!"
+}
+"""
+
+        lib2BuildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+        }
+    }
+    
+    publishing {
+        publications {
+            crossBuild210(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.v210.artifactId
+                artifact \$.tasks.crossBuild210Jar
+            }
+            crossBuild211(MavenPublication) {
+                groupId = project.group
+                artifactId = \$.crossBuild.targetVersions.v211.artifactId
+                artifact \$.tasks.crossBuild211Jar
+            }
+        }
+    }
+    
+    tasks.generatePomFileForCrossBuild210Publication {
+        destination = file("\$buildDir/generated-pom_2.10.xml")
+    }
+    
+    tasks.generatePomFileForCrossBuild211Publication {
+        destination = file("\$buildDir/generated-pom_2.11.xml")
+    }
+}
+
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    compile project(':lib')
+}
+"""
+
+        appScalaFile << """
+import HelloWorldLibImpl._
+
+object HelloWorldApp {
+   def main(args: Array[String]) {
+      new HelloWorldLibImpl().greet()
+   }
+}
+"""
+
+        appBuildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v210(ScalaVer)
+            v211(ScalaVer)
+        }
+    }
+}
+
+dependencies {
+    compile project(':lib')
+}
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withDebug(true)
+                .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.task(":lib:publishToMavenLocal").outcome == SUCCESS
+
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib2_2.10.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib2_2.11.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
+
+        def pom210 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.10.xml").text
+        def pom211 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml").text
+
+        !pom210.contains('2.11.')
+        pom210.contains('2.10.6')
+        pom210.contains('18.0')
+        pom210.contains('3.0.1')
+        !pom211.contains('2.11.+')
+        !pom211.contains('2.10.')
+        pom211.contains('2.11.11')
+        pom211.contains('18.0')
+        pom211.contains('3.0.1')
+
+        def lib2pom210 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.10.xml").text
+        def lib2pom211 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.11.xml").text
+
+        !lib2pom210.contains('2.11.')
+        lib2pom210.contains('2.10.6')
+        lib2pom210.contains('1.0-SNAPSHOT')
+        !lib2pom211.contains('2.11.+')
+        !lib2pom211.contains('2.10.')
+        lib2pom211.contains('2.11.11')
+        lib2pom211.contains('1.0-SNAPSHOT')
         where:
         [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
     }
