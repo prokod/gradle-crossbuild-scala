@@ -64,12 +64,8 @@ repositories {
 model {
     crossBuild {
         targetVersions {
-            v210(ScalaVer) {
-                value = '2.10'
-            }
-            v211(ScalaVer) {
-                value = '2.11'
-            }
+            v210(ScalaVer)
+            v211(ScalaVer)
         }
     }
     
