@@ -1,12 +1,12 @@
 # gradle crossbuild scala plugin
-[![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)
+[![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)[![Automated Release Notes by gren](https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg)](https://github-tools.github.io/github-release-notes/)
 
 ## Getting the plugin
 ----------------------
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.4.3")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.4.4")
     }
 }
 ```
@@ -93,6 +93,8 @@ buildscript {
   To be able to use that, `targetVersion` item should be named by the following convention, for example:
   `[v|V]210(ScalaVer)` is translated to `{ "targetVersion": { "value": "2.10", "name": "[v|V]210" }`
 - When using a dependency with '?' in `compile` configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will try to deduce the scala version for task `build` based on the neighboring dependencies and explicit `scala-library` dependency if any. If it fails to deduce an exception will be thrown.
+- test/check tasks are not being cross compiled and they use the default scala version.
+  If a user would like to run tests with different scala versions, he needs to change the default one by updating the `scala-library` version dependency in build.gradle
 
 ### cross building with publishing  
 Leveraging gradle maven-publish plugin for the actual publishing

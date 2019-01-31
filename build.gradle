@@ -7,7 +7,7 @@ apply plugin: 'codenarc'
 targetCompatibility = '1.6'
 
 group = 'com.github.prokod'
-version = '0.4.3-SNAPSHOT'
+version = '0.4.4'
 
 repositories {
     mavenCentral()
