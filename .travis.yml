@@ -9,6 +9,7 @@ cache:
     - $HOME/.gradle/wrapper/
 branches:
   only:
+    - dev
     - master
     - feature/travis_ci
 before_install:

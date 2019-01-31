@@ -27,12 +27,14 @@ class CrossBuildPluginJarTest extends CrossBuildGradleRunnerSpec {
     File propsFile
     File scalaFile
     File javaFile
+    File testScalaFile
 
     def setup() {
         buildFile = file('build.gradle')
         propsFile = file('gradle.properties')
         scalaFile = file('src/main/scala/HelloWorldA.scala')
         javaFile = file('src/main/java/HelloWorldB.java')
+        testScalaFile = file('src/test/scala/helloWorldTest.scala')
     }
 
     @Unroll
@@ -153,5 +155,99 @@ dependencies {
 
         where:
         [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+    }
+
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with java-library configurations should create cross built jars"() {
+        given:
+        scalaFile << """
+object Lib {
+  val book: scala.xml.Elem = <book id="b20234">Magic of scala-xml</book>
+
+  val id = book \\@ "id"
+  //id: String = b20234
+
+  val text = book.text
+  //text: String = Magic of scala-xml
+}
+"""
+
+        testScalaFile << """
+import java.util.function._
+import scala.compat.java8.FunctionConverters._
+
+object Test {
+  val foo: Int => Boolean = i => i > 7
+  def testBig(ip: IntPredicate) = ip.test(9)
+  println(testBig(foo.asJava))  // Prints true
+
+  val bar = new UnaryOperator[String]{ def apply(s: String) = s.reverse }
+  List("cod", "herring").map(bar.asScala)    // List("doc", "gnirrih")
+
+  def testA[A](p: Predicate[A])(a: A) = p.test(a)
+  println(testA(asJavaPredicate(foo))(4))  // Prints false
+}
+"""
+
+        buildFile << """
+import com.github.prokod.gradle.crossbuild.model.*
+
+plugins {
+    id 'java-library'
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+repositories {
+    mavenCentral()
+}
+
+model {
+    crossBuild {
+        targetVersions {
+            v211(ScalaVer) {
+                value = '2.11'
+            }
+            v212(ScalaVer) {
+                value = '2.12'
+            }
+        }
+
+        scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+    }
+}
+
+dependencies {
+    implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+    implementation 'org.scala-lang.modules:scala-xml_?:[1.0, 2.0['
+
+    testImplementation 'org.scala-lang.modules:scala-java8-compat_?:[0.9,1.0['
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.3.2"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:5.3.2"
+    testImplementation "org.mockito:mockito-core:2.23.4"
+    testImplementation "org.mockito:mockito-junit-jupiter:2.23.4"
+    testImplementation "org.assertj:assertj-core:3.11.1"
+
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.3.2"
+}
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild211Jar', 'crossBuild212Jar', 'check', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.task(":test").outcome == SUCCESS
+        result.task(":crossBuild211Jar").outcome == SUCCESS
+        result.task(":crossBuild212Jar").outcome == SUCCESS
+
+        fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
+        fileExists("$dir.root.absolutePath/build/libs/junit*_2.12.jar")
+        where:
+        [gradleVersion, defaultScalaVersion] << [['4.10.3', '2.11'], ['4.10.3', '2.12']]
     }
 }

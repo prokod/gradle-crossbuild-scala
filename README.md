@@ -6,7 +6,7 @@
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.4.3")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.4.4")
     }
 }
 ```
@@ -164,6 +164,8 @@ When using this plugin and applying 'maven-publish' plugin explicitly in build.g
     Beware, Behind the scenes the jars and the publications are decoupled, the logical linkage between a cross built Jar and the publication is made by:
     - Either ensuring `artifactId = $.crossBuild.targetVersions.v211.artifactId` in the model
     - Or giving the publication item a name of the following convention `crossBuildXXX(MavenPublication)` where XXX can be 210, 211, 212 etc.
+- test/check tasks are not being cross compiled and they use the default scala version.
+  If a user would like to run tests with different scala versions, he needs to change the default one by updating the `scala-library` version dependency in build.gradle
 
 ### cross building DSL
 `targetVersionItem.archiveAppendix`, `crossBuild.scalaVersions`, `crossBuild211XXX` pre defined configurations
