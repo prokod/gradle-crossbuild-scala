@@ -1,5 +1,5 @@
 # gradle crossbuild scala plugin
-[![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)
+[![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)[![Automated Release Notes by gren](https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg)](https://github-tools.github.io/github-release-notes/)
 
 ## Getting the plugin
 ----------------------
@@ -93,6 +93,8 @@ buildscript {
   To be able to use that, `targetVersion` item should be named by the following convention, for example:
   `[v|V]210(ScalaVer)` is translated to `{ "targetVersion": { "value": "2.10", "name": "[v|V]210" }`
 - When using a dependency with '?' in `compile` configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will try to deduce the scala version for task `build` based on the neighboring dependencies and explicit `scala-library` dependency if any. If it fails to deduce an exception will be thrown.
+- test/check tasks are not being cross compiled and they use the default scala version.
+  If a user would like to run tests with different scala versions, he needs to change the default one by updating the `scala-library` version dependency in build.gradle
 
 ### cross building with publishing  
 Leveraging gradle maven-publish plugin for the actual publishing
@@ -164,8 +166,6 @@ When using this plugin and applying 'maven-publish' plugin explicitly in build.g
     Beware, Behind the scenes the jars and the publications are decoupled, the logical linkage between a cross built Jar and the publication is made by:
     - Either ensuring `artifactId = $.crossBuild.targetVersions.v211.artifactId` in the model
     - Or giving the publication item a name of the following convention `crossBuildXXX(MavenPublication)` where XXX can be 210, 211, 212 etc.
-- test/check tasks are not being cross compiled and they use the default scala version.
-  If a user would like to run tests with different scala versions, he needs to change the default one by updating the `scala-library` version dependency in build.gradle
 
 ### cross building DSL
 `targetVersionItem.archiveAppendix`, `crossBuild.scalaVersions`, `crossBuild211XXX` pre defined configurations
