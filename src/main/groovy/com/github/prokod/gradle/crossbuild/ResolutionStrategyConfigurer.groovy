@@ -150,7 +150,9 @@ class ResolutionStrategyConfigurer {
                     // Replace 3d party scala dependency which contains '_?'
                     def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
                     if (probableScalaVersion == '?') {
-                        resolveQMarkInTargetDependencyName(details, c, scalaVersions)
+                        // We do not have plugin generated cross build configurations specifically dependent on test
+                        // configurations like `testCompile`, `testCompileOnly`, `testImplementation` ...
+                        strategyForNonCrossBuildConfiguration(c, probableScalaVersion, details)
                         project.logger.info(LoggerUtils.logTemplate(project,
                                 "${c.name} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
                                         "Subtituted with [${details.target.name}]"
@@ -236,6 +238,9 @@ class ResolutionStrategyConfigurer {
                     allDependencySet, scalaVersionInsights.artifactInlinedVersion)
             new Tuple2(scalaVersionInsights.artifactInlinedVersion, deps.size())
         }.findAll { tuple ->
+            // Means this is a sane state where the dependency to be resolved does not have any other alternatives in
+            // the dependency set being examined. In that case we can build upon it to infer the scala version up the
+            // stream.
             tuple.second == 0
         }
         def requested = details.requested
