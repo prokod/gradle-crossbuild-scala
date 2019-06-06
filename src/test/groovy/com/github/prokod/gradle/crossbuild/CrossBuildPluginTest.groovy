@@ -40,8 +40,8 @@ plugins {
 
 crossBuild {
     builds {
-        v210
         v211
+        v212
     }
 }
 """
@@ -55,10 +55,10 @@ crossBuild {
                 .build()
 
         then:
-        result.output.contains('crossBuild210Jar')
-        !result.output.contains('publishCrossBuild210PublicationToMavenLocal')
         result.output.contains('crossBuild211Jar')
         !result.output.contains('publishCrossBuild211PublicationToMavenLocal')
+        result.output.contains('crossBuild212Jar')
+        !result.output.contains('publishCrossBuild212PublicationToMavenLocal')
         result.task(":tasks").outcome == SUCCESS
 
         where:
@@ -78,8 +78,8 @@ crossBuild {
         appendixPattern = '_?'
     }
     builds {
-        v210
         v211
+        v212
     }
 }
 """
@@ -93,10 +93,10 @@ crossBuild {
                 .build()
 
         then:
-        result.output.contains('crossBuild210Jar')
-        !result.output.contains('publishCrossBuild210PublicationToMavenLocal')
         result.output.contains('crossBuild211Jar')
         !result.output.contains('publishCrossBuild211PublicationToMavenLocal')
+        result.output.contains('crossBuild212Jar')
+        !result.output.contains('publishCrossBuild212PublicationToMavenLocal')
         result.task(":tasks").outcome == SUCCESS
 
         where:
@@ -116,18 +116,18 @@ group = 'project.group'
 
 crossBuild {
     builds {
-        v210
         v211
+        v212
     }
 }
 
 publishing {
     publications {
-        crossBuild210(MavenPublication) {
-            artifact crossBuild210Jar
-        }
         crossBuild211(MavenPublication) {
             artifact crossBuild211Jar
+        }
+        crossBuild212(MavenPublication) {
+            artifact crossBuild212Jar
         }
     }
 }
@@ -142,10 +142,10 @@ publishing {
                 .build()
 
         then:
-        result.output.contains('crossBuild210Jar')
-        result.output.contains('publishCrossBuild210PublicationToMavenLocal')
         result.output.contains('crossBuild211Jar')
         result.output.contains('publishCrossBuild211PublicationToMavenLocal')
+        result.output.contains('crossBuild212Jar')
+        result.output.contains('publishCrossBuild212PublicationToMavenLocal')
         result.task(":tasks").outcome == SUCCESS
 
         where:
@@ -162,8 +162,8 @@ plugins {
 
 crossBuild {
     builds {
-        v210
         v211
+        v212
     }
 }
 """
@@ -173,14 +173,14 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuild211Jar', 'crossBuild212Jar', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.output.contains('_2.10')
         result.output.contains('_2.11')
-        result.task(":crossBuild210Jar").outcome == SUCCESS
+        result.output.contains('_2.12')
         result.task(":crossBuild211Jar").outcome == SUCCESS
+        result.task(":crossBuild212Jar").outcome == SUCCESS
 
         where:
         gradleVersion << ['4.2']

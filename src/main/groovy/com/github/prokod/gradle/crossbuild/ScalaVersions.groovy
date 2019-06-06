@@ -21,7 +21,7 @@ package com.github.prokod.gradle.crossbuild
 class ScalaVersions {
     // TODO: update 2.11 to 2.11.12
     private static final Map<String, String> DEFAULT_CATALOG =
-            ['2.9':'2.9.3', '2.10':'2.10.6', '2.11':'2.11.11', '2.12':'2.12.8']
+            ['2.9':'2.9.3', '2.10':'2.10.6', '2.11':'2.11.12', '2.12':'2.12.8']
 
     static final ScalaVersions DEFAULT_SCALA_VERSIONS = new ScalaVersions(DEFAULT_CATALOG)
 

@@ -6,7 +6,7 @@
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.4.4")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.5.0")
     }
 }
 ```
@@ -17,16 +17,12 @@ buildscript {
 - Applying the plugin and using its DSL
 
     ```groovy
-    import com.github.prokod.gradle.crossbuild.model.*
-
     apply plugin: 'com.github.prokod.gradle-crossbuild'
 
-    model {
-        crossBuild {
-            targetVersions {
-                v210(ScalaVer)
-                v211(ScalaVer)
-            }
+    crossBuild {
+        builds {
+            v211
+            v212
         }
     }
     ```
@@ -35,20 +31,20 @@ buildscript {
     dependencies {
         compile ("com.google.protobuf:protobuf-java:$protobufVersion")
         compile ("joda-time:joda-time:$jodaVersion")
-        // The question mark is being replaced based on the scala version being built //(3)
+        // The question mark is being replaced based on the scala version being built
         compile ("org.scalaz:scalaz_?:$scalazVersion")
     }
     ```
 
 - `gradle tasks`
 
-    `gradle-crossbuild` plugin adds the following user faced tasks to the project `crossBuild210Classes`, `crossBuild210Jar`, `crossBuild211Classes`, `crossBuild211Jar`
+    `gradle-crossbuild` plugin adds the following user faced tasks to the project `crossBuild211Classes`, `crossBuild211Jar`, `crossBuild212Classes`, `crossBuild212Jar` based on the plugin DSL `builds` block
 
     ```sh
     > ./gradlew tasks
 
     ------------------------------------------------------------
-    All tasks runnable from project :lib
+    All tasks runnable from root project
     ------------------------------------------------------------
 
     Build tasks
@@ -59,39 +55,34 @@ buildscript {
     buildNeeded - Assembles and tests this project and all projects it depends on.
     classes - Assembles main classes.
     clean - Deletes the build directory.
-    crossBuild210Classes - Assembles cross build210 classes.
-    crossBuild210Jar - Assembles a jar archive containing 210 classes
     crossBuild211Classes - Assembles cross build211 classes.
     crossBuild211Jar - Assembles a jar archive containing 211 classes
+    crossBuild212Classes - Assembles cross build212 classes.
+    crossBuild212Jar - Assembles a jar archive containing 212 classes
     jar - Assembles a jar archive containing the main classes.
     testClasses - Assembles test classes.
     ...
-
-    Publishing tasks
-    ----------------
-    publish - Publishes all publications produced by this project.
-    publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
     ```
 
-- `gradle crossBuild210Jar crossBuild211Jar`
+- `gradle crossBuild211Jar crossBuild212Jar`
 
     ```sh
-    > ./gradlew crossBuild210Jar crossBuild211Jar
+    > ./gradlew crossBuild211Jar crossBuild212Jar
     ...
-    Tasks to be executed: [task ':compileCrossBuild210Java', task ':compileCrossBuild210Scala', task ':processCrossBuild210Resources', task ':crossBuild210Classes', task ':crossBuild210Jar', task ':compileCrossBuild211Java', task ':compileCrossBuild211Scala', task ':processCrossBuild211Resources', task ':crossBuild211Classes', task ':crossBuild211Jar']
+    Tasks to be executed: [task ':compileCrossBuild211Java', task ':compileCrossBuild211Scala', task ':processCrossBuild211Resources', task ':crossBuild211Classes', task ':crossBuild211Jar', task ':compileCrossBuild212Java', task ':compileCrossBuild212Scala', task ':processCrossBuild212Resources', task ':crossBuild212Classes', task ':crossBuild212Jar']
     ...
-    :crossBuild210Jar (Thread[Connection worker,5,main]) completed. Took 0.04 secs.
+    :crossBuild211Jar (Thread[Connection worker,5,main]) completed. Took 0.04 secs.
     ...
-    :crossBuild211Jar (Thread[Connection worker,5,main]) completed. Took 0.007 secs.
+    :crossBuild212Jar (Thread[Connection worker,5,main]) completed. Took 0.007 secs.
 
     > ls ./build/libs
-    lib_2.10.jar  lib_2.11.jar
+    lib_2.11.jar  lib_2.12.jar
     ```
     
 #### Notes
-- When defining `targetVersions`, a short hand convention can be used for default values.
-  To be able to use that, `targetVersion` item should be named by the following convention, for example:
-  `[v|V]210(ScalaVer)` is translated to `{ "targetVersion": { "value": "2.10", "name": "[v|V]210" }`
+- When defining `builds`, a short hand convention can be used for default values.
+  To be able to use that, `build` item should be named by the following convention, for example:
+  `xyz211` is translated to `{ "build": { "version": "2.11", "name": "xyz211" ... }`
 - When using a dependency with '?' in `compile` configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will try to deduce the scala version for task `build` based on the neighboring dependencies and explicit `scala-library` dependency if any. If it fails to deduce an exception will be thrown.
 - test/check tasks are not being cross compiled and they use the default scala version.
   If a user would like to run tests with different scala versions, he needs to change the default one by updating the `scala-library` version dependency in build.gradle
@@ -100,29 +91,29 @@ buildscript {
 Leveraging gradle maven-publish plugin for the actual publishing
 
 ```groovy
-import com.github.prokod.gradle.crossbuild.model.*
-
 apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'maven-publish'
 
-model {
-    crossBuild {
-        targetVersions {
-            v211(ScalaVer)
-        }
+group = 'x.y.z'
+
+crossBuild {
+    builds {
+        v211
     }
+}
 
-    // 'maven-publish' plugin usage for publishing crossbuild artifacts
-    publishing {
-        publications {
-            // Create a publication
-            crossBuild211(MavenPublication) {
-                // groupId is needed
-                groupId = project.group
-                // artifactId is also needed and can be assigned for convenience from the crossbuild plugin
-                artifactId = $.crossBuild.targetVersions.v211.artifactId
-                // actual artifact for this publication as a Jar task from crossbuild plugin
-                artifact $.tasks.crossBuild211Jar
-            }
+// 'maven-publish' plugin usage for publishing crossbuild artifacts
+publishing {
+    publications {
+        // Create a publication
+        crossBuild211(MavenPublication) {
+            // By default groupId equals group
+            groupId = 'x.y.z'
+            // By default artifactId is resolved to be artifactId + resolved appendixPattern
+            // Default appendixPattern is _? which is resolved to _2.11 in this example
+            artifactId = 'lib_2.11'
+            // actual artifact for this publication as a Jar task from crossbuild plugin
+            artifact crossBuild211Jar
         }
     }
 }
@@ -145,7 +136,6 @@ model {
     generatePomFileForCrossBuild211Publication - Generates the Maven POM file for publication 'crossBuild211'.
     publish - Publishes all publications produced by this project.
     publishCrossBuild211PublicationToMavenLocal - Publishes Maven publication 'crossBuild211' to the local Maven repository.
-    publishCrossBuild211PublicationToMavenRepository - Publishes Maven publication 'crossBuild211' to Maven repository 'maven'.
     publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
     ```
 
@@ -159,41 +149,35 @@ model {
     ```
 
 #### Notes
-- To tap into the lifecycle of 'maven-publish' plugin it is being applied from within crossbuild-scala plugins.
-When using this plugin and applying 'maven-publish' plugin explicitly in build.gradle for the same module, an Exception will be raised.
+- To update 'maven-publish' cross-build related publications, 'gradle-crossbuild' plugin leverages Gradle's pluginManager.
 - Behind the scenes Configuration crossBuild2XXMavenCompileScope is being populated and used with in `pom.withXml` block.
     It follows a similar line of thought as `conf2ScopeMappings.addMapping()` in Gradle's maven plugin.
     Beware, Behind the scenes the jars and the publications are decoupled, the logical linkage between a cross built Jar and the publication is made by:
-    - Either ensuring `artifactId = $.crossBuild.targetVersions.v211.artifactId` in the model
+    - Either ensuring `artifactId` matches plugin resolved artifactId
     - Or giving the publication item a name of the following convention `crossBuildXXX(MavenPublication)` where XXX can be 210, 211, 212 etc.
 
 ### cross building DSL
 `targetVersionItem.archiveAppendix`, `crossBuild.scalaVersions`, `crossBuild211XXX` pre defined configurations
 
 ```groovy
-import com.github.prokod.gradle.crossbuild.model.*
-
 apply plugin: 'com.github.prokod.gradle-crossbuild'
 
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer) {
-                ...
-            }
-            v211(ScalaVer) {
-                value = '2.11'
-                archiveAppendix = "-$spark20SparkVersion_?" // By default the value is "_?" 
-                                                            // In the default case will yield '_2.11')
-            }
-        }
+crossBuild {
+    scalaVersions = ['2.10': '2.10.6', '2.11': '2.11.12', ...]
 
-        scalaVersions = ['2.10': '2.10.6', '2.11': '2.11.11', ...]
+    archive.appendixPattern = '_?'          // Default appendix pattern for all builds
 
-        dependencyResolution {
-            includes = [configurations.someUserConfiguration]
+    builds {
+        v210
+        v211 {
+            version = '2.11'                // By default derived from build name
+            archive.appendixPattern = '_?'  // By default the value is "_?"
+                                            // In the default case will yield '_2.11')
+                                            // If different from upper level config, it will override it.
         }
     }
+
+    configurations = [configurations.someUserConfiguration]
 }
 ```
 
@@ -211,25 +195,25 @@ dependencies {
 
 #### Notes
 - If `crossBuild.scalaVersions` catalog is not defined a default one will be used (might get outdated).
-- The dependecies "duo":
+- The dependencies "duo":
   ```groovy
   dependencies {
     compileOnly ('org.apache.spark:spark-sql_2.10:1.6.3')
     crossBuild211CompileOnly ('org.apache.spark:spark-sql_2.11:2.2.1')
   }
   ```
-  is resolved as follows: the spark version of the dependency specified for `compile/Only` configuartion is the default one for `build`, `test/check` tasks. It is also the one to be use when calling `crossBuild210Jar` and `publishToMavenLocal`.
+  is resolved as follows: the spark version of the dependency specified for `compile/Only` configuration is the default one for `build`, `test/check` tasks. It is also the one to be used when calling `crossBuild210Jar` and `publishToMavenLocal`.
   The other dependency specified for Scala version 2.11 (`crossBuild211Compile/Only`), will be used only for `crossBuild211Jar` and `publishToMavenLocal`
 - The plugin provides pre defined configurations (sourceSets) being used by the matching pre generated Jar tasks:
 crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
-- `dependencyResolution.includes = [...]` provides users with the option to tie their own Configuration (SourceSet) with the cross build plugin workings. Needed for instance when specifying dependency within that Configuration on a cross build sub project.
+- `configurations = [...]` provides users with the option to tie their own Configuration (SourceSet) with the cross build plugin workings. Needed for instance when specifying dependency within that Configuration on a cross build sub project.
   For instance:
   ```groovy
   apply plugin: 'com.github.prokod.gradle-crossbuild'
 
   crossBuild {
     ...
-    dependencyResolution.includes = [
+    configurations = [
         configurations.integrationTestCompileClasspath,
         configurations.integrationTestRuntimeClasspath
     ]
@@ -250,3 +234,100 @@ crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
     ...
   }
   ```
+### multi-module project
+To apply cross building to a multi-module project use one of the following suggested layouts:
+
+#### layout 1
+- In the root project build.gradle:
+```groovy
+buildscript {
+    dependencies {
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.5.0")
+    }
+}
+
+allprojects {
+    apply plugin: 'base'
+    group = 'x.y.z'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
+    project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
+        crossBuild {
+
+            scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+
+            builds {
+                spark240_211
+                spark243_212
+            }
+        }
+    }
+
+    project.pluginManager.withPlugin('maven-publish') {
+        publishing {
+            publications {
+                crossBuild211(MavenPublication) {
+                    artifact crossBuild211Jar
+                }
+                crossBuild212(MavenPublication) {
+                    artifact crossBuild212Jar
+                }
+            }
+        }
+    }
+}
+```
+- In sub projects' build.gradle:
+```groovy
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+...
+```
+
+#### layout 2
+- In the root project build.gradle:
+```groovy
+buildscript {
+    dependencies {
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.5.0")
+    }
+}
+
+allprojects {
+    group = 'x.y.z'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'com.github.prokod.gradle-crossbuild'
+    apply plugin: 'maven-publish'
+
+    crossBuild {
+
+        scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+
+        builds {
+            spark240_211
+            spark243_212
+        }
+    }
+
+    publishing {
+        publications {
+            crossBuild211(MavenPublication) {
+                artifact crossBuild211Jar
+            }
+            crossBuild212(MavenPublication) {
+                artifact crossBuild212Jar
+            }
+        }
+    }
+}
+```
