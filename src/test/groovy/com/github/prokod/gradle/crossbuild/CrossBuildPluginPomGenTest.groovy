@@ -34,10 +34,9 @@ class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
         buildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
 plugins {
     id 'com.github.prokod.gradle-crossbuild'
+    id 'maven-publish'
 }
 
 group = 'com.github.prokod.it'
@@ -46,39 +45,30 @@ repositories {
     mavenCentral()
 }
 
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer) {
-                value = '2.10'
-            }
-            v211(ScalaVer) {
-                value = '2.11'
-            }
+crossBuild {
+    builds {
+        v210
+        v211
+    }
+}
+
+publishing {
+    publications {
+        crossBuild210(MavenPublication) {
+            artifact crossBuild210Jar
+        }
+        crossBuild211(MavenPublication) {
+            artifact crossBuild211Jar
         }
     }
-    
-    publishing {
-        publications {
-            crossBuild210(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v210.artifactId
-                artifact \$.tasks.crossBuild210Jar
-            }
-            crossBuild211(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v211.artifactId
-                artifact \$.tasks.crossBuild211Jar
-            }
-        }
+}
+
+tasks.withType(GenerateMavenPom) { t ->
+    if (t.name.contains('CrossBuild210')) {
+        t.destination = file("\$buildDir/generated-pom_2.10.xml")
     }
-    
-    tasks.generatePomFileForCrossBuild210Publication {
-        destination = file("\$buildDir/generated-pom_2.10.xml")
-    }
-    
-    tasks.generatePomFileForCrossBuild211Publication {
-        destination = file("\$buildDir/generated-pom_2.11.xml")
+    if (t.name.contains('CrossBuild211')) {
+        t.destination = file("\$buildDir/generated-pom_2.11.xml")
     }
 }
 
@@ -147,6 +137,8 @@ dependencies {
         project211.dependencies.dependency[3].scope == 'provided'
 
         where:
-        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.10'
+        '4.2'           | '2.11'
     }
 }

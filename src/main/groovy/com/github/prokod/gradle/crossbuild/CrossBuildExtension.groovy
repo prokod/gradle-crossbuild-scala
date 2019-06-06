@@ -26,7 +26,7 @@ class CrossBuildExtension {
 
     Collection<ResolvedBuildConfigLifecycle> resolvedBuilds = []
 
-    CrossBuildSourceSets1 crossBuildSourceSets
+    CrossBuildSourceSets crossBuildSourceSets
 
     CrossBuildExtension(Project project) {
         this.project = project
@@ -35,7 +35,7 @@ class CrossBuildExtension {
 
         this.builds = project.container(Build)
 
-        this.crossBuildSourceSets = new CrossBuildSourceSets1(project)
+        this.crossBuildSourceSets = new CrossBuildSourceSets(project)
 
         builds.all { Build build ->
             updateBuild(build)

@@ -70,10 +70,9 @@ public class HelloWorldB {
 """
 
         buildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
 plugins {
     id 'com.github.prokod.gradle-crossbuild'
+    id 'maven-publish'
 }
 
 group = 'com.github.prokod.it'
@@ -82,39 +81,30 @@ repositories {
     mavenCentral()
 }
 
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer) {
-                value = '2.10'
-            }
-            v211(ScalaVer) {
-                value = '2.11'
-            }
+crossBuild {
+    builds {
+        v210
+        v211
+    }
+}
+
+publishing {
+    publications {
+        crossBuild210(MavenPublication) {
+            artifact crossBuild210Jar
+        }
+        crossBuild211(MavenPublication) {
+            artifact crossBuild211Jar
         }
     }
+}
     
-    publishing {
-        publications {
-            crossBuild210(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v210.artifactId
-                artifact \$.tasks.crossBuild210Jar
-            }
-            crossBuild211(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v211.artifactId
-                artifact \$.tasks.crossBuild211Jar
-            }
-        }
+tasks.withType(GenerateMavenPom) { t ->
+    if (t.name.contains('CrossBuild210')) {
+        t.destination = file("\$buildDir/generated-pom_2.10.xml")
     }
-    
-    tasks.generatePomFileForCrossBuild210Publication {
-        destination = file("\$buildDir/generated-pom_2.10.xml")
-    }
-    
-    tasks.generatePomFileForCrossBuild211Publication {
-        destination = file("\$buildDir/generated-pom_2.11.xml")
+    if (t.name.contains('CrossBuild211')) {
+        t.destination = file("\$buildDir/generated-pom_2.11.xml")
     }
 }
 
@@ -154,7 +144,9 @@ dependencies {
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
 
         where:
-        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.10'
+        '4.2'           | '2.11'
     }
 
     @Unroll
@@ -190,8 +182,6 @@ object Test {
 """
 
         buildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
 plugins {
     id 'java-library'
     id 'com.github.prokod.gradle-crossbuild'
@@ -201,18 +191,12 @@ repositories {
     mavenCentral()
 }
 
-model {
-    crossBuild {
-        targetVersions {
-            v211(ScalaVer) {
-                value = '2.11'
-            }
-            v212(ScalaVer) {
-                value = '2.12'
-            }
-        }
+crossBuild {
+    scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
 
-        scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+    builds {
+        v211
+        v212
     }
 }
 
@@ -248,6 +232,8 @@ dependencies {
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.12.jar")
         where:
-        [gradleVersion, defaultScalaVersion] << [['4.10.3', '2.11'], ['4.10.3', '2.12']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.11'
+        '4.2'           | '2.12'
     }
 }

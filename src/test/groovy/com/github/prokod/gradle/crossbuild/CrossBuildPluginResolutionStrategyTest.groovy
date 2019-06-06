@@ -51,10 +51,9 @@ object HelloWorld {
 """
 
         buildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
 plugins {
     id 'com.github.prokod.gradle-crossbuild'
+    id 'maven-publish'
 }
 
 group = 'com.github.prokod.it'
@@ -63,35 +62,36 @@ repositories {
     mavenCentral()
 }
 
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
+crossBuild {
+    scalaVersions = ['2.10':'2.10.6', '2.11':'2.11.11'] 
+
+    builds {
+        v210 {
+            scala = '2.10'
+        }
+        v211 {
+            scala = '2.11'
         }
     }
-    
-    publishing {
-        publications {
-            crossBuild210(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v210.artifactId
-                artifact \$.tasks.crossBuild210Jar
-            }
-            crossBuild211(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v211.artifactId
-                artifact \$.tasks.crossBuild211Jar
-            }
+}
+
+publishing {
+    publications {
+        crossBuild210(MavenPublication) {
+            artifact crossBuild210Jar
+        }
+        crossBuild211(MavenPublication) {
+            artifact crossBuild211Jar
         }
     }
-    
-    tasks.generatePomFileForCrossBuild210Publication {
-        destination = file("\$buildDir/generated-pom_2.10.xml")
+}
+
+tasks.withType(GenerateMavenPom) { t ->
+    if (t.name.contains('CrossBuild210')) {
+        t.destination = file("\$buildDir/generated-pom_2.10.xml")
     }
-    
-    tasks.generatePomFileForCrossBuild211Publication {
-        destination = file("\$buildDir/generated-pom_2.11.xml")
+    if (t.name.contains('CrossBuild211')) {
+        t.destination = file("\$buildDir/generated-pom_2.11.xml")
     }
 }
 
@@ -105,6 +105,8 @@ dependencies {
     compile 'org.apache.flink:flink-connector-kafka-0.10_2.11:1.4.1'
     crossBuild210Compile 'org.apache.flink:flink-connector-kafka-0.10_2.10:1.3.2'
 }
+
+
 """
 
         when:
@@ -113,6 +115,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -130,8 +133,11 @@ dependencies {
         pom211.contains('2.11.11')
         pom211.contains('18.0')
         pom211.contains('3.0.1')
+
         where:
-        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+        gradleVersion | defaultScalaVersion
+        '4.2'         | '2.10'
+        '4.2'         | '2.11'
     }
 
     @Unroll
@@ -167,8 +173,6 @@ object Test {
 """
 
         buildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
 plugins {
     id 'java-library'
     id 'com.github.prokod.gradle-crossbuild'
@@ -178,18 +182,16 @@ repositories {
     mavenCentral()
 }
 
-model {
-    crossBuild {
-        targetVersions {
-            v211(ScalaVer) {
-                value = '2.11'
-            }
-            v212(ScalaVer) {
-                value = '2.12'
-            }
-        }
+crossBuild {
+    scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8'] 
 
-        scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+    builds {
+        v211 {
+            scala = '2.11'
+        }
+        v212 {
+            scala = '2.12'
+        }
     }
 }
 
@@ -222,6 +224,10 @@ dependencies {
         result.task(":build").outcome == SUCCESS
 
         where:
-        [gradleVersion, defaultScalaVersion] << [['4.10.3', '2.11'], ['4.10.3', '2.12']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.11'
+        '4.2'           | '2.12'
+        '4.10.3'        | '2.11'
+        '4.10.3'        | '2.12'
     }
 }
