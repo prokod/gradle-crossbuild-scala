@@ -90,16 +90,16 @@ class CrossBuildPlugin1 implements Plugin<Project> {
                     (sourceSet.compileOnlyConfigurationName):extension.project.configurations.compileOnly,
                     (sourceSet.runtimeConfigurationName):extension.project.configurations.runtime])
 
-            //TODO: add back possibility for adding external configurations
-            def configs = extension.project.configurations.findAll { it.name.startsWith('test') }
-                          //+ crossBuild.dependencyResolution?.includes
+            //TODO: add tests to cover adding external configurations scenarios
+            def configs = extension.project.configurations.findAll { it.name.startsWith('test') } +
+                    extension.configurations
             configurer.applyFor(configs)
 
             def pomAidingConfigurations =
                     new PomAidingConfigurations(extension.project, sourceSet, rb.scalaVersionInsights,
                             rb.archive.appendix)
-            pomAidingConfigurations.createAndSetForMavenScope(PomAidingConfigurations.ScopeType.COMPILE)
-            pomAidingConfigurations.createAndSetForMavenScope(PomAidingConfigurations.ScopeType.PROVIDED)
+            pomAidingConfigurations.createAndSetForMavenScope(ScopeType.COMPILE)
+            pomAidingConfigurations.createAndSetForMavenScope(ScopeType.PROVIDED)
 
             extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
                     "Creating crossbuild Jar task for sourceSet ${sourceSetId}." +

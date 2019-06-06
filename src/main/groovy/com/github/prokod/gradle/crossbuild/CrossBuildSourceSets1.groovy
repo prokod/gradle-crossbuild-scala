@@ -14,12 +14,10 @@ class CrossBuildSourceSets1 {
     static final String SOURCESET_BASE_NAME = 'crossBuild'
 
     private final Project project
-//    private final Collection<Build> builds
     final SourceSetContainer container
 
     CrossBuildSourceSets1(Project project) {
         this.project = project
-//        this.builds = builds
         this.container = getSourceSetContainer(project)
     }
 
@@ -45,23 +43,11 @@ class CrossBuildSourceSets1 {
     void fromBuilds(Collection<ResolvedBuildConfigLifecycle> builds) {
         assert builds != null : 'builds should not be null'
         def sourceSetIds = builds.collect { build ->
-//            def scalaVersionInsights =
-//                    new ScalaVersionInsights(build.scala, ScalaVersions.DEFAULT_SCALA_VERSIONS + scalaVersions)
-
             def sourceSetId = getOrCreateCrossBuildScalaSourceSet(build.scalaVersionInsights).first
             project.logger.info(LoggerUtils.logTemplate(project,
                     "Creating source set (User request): [${sourceSetId}]"))
             sourceSetId.toString()
         }
-
-//        // Remove unused source sets
-//        cleanSourceSetsContainer(sourceSetIds)
-//
-//        // disable unused tasks
-//        def nonActiveSourceSetIds = findNonActiveSourceSetIds(builds*.scala.toSet())
-//        project.logger.info(LoggerUtils.logTemplate(project,
-//                "Non active source set ids: [${nonActiveSourceSetIds.join(', ')}]"))
-//        cleanTasksContainer(project.tasks, nonActiveSourceSetIds)
     }
 
     /**
@@ -76,31 +62,6 @@ class CrossBuildSourceSets1 {
         def sourceSet = container.findByName(sourceSetId)
         new Tuple2(sourceSetId, sourceSet)
     }
-
-//    private void cleanSourceSetsContainer(List<String> sourceSetIds) {
-//        // Remove unused source sets
-//        container.removeIf { it.name.contains(SOURCESET_BASE_NAME) && !sourceSetIds.contains(it.name) }
-//    }
-
-//    private static Set<String> findNonActiveSourceSetIds(Set<String> targetVersions) {
-//        // disable unused tasks
-//        def nonActiveTargetVersions = ScalaVersions.DEFAULT_SCALA_VERSIONS
-//                .mkRefTargetVersions()
-//        nonActiveTargetVersions.removeAll(targetVersions)
-//
-//        def nonActiveSourceSetIds = nonActiveTargetVersions.collect {
-//            "${SOURCESET_BASE_NAME}${it.replaceAll('\\.', '')}".toString()
-//        }
-//        nonActiveSourceSetIds.toSet()
-//    }
-
-//    private static boolean cleanTasksContainer(TaskContainer tasks, Set<String> nonActiveSourceSetIds) {
-//        tasks.removeAll(tasks.findAll { t ->
-//            nonActiveSourceSetIds.findAll {
-//                ssid -> t.name.toLowerCase().contains(ssid.toLowerCase())
-//            }.size() > 0
-//        })
-//    }
 
     Tuple2<String, SourceSet> getOrCreateCrossBuildScalaSourceSet(ScalaVersionInsights scalaVersionInsights) {
         def sourceSetId = generateSourceSetId(scalaVersionInsights)

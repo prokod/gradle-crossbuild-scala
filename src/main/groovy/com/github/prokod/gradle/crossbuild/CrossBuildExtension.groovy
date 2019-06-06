@@ -6,6 +6,7 @@ import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 /**
  * Extension class impl. for thec cross build plugin
@@ -18,6 +19,8 @@ class CrossBuildExtension {
     Map<String, String> scalaVersions = [:]
 
     ArchiveNaming archive
+
+    Set<Configuration> configurations = []
 
     NamedDomainObjectContainer<Build> builds
 
@@ -35,29 +38,17 @@ class CrossBuildExtension {
         this.crossBuildSourceSets = new CrossBuildSourceSets1(project)
 
         builds.all { Build build ->
-            build.archive = project.objects.newInstance(ArchiveNaming)
-            applyArchiveDefaults(build)
-
-            def sv = ScalaVersions.withDefaultsAsFallback(scalaVersions)
-
-            def resolvedBuild = BuildResolver.resolve(build, sv)
-            // Create cross build source sets
-            crossBuildSourceSets.fromBuilds([resolvedBuild])
-
-            resolvedBuilds.add(resolvedBuild)
+            updateBuild(build)
+            updateExtension(build)
         }
     }
-
-//    void scalaVersions(Closure c) {
-//        org.gradle.util.ConfigureUtil.configure(c, scalaVersions)
-//    }
 
     @SuppressWarnings(['ConfusingMethodName'])
     void archive(Action<? super ArchiveNaming> action) {
         action.execute(archive)
-//        builds.all { Build build ->
-//            applyArchiveDefaults(build)
-//        }
+        builds.all { Build build ->
+            applyArchiveDefaults(build)
+        }
     }
 
     @SuppressWarnings(['ConfusingMethodName', 'BuilderMethodWithSideEffects', 'FactoryMethodName'])
@@ -65,9 +56,24 @@ class CrossBuildExtension {
         action.execute(builds)
     }
 
+    void updateBuild(Build build) {
+        build.archive = project.objects.newInstance(ArchiveNaming)
+        applyArchiveDefaults(build)
+    }
+
     void applyArchiveDefaults(Build build) {
         if (build.archive.appendixPattern == null) {
             build.archive.appendixPattern = this.archive.appendixPattern
         }
+    }
+
+    void updateExtension(Build build) {
+        def sv = ScalaVersions.withDefaultsAsFallback(scalaVersions)
+
+        def resolvedBuild = BuildResolver.resolve(build, sv)
+        // Create cross build source sets
+        crossBuildSourceSets.fromBuilds([resolvedBuild])
+
+        resolvedBuilds.add(resolvedBuild)
     }
 }
