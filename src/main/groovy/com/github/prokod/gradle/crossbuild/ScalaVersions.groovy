@@ -17,11 +17,17 @@ package com.github.prokod.gradle.crossbuild
 
 /**
  * A map of scala version to their default scala compiler version
- *
  */
 class ScalaVersions {
-    static final ScalaVersions DEFAULT_SCALA_VERSIONS =
-            new ScalaVersions(['2.9':'2.9.3', '2.10':'2.10.6', '2.11':'2.11.11', '2.12':'2.12.3'])
+    // TODO: update 2.11 to 2.11.12
+    private static final Map<String, String> DEFAULT_CATALOG =
+            ['2.9':'2.9.3', '2.10':'2.10.6', '2.11':'2.11.11', '2.12':'2.12.8']
+
+    static final ScalaVersions DEFAULT_SCALA_VERSIONS = new ScalaVersions(DEFAULT_CATALOG)
+
+    static ScalaVersions withDefaultsAsFallback(Map<String, String> catalog) {
+        DEFAULT_SCALA_VERSIONS + new ScalaVersions(catalog)
+    }
 
     Map<String, String> catalog
 
@@ -35,5 +41,9 @@ class ScalaVersions {
 
     List<String> mkRefTargetVersions() {
         catalog.keySet().collect { new ScalaVersionInsights(it, this).artifactInlinedVersion }
+    }
+
+    ScalaVersions plus(ScalaVersions other) {
+        new ScalaVersions(catalog + other.catalog)
     }
 }

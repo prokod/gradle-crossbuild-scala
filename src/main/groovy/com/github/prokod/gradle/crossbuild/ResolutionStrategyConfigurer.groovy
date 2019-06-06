@@ -23,6 +23,12 @@ class ResolutionStrategyConfigurer {
         this.scalaVersionInsights = scalaVersionInsights
     }
 
+    ResolutionStrategyConfigurer(Project project,
+                                 Map<String, String> catalog,
+                                 ScalaVersionInsights scalaVersionInsights) {
+        this(project, ScalaVersions.DEFAULT_SCALA_VERSIONS + new ScalaVersions(catalog), scalaVersionInsights)
+    }
+
     /**
      * Resolve dependencies with place holder version '?' for a crossbuild configuration and
      * try to convert mismatched scala version in dependencies coming from parent configuration to matching ones.
