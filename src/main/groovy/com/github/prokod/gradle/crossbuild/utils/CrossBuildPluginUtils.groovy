@@ -1,9 +1,6 @@
 package com.github.prokod.gradle.crossbuild.utils
 
-import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
 import org.gradle.api.GradleException
-import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
 
 /**
  * Util class for CrossBuildPlugin/Rules
@@ -32,22 +29,6 @@ class CrossBuildPluginUtils {
             // Throw exception so Gradle knows the validation fails.
             throw new GradleException(exceptionMessage.toString(), assertionError)
         }
-    }
-
-    /**
-     * Finds all the projects (modules) in a multi module project which has
-     * {@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin} plugin applied
-     * and return their respective names.
-     *
-     * NOTE: This function correct behaviour relies on the assumption it is being called after all projects (in multi
-     * module gradle build) were evaluated.
-     *
-     * @param gradle gradle space to retrieve rootProject ({@link Project}) from
-     * @return list of project(module) names for multi module project
-     */
-    static List<String> findAllNamesForCrossBuildPluginAppliedProjects(Gradle gradle) {
-        def moduleNames = gradle.rootProject.allprojects.findAll { it.plugins.hasPlugin(CrossBuildPlugin) }*.name
-        moduleNames
     }
 
     static String qmarkReplace(String template, String replacement) {

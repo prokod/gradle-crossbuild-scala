@@ -177,9 +177,11 @@ dependencies {
         result.output.contains(expected)
 
         where:
-        gradleVersion | defaultScalaVersion | ap   | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
-                '4.2' | '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
-                '4.2' | '2.10'              | '_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+        gradleVersion   | defaultScalaVersion | ap   | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
+                '4.2'   | '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
+                '4.2'   | '2.10'              | '_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+                '4.10.3'| '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
+
     }
 
     /**
@@ -349,7 +351,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
-        '4.2'           | '2.11'
+        '4.10.3'        | '2.11'
     }
 
     /**
@@ -503,7 +505,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
-        '4.2'           | '2.11'
+        '4.10.3'        | '2.11'
     }
 
     @Unroll
@@ -694,6 +696,6 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
-        '4.2'           | '2.11'
+        '4.10.3'        | '2.11'
     }
 }

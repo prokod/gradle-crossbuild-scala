@@ -46,7 +46,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             }
         }
 
-        project.gradle.projectsEvaluated {
+        project.afterEvaluate {
             def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersions)
 
             def fullyResolvedBuilds = extension.resolvedBuilds.collect { rb -> BuildResolver.resolve(rb, sv) }

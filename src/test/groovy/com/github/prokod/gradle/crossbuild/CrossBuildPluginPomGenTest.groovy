@@ -140,5 +140,6 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
         '4.2'           | '2.11'
+        '4.9' | '2.11'
     }
 }

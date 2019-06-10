@@ -62,7 +62,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2', '4.9']
     }
 
     @Unroll
@@ -100,7 +100,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2', '4.9']
     }
 
     @Unroll
@@ -149,7 +149,7 @@ publishing {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2','4.9']
     }
 
     @Unroll
@@ -183,7 +183,7 @@ crossBuild {
         result.task(":crossBuild212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2', '4.9']
     }
 
     @Unroll
@@ -223,7 +223,7 @@ crossBuild {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2', '4.9']
     }
 
     @Unroll
@@ -272,7 +272,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2', '4.9']
     }
 
     @Unroll
@@ -380,7 +380,7 @@ publishing {
         result.task(":publishCrossBuild211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2', '4.9']
     }
 
     @Unroll
@@ -459,6 +459,6 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['4.2']
+        gradleVersion << ['4.2', '4.9']
     }
 }
