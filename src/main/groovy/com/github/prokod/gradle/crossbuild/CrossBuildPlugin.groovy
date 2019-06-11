@@ -144,6 +144,8 @@ class CrossBuildPlugin implements Plugin<Project> {
 
             publishing.publications.all { MavenPublication pub ->
                 if (pub instanceof MavenPublication && probablyRelatedPublication(pub, targetVersion, sourceSetId)) {
+                    // TODO: explore ways to delegate cross build Jar task baseName to artifactId instead.
+                    pub.artifactId = pub.artifactId + targetVersion.archive.appendix
                     pub.pom.withXml {
                         withXmlHandler(it, pomAidingCompileScopeConfigName, ScopeType.COMPILE, project)
                     }
