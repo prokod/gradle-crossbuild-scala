@@ -157,13 +157,13 @@ publishing {
     - Or giving the publication item a name of the following convention `crossBuildXXX(MavenPublication)` where XXX can be 210, 211, 212 etc.
 
 ### cross building DSL
-`targetVersionItem.archiveAppendix`, `crossBuild.scalaVersions`, `crossBuild211XXX` pre defined configurations
+`targetVersionItem.archiveAppendix`, `crossBuild.scalaVersionsCatalog`, `crossBuild211XXX` pre defined configurations
 
 ```groovy
 apply plugin: 'com.github.prokod.gradle-crossbuild'
 
 crossBuild {
-    scalaVersions = ['2.10': '2.10.6', '2.11': '2.11.12', ...]
+    scalaVersionsCatalog = ['2.10': '2.10.6', '2.11': '2.11.12', ...]
 
     archive.appendixPattern = '_?'          // Default appendix pattern for all builds
 
@@ -194,7 +194,7 @@ dependencies {
 ```
 
 #### Notes
-- If `crossBuild.scalaVersions` catalog is not defined a default one will be used (might get outdated).
+- If `crossBuild.scalaVersionsCatalog` catalog is not defined a default one will be used (might get outdated).
 - The dependencies "duo":
   ```groovy
   dependencies {
@@ -258,7 +258,7 @@ allprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         crossBuild {
 
-            scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+            scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
 
             builds {
                 spark240_211
@@ -311,7 +311,7 @@ subprojects {
 
     crossBuild {
 
-        scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+        scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
 
         builds {
             spark240_211

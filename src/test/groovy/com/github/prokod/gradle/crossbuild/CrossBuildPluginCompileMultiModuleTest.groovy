@@ -96,22 +96,22 @@ allprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         crossBuild {
             
-            scalaVersions = ['2.11':'2.11.12']
+            scalaVersionsCatalog = ['2.11':'2.11.12']
         
             archive {
                 appendixPattern = '${ap}'
             }
             builds {
                 spark160_210 {
-                    scala = '2.10'
+                    scalaVersion = '2.10'
                     ${oap1 != null ? 'archive.appendixPattern = \'' + oap1 + '\'': ''}
                 }
                 spark240_211 {
-                    scala = '2.11'
+                    scalaVersion = '2.11'
                     ${oap2 != null ? 'archive.appendixPattern = \'' + oap2 + '\'' : ''}
                 }
                 spark241_212 {
-                    scala = '2.12'
+                    scalaVersion = '2.12'
                         ${oap3 != null ? 'archive { appendixPattern = \'' + oap3 + '\' }': ''}
                 }
             }
@@ -159,17 +159,17 @@ dependencies {
 
         expect:
         def build1 = new Build('spark160_210').with { b ->
-            scala = '2.10'
+            scalaVersion = '2.10'
             archive = new ArchiveNaming(appendixPattern: eap1)
             b
         }
         def build2 = new Build('spark240_211').with { b ->
-            scala = '2.11'
+            scalaVersion = '2.11'
             archive = new ArchiveNaming(appendixPattern: eap2)
             b
         }
         def build3 = new Build('spark241_212').with { b ->
-            scala = '2.12'
+            scalaVersion = '2.12'
             archive = new ArchiveNaming(appendixPattern: eap3)
             b
         }
@@ -226,7 +226,7 @@ allprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         crossBuild {
             
-            scalaVersions = ['2.11':'2.11.11']
+            scalaVersionsCatalog = ['2.11':'2.11.11']
 
             builds {
                 spark160_210 
@@ -399,7 +399,7 @@ subprojects {
 
     crossBuild {
         
-        scalaVersions = ['2.11':'2.11.11']
+        scalaVersionsCatalog = ['2.11':'2.11.11']
 
         builds {
             spark160_210 
@@ -538,7 +538,7 @@ subprojects {
 
     crossBuild {
         
-        scalaVersions = ['2.11':'2.11.11']
+        scalaVersionsCatalog = ['2.11':'2.11.11']
 
         builds {
             spark160_210 

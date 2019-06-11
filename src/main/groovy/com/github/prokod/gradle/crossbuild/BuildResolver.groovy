@@ -18,7 +18,7 @@ class BuildResolver {
      * @return
      */
     static ResolvedBuildConfigLifecycle resolve(Build build, ScalaVersions scalaVersions) {
-        def scalaVersionInsights = new ScalaVersionInsights(build.scala, scalaVersions)
+        def scalaVersionInsights = new ScalaVersionInsights(build.scalaVersion, scalaVersions)
 
         new ResolvedBuildConfigLifecycle(build, scalaVersionInsights)
     }
@@ -32,7 +32,7 @@ class BuildResolver {
      * @return
      */
     static ResolvedBuildAfterEvalLifeCycle resolve(ResolvedBuildConfigLifecycle build, ScalaVersions scalaVersions) {
-        def scalaVersionInsights = new ScalaVersionInsights(build.scala, scalaVersions)
+        def scalaVersionInsights = new ScalaVersionInsights(build.scalaVersion, scalaVersions)
 
         def resolvedAppendix = resolveAppendix(build, scalaVersionInsights)
         def resolvedArchiveNaming = new ResolvedArchiveNaming(build.delegate.archive.appendixPattern, resolvedAppendix)

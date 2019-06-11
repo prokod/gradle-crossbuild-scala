@@ -441,7 +441,7 @@ plugins {
 crossBuild {
     builds {
         v213 {
-            scala = '2.13'
+            scalaVersion = '2.13'
         }
     }
 }

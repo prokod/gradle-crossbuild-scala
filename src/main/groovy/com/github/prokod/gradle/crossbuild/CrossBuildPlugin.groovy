@@ -47,7 +47,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate {
-            def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersions)
+            def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
 
             def fullyResolvedBuilds = extension.resolvedBuilds.collect { rb -> BuildResolver.resolve(rb, sv) }
 
@@ -82,7 +82,7 @@ class CrossBuildPlugin implements Plugin<Project> {
 
             //TODO: From gradle 3.4 runtime should be subtituted with runtimeClasspath
             def configurer =
-                    new ResolutionStrategyConfigurer(extension.project, extension.scalaVersions,
+                    new ResolutionStrategyConfigurer(extension.project, extension.scalaVersionsCatalog,
                             rb.scalaVersionInsights)
             configurer.applyForLinkWith([
                     (sourceSet.compileConfigurationName):extension.project.configurations.compile,

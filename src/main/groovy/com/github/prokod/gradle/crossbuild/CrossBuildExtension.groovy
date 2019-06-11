@@ -16,7 +16,7 @@ class CrossBuildExtension {
     final Project project
 
     // TODO: rename to catalog
-    Map<String, String> scalaVersions = [:]
+    Map<String, String> scalaVersionsCatalog = [:]
 
     ArchiveNaming archive
 
@@ -68,7 +68,7 @@ class CrossBuildExtension {
     }
 
     void updateExtension(Build build) {
-        def sv = ScalaVersions.withDefaultsAsFallback(scalaVersions)
+        def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
 
         def resolvedBuild = BuildResolver.resolve(build, sv)
         // Create cross build source sets

@@ -194,7 +194,7 @@ repositories {
 }
 
 crossBuild {
-    scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8']
+    scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
 
     builds {
         v211

@@ -20,7 +20,7 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
 
     String toString() {
         JsonOutput.toJson([name:name,
-                           scala:scala,
+                           scalaVersion:scalaVersion,
                            archive:[appendixPattern:archive.appendixPattern,
                                      appendix:archive.appendix],
                            scalaVersionInsights:[baseVersion:scalaVersionInsights.baseVersion,

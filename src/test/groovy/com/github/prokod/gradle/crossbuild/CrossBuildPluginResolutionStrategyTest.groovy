@@ -63,14 +63,14 @@ repositories {
 }
 
 crossBuild {
-    scalaVersions = ['2.10':'2.10.6', '2.11':'2.11.11'] 
+    scalaVersionsCatalog = ['2.10':'2.10.6', '2.11':'2.11.11'] 
 
     builds {
         v210 {
-            scala = '2.10'
+            scalaVersion = '2.10'
         }
         v211 {
-            scala = '2.11'
+            scalaVersion = '2.11'
         }
     }
 }
@@ -185,14 +185,14 @@ repositories {
 }
 
 crossBuild {
-    scalaVersions = ['2.11':'2.11.12', '2.12':'2.12.8'] 
+    scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8'] 
 
     builds {
         v211 {
-            scala = '2.11'
+            scalaVersion = '2.11'
         }
         v212 {
-            scala = '2.12'
+            scalaVersion = '2.12'
         }
     }
 }

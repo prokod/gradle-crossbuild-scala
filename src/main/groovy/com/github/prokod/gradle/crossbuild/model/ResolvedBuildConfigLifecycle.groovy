@@ -15,20 +15,20 @@ class ResolvedBuildConfigLifecycle {
     final String name
 
     // TODO: rename to version or scalaVersion
-    final String scala
+    final String scalaVersion
 
     final ScalaVersionInsights scalaVersionInsights
 
     ResolvedBuildConfigLifecycle(Build build, ScalaVersionInsights scalaVersionInsights) {
         this.delegate = build
         this.name = build.name
-        this.scala = build.scala
+        this.scalaVersion = build.scalaVersion
         this.scalaVersionInsights = scalaVersionInsights
     }
 
     String toString() {
         JsonOutput.toJson([name:name,
-                           scala:scala,
+                           scalaVersion:scalaVersion,
                            scalaVersionInsights:[baseVersion:scalaVersionInsights.baseVersion,
                                                   compilerVersion:scalaVersionInsights.compilerVersion,
                                                   artifactInlinedVersion:scalaVersionInsights.artifactInlinedVersion,

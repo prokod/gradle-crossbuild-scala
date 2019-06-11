@@ -13,11 +13,11 @@ class Build {
 
     ArchiveNaming archive
 
-    String scala
+    String scalaVersion
 
     Build(String name) {
         this.name = name
-        this.scala = trySettingDefaultValue(name)
+        this.scalaVersion = trySettingDefaultValue(name)
     }
 
     @SuppressWarnings(['ConfusingMethodName'])
@@ -45,7 +45,7 @@ class Build {
 
     String toString() {
         JsonOutput.toJson([name:name,
-                           scala:scala,
+                           scalaVersion:scalaVersion,
                            archive:[appendixPattern:archive.appendixPattern]])
     }
 }
