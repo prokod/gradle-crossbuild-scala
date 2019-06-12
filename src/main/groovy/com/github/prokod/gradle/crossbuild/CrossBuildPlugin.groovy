@@ -68,7 +68,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             def scalaVersionInsights = rb.scalaVersionInsights
 
             def (String sourceSetId, SourceSet sourceSet) =
-                    extension.crossBuildSourceSets.findByVersion(rb.scalaVersionInsights)
+                    extension.crossBuildSourceSets.findByName(rb.name)
 
             sourceSet.java.srcDirs = main.java.getSrcDirs()
 
@@ -131,12 +131,12 @@ class CrossBuildPlugin implements Plugin<Project> {
         def project = extension.project
         def publishing = project.extensions.findByType(PublishingExtension)
 
-        resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle targetVersion ->
+        resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle rb ->
             def (String sourceSetId, SourceSet sourceSet) =
-                    extension.crossBuildSourceSets.findByVersion(targetVersion.scalaVersionInsights)
+                    extension.crossBuildSourceSets.findByName(rb.name)
 
             def pomAidingConfigurations =
-                    new PomAidingConfigurations(project, sourceSet, targetVersion.scalaVersionInsights)
+                    new PomAidingConfigurations(project, sourceSet, rb.scalaVersionInsights)
             def pomAidingCompileScopeConfigName =
                     pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.COMPILE)
             def pomAidingProvidedScopeConfigName =
