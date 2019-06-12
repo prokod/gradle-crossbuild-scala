@@ -43,7 +43,7 @@ class CrossBuildSourceSets {
     void fromBuilds(Collection<ResolvedBuildConfigLifecycle> builds) {
         assert builds != null : 'builds should not be null'
         def sourceSetIds = builds.collect { build ->
-            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(build.scalaVersionInsights).first
+            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(build.name).first
             project.logger.info(LoggerUtils.logTemplate(project,
                     "Creating source set (User request): [${sourceSetId}]"))
             sourceSetId.toString()
@@ -53,18 +53,17 @@ class CrossBuildSourceSets {
     /**
      * Find Scala source set id and instance in a source set container based on specific Scala version insights.
      *
-     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
-     * @param sourceSets Source set container (per project)
+     * @param buildName plugin DSL build item name
      * @return A tuple of source set id and its {@link SourceSet} instance
      */
-    Tuple2<String, SourceSet> findByVersion(ScalaVersionInsights scalaVersionInsights) {
-        def sourceSetId = generateSourceSetId(scalaVersionInsights)
+    Tuple2<String, SourceSet> findByName(String buildName) {
+        def sourceSetId = generateSourceSetId(buildName)
         def sourceSet = container.findByName(sourceSetId)
         new Tuple2(sourceSetId, sourceSet)
     }
 
-    Tuple2<String, SourceSet> getOrCreateCrossBuildScalaSourceSet(ScalaVersionInsights scalaVersionInsights) {
-        def sourceSetId = generateSourceSetId(scalaVersionInsights)
+    Tuple2<String, SourceSet> getOrCreateCrossBuildScalaSourceSet(String buildName) {
+        def sourceSetId = generateSourceSetId(buildName)
 
         def crossBuildSourceSet = [sourceSetId].collect { id ->
             new Tuple2<String, SourceSet>(id, container.findByName(id)) }.collect { tuple ->
@@ -81,11 +80,11 @@ class CrossBuildSourceSets {
     /**
      * Generates SourceSet id from a scala version info provided through {@link ScalaVersionInsights} object.
      *
-     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     * @param buildName plugin DSL build item name
      * @return A tuple of source set id and its {@link org.gradle.api.tasks.SourceSet} instance
      */
-    static String generateSourceSetId(ScalaVersionInsights scalaVersionInsights) {
-        "$SOURCESET_BASE_NAME${scalaVersionInsights.strippedArtifactInlinedVersion}".toString()
+    static String generateSourceSetId(String buildName) {
+        "$SOURCESET_BASE_NAME${buildName}".toString()
     }
 
     /**
