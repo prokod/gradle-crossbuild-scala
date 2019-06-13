@@ -15,6 +15,10 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
+import com.github.prokod.gradle.crossbuild.model.Build
+import com.github.prokod.gradle.crossbuild.model.NamedVersion
+import org.gradle.api.internal.DefaultDomainObjectCollection
 import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Unroll
@@ -49,6 +53,155 @@ class CrossBuildPluginCompileMultiModuleTest extends CrossBuildGradleRunnerSpec 
         appScalaFile = file('app/src/main/scala/HelloWorldApp.scala')
     }
 
+    /**
+     *
+     * @param gradleVersion Gradle version i.e '4.2'
+     * @param defaultScalaVersion i.e '2.12.8'
+     * @param ap Default Appendix Pattern i.e '_?'
+     * @param oap1 Override Appendix Pattern for cross build no. 1 i.e '-x-y-z_?'
+     * @param oap2 Override Appendix Pattern for cross build no. 2
+     * @param oap3 Override Appendix Pattern for cross build no. 3
+     * @param eap1 Expected Appendix Pattern for cross build no. 1
+     * @param eap2 Expected Appendix Pattern for cross build no. 2
+     * @param eap3 Expected Appendix Pattern for cross build no. 3
+     */
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with `withPlugin` dsl should propagate the same plugin configuration to all sub projects"(
+            String gradleVersion,
+            String defaultScalaVersion,
+            String ap,
+            String oap1, String oap2, String oap3,
+            String eap1, String eap2, String eap3
+    ) {
+        given:
+        // root project settings.gradle
+        settingsFile << """
+include 'lib'
+include 'lib2'
+include 'app'
+"""
+
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+allprojects {
+    apply plugin: 'java'
+    group = 'com.github.prokod.it'
+    version = '1.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+    
+    project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
+        crossBuild {
+            
+            scalaVersionsCatalog = ['2.11':'2.11.12']
+        
+            archive {
+                appendixPattern = '${ap}'
+            }
+            builds {
+                spark160 {
+                    scalaVersion = '2.10'
+                    ${oap1 != null ? 'archive.appendixPattern = \'' + oap1 + '\'': ''}
+                }
+                spark240 {
+                    scalaVersion = '2.11'
+                    ${oap2 != null ? 'archive.appendixPattern = \'' + oap2 + '\'' : ''}
+                }
+                spark241 {
+                    scalaVersion = '2.12'
+                        ${oap3 != null ? 'archive { appendixPattern = \'' + oap3 + '\' }': ''}
+                }
+            }
+        }
+    }
+}
+"""
+
+        libBuildFile << """
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+
+"""
+
+        lib2BuildFile << """
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+
+dependencies {
+    compile project(':lib')
+}
+"""
+
+        appBuildFile << """
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+
+dependencies {
+    compile project(':lib2')
+}
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withDebug(true)
+                .withArguments('builds', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.task(":builds").outcome == SUCCESS
+        result.task(":lib:builds").outcome == SUCCESS
+        result.task(":lib2:builds").outcome == SUCCESS
+        result.task(":app:builds").outcome == SUCCESS
+
+        expect:
+        def build1 = new Build('spark160', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
+            scalaVersion = '2.10'
+            archive = new ArchiveNaming(appendixPattern: eap1)
+            b
+        }
+        def build2 = new Build('spark240', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
+            scalaVersion = '2.11'
+            archive = new ArchiveNaming(appendixPattern: eap2)
+            b
+        }
+        def build3 = new Build('spark241', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
+            scalaVersion = '2.12'
+            archive = new ArchiveNaming(appendixPattern: eap3)
+            b
+        }
+        def expected = [build1, build2, build3].collect {it.toString()}.join('\n')
+        result.output.contains(expected)
+
+        where:
+        gradleVersion   | defaultScalaVersion | ap   | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
+                '4.2'   | '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
+                '4.10.3'| '2.11'              | '_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+                '5.4.1' | '2.12'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
+
+    }
+
+    /**
+     * Leveraging layout 1 of propagating cross build configs to sub projects
+     * Layout 1 means:
+     * <ul>
+     *     <li>root-project</li>
+     *     <ul>
+     *         <li>{@code plugins} DSL for crossbuild plugin</li>
+     *         <li>{@code allprojects} block with project.pluginManager.withPlugin({@link CrossBuildPlugin}) containing crossbuld plugin DSL</li>
+     *     </ul>
+     *     <li>sub-projects</li>
+     *     <ul>
+     *         <li>{@code apply plugin:} {@link CrossBuildPlugin}</li>
+     *     </ul>
+     * </ul>
+     * @return
+     */
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
@@ -59,13 +212,55 @@ include 'app'
 """
 
         buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
 
 allprojects {
+    apply plugin: 'java'
     group = 'com.github.prokod.it'
     version = '1.0-SNAPSHOT'
     
     repositories {
         mavenCentral()
+    }
+    
+    project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
+        crossBuild {
+            
+            scalaVersionsCatalog = ['2.11':'2.11.11']
+
+            builds {
+                spark160_210 
+                spark240_211
+            }
+        }
+    }
+    
+    project.pluginManager.withPlugin('maven-publish') {
+        publishing {
+            publications {
+                crossBuild210(MavenPublication) {
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        artifact crossBuild210Jar
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                }
+                crossBuild211(MavenPublication) {
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        artifact crossBuild211Jar
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                }
+            }
+        }
+
+        tasks.withType(GenerateMavenPom) { t ->
+            if (t.name.contains('CrossBuild210')) {
+                t.destination = file("\$buildDir/generated-pom_2.10.xml")
+            }
+            if (t.name.contains('CrossBuild211')) {
+                t.destination = file("\$buildDir/generated-pom_2.11.xml")
+            }
+        }
     }
 }
 """
@@ -88,43 +283,8 @@ public class HelloWorldLibImpl implements HelloWorldLibApi {
 """
 
         libBuildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
-plugins {
-    id 'com.github.prokod.gradle-crossbuild'
-}
-
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
-        }
-    }
-    
-    publishing {
-        publications {
-            crossBuild210(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v210.artifactId
-                artifact \$.tasks.crossBuild210Jar
-            }
-            crossBuild211(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v211.artifactId
-                artifact \$.tasks.crossBuild211Jar
-            }
-        }
-    }
-    
-    tasks.generatePomFileForCrossBuild210Publication {
-        destination = file("\$buildDir/generated-pom_2.10.xml")
-    }
-    
-    tasks.generatePomFileForCrossBuild211Publication {
-        destination = file("\$buildDir/generated-pom_2.11.xml")
-    }
-}
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'maven-publish'
 
 sourceSets {
     main {
@@ -155,20 +315,8 @@ object HelloWorldApp {
 """
 
         appBuildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
-plugins {
-    id 'com.github.prokod.gradle-crossbuild'
-}
-
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
-        }
-    }
-}
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'maven-publish'
 
 dependencies {
     compile project(':lib')
@@ -205,10 +353,30 @@ dependencies {
         pom211.contains('2.11.11')
         pom211.contains('18.0')
         pom211.contains('3.0.1')
+
         where:
-        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.10'
+        '4.10.3'        | '2.11'
+        '5.4.1'         | '2.11'
     }
 
+    /**
+     * Leveraging layout 2 of propagating cross build configs to sub projects
+     * Layout 2 means:
+     * <ul>
+     *     <li>root-project</li>
+     *     <ul>
+     *         <li>{@code plugins} DSL for crossbuild plugin</li>
+     *         <li>{@code subprojects} block with {@code apply plugin:} {@link CrossBuildPlugin} followed by crossbuld plugin DSL</li>
+     *     </ul>
+     *     <li>sub-projects</li>
+     *     <ul>
+     *         <li>Nothing special</li>
+     *     </ul>
+     * </ul>
+     * @return
+     */
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project and calling crossBuildXXJar tasks on it should build correctly"() {
         given:
@@ -219,6 +387,9 @@ include 'app'
 """
 
         buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
 
 allprojects {
     group = 'com.github.prokod.it'
@@ -226,6 +397,45 @@ allprojects {
     
     repositories {
         mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'com.github.prokod.gradle-crossbuild'
+    apply plugin: 'maven-publish'
+
+    crossBuild {
+        
+        scalaVersionsCatalog = ['2.11':'2.11.11']
+
+        builds {
+            spark160_210 
+            spark240_211
+        }
+    }
+    
+    publishing {
+        publications {
+            crossBuild210(MavenPublication) {
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild210Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
+            crossBuild211(MavenPublication) {
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild211Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
+        }
+    }
+
+    tasks.withType(GenerateMavenPom) { t ->
+        if (t.name.contains('CrossBuild210')) {
+            t.destination = file("\$buildDir/generated-pom_2.10.xml")
+        }
+        if (t.name.contains('CrossBuild211')) {
+            t.destination = file("\$buildDir/generated-pom_2.11.xml")
+        }
     }
 }
 """
@@ -248,21 +458,6 @@ public class HelloWorldLibImpl implements HelloWorldLibApi {
 """
 
         libBuildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
-plugins {
-    id 'com.github.prokod.gradle-crossbuild'
-}
-
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
-        }
-    }
-}
-
 sourceSets {
     main {
         scala {
@@ -292,21 +487,6 @@ object HelloWorldApp {
 """
 
         appBuildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
-plugins {
-    id 'com.github.prokod.gradle-crossbuild'
-}
-
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
-        }
-    }
-}
-
 dependencies {
     compile project(':lib')
 }
@@ -334,7 +514,10 @@ dependencies {
         fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
 
         where:
-        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.10'
+        '4.10.3'        | '2.11'
+        '5.4.1'         | '2.11'
     }
 
     @Unroll
@@ -348,6 +531,9 @@ include 'app'
 """
 
         buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
 
 allprojects {
     group = 'com.github.prokod.it'
@@ -355,6 +541,45 @@ allprojects {
     
     repositories {
         mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'com.github.prokod.gradle-crossbuild'
+    apply plugin: 'maven-publish'
+
+    crossBuild {
+        
+        scalaVersionsCatalog = ['2.11':'2.11.11']
+
+        builds {
+            spark160_210 
+            spark240_211
+        }
+    }
+    
+    publishing {
+        publications {
+            crossBuild210(MavenPublication) {
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild210Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
+            crossBuild211(MavenPublication) {
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild211Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
+        }
+    }
+
+    tasks.withType(GenerateMavenPom) { t ->
+        if (t.name.contains('CrossBuild210')) {
+            t.destination = file("\$buildDir/generated-pom_2.10.xml")
+        }
+        if (t.name.contains('CrossBuild211')) {
+            t.destination = file("\$buildDir/generated-pom_2.11.xml")
+        }
     }
 }
 """
@@ -377,44 +602,6 @@ public class HelloWorldLibImpl implements HelloWorldLibApi {
 """
 
         libBuildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
-plugins {
-    id 'com.github.prokod.gradle-crossbuild'
-}
-
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
-        }
-    }
-    
-    publishing {
-        publications {
-            crossBuild210(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v210.artifactId
-                artifact \$.tasks.crossBuild210Jar
-            }
-            crossBuild211(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v211.artifactId
-                artifact \$.tasks.crossBuild211Jar
-            }
-        }
-    }
-    
-    tasks.generatePomFileForCrossBuild210Publication {
-        destination = file("\$buildDir/generated-pom_2.10.xml")
-    }
-    
-    tasks.generatePomFileForCrossBuild211Publication {
-        destination = file("\$buildDir/generated-pom_2.11.xml")
-    }
-}
-
 sourceSets {
     main {
         scala {
@@ -447,44 +634,6 @@ class HelloWorldLib2Impl extends HelloWorldLib2Api {
 """
 
         lib2BuildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
-plugins {
-    id 'com.github.prokod.gradle-crossbuild'
-}
-
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
-        }
-    }
-    
-    publishing {
-        publications {
-            crossBuild210(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v210.artifactId
-                artifact \$.tasks.crossBuild210Jar
-            }
-            crossBuild211(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v211.artifactId
-                artifact \$.tasks.crossBuild211Jar
-            }
-        }
-    }
-    
-    tasks.generatePomFileForCrossBuild210Publication {
-        destination = file("\$buildDir/generated-pom_2.10.xml")
-    }
-    
-    tasks.generatePomFileForCrossBuild211Publication {
-        destination = file("\$buildDir/generated-pom_2.11.xml")
-    }
-}
-
 sourceSets {
     main {
         scala {
@@ -512,21 +661,6 @@ object HelloWorldApp {
 """
 
         appBuildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
-plugins {
-    id 'com.github.prokod.gradle-crossbuild'
-}
-
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer)
-            v211(ScalaVer)
-        }
-    }
-}
-
 dependencies {
     compile project(':lib')
 }
@@ -576,6 +710,9 @@ dependencies {
         lib2pom211.contains('2.11.11')
         lib2pom211.contains('1.0-SNAPSHOT')
         where:
-        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.10'
+        '4.10.3'        | '2.11'
+        '5.4.1'         | '2.11'
     }
 }

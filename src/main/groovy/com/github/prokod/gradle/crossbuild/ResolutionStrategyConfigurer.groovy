@@ -1,5 +1,6 @@
 package com.github.prokod.gradle.crossbuild
 
+import com.github.prokod.gradle.crossbuild.utils.DependencyInsightsContext
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Project
@@ -16,11 +17,17 @@ class ResolutionStrategyConfigurer {
     private final ScalaVersionInsights scalaVersionInsights
 
     ResolutionStrategyConfigurer(Project project,
-                                         ScalaVersions scalaVersions,
-                                         ScalaVersionInsights scalaVersionInsights) {
+                                 ScalaVersions scalaVersions,
+                                 ScalaVersionInsights scalaVersionInsights) {
         this.project = project
         this.scalaVersions = scalaVersions
         this.scalaVersionInsights = scalaVersionInsights
+    }
+
+    ResolutionStrategyConfigurer(Project project,
+                                 Map<String, String> catalog,
+                                 ScalaVersionInsights scalaVersionInsights) {
+        this(project, ScalaVersions.DEFAULT_SCALA_VERSIONS + new ScalaVersions(catalog), scalaVersionInsights)
     }
 
     /**
@@ -28,45 +35,62 @@ class ResolutionStrategyConfigurer {
      * try to convert mismatched scala version in dependencies coming from parent configuration to matching ones.
      *
      * @param configurations A list of tuple of the form (String, Configuration) each holds:
-     *                       - A specific {@link org.gradle.api.tasks.SourceSet} configuration name to use as
-     *                          a source for dependencies
-     *                       - A {@link Configuration} to link as extendedFrom
+     *                       - A specific crossbuild {@link org.gradle.api.tasks.SourceSet}
+     *                         derived {@link Configuration} name to use as a source for dependencies
+     *                       - A {@link Configuration} to link as {@code extendedFrom}
      */
     void applyForLinkWith(List<Tuple2<String, Configuration>> configurations) {
         configurations.findAll { configTuple ->
             def crossBuildConfigurationName = configTuple.first
+            def crossBuildConfiguration = project.configurations[crossBuildConfigurationName]
             def parentConfiguration = configTuple.second
+            // Link crossbuild configuration to the given parent configuration
+            crossBuildConfiguration.extendsFrom(parentConfiguration)
 
-            def config = project.configurations[crossBuildConfigurationName]
-            config.extendsFrom(parentConfiguration)
-            def allDependencies = config.allDependencies
+            def allDependencies = crossBuildConfiguration.allDependencies
             project.logger.info(LoggerUtils.logTemplate(project,
                     "Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
                             'configuration dependencies: ' +
                             "[${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
             ))
 
-            def projectDependencies =
-                    DependencyInsights.extractAllCrossBuildProjectTypeDependenciesDependencies(project.gradle,
-                            allDependencies, parentConfiguration.name)
+            def diContext = new DependencyInsightsContext(project:project, dependencies:allDependencies,
+                    configurations:[current:crossBuildConfiguration, parent:parentConfiguration])
+
+            def di = new DependencyInsights(diContext)
+            def crossBuildSubProjects = di.findAllCrossBuildPluginAppliedProjects()
+            def targetProjects = crossBuildSubProjects + project
+
+            def projectDependencies = di.findAllCrossBuildProjectTypeDependenciesDependencies(parentConfiguration.name)
             def allDependenciesAsDisplayNameSet = (allDependencies + projectDependencies).collect { dep ->
                 "${dep.group}:${dep.name}:${dep.version}"
             }.toSet()
 
-            project.configurations.all { c ->
-                c.resolutionStrategy.eachDependency { details ->
-                    def requested = details.requested
-                    if (allDependenciesAsDisplayNameSet
-                            .contains("${requested.group}:${requested.name}:${requested.version}")) {
-                        String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
-                        if (c.name == crossBuildConfigurationName) {
-                            strategyForCrossBuildConfiguration(
-                                    crossBuildConfigurationName, supposedScalaVersion, details)
-                        } else if (c.name == parentConfiguration.name) {
-                            strategyForNonCrossBuildConfiguration(parentConfiguration, supposedScalaVersion, details)
-                        }
+            targetProjects.each {
+                it.configurations.all { Configuration c ->
+                    c.resolutionStrategy.eachDependency { details ->
+                        resolutionStrategyHandler(c, details, allDependenciesAsDisplayNameSet,
+                                crossBuildConfigurationName, parentConfiguration)
                     }
                 }
+            }
+        }
+    }
+
+    void resolutionStrategyHandler(Configuration targetConfiguration,
+                                   DependencyResolveDetails details,
+                                   Set<String> allDependenciesAsDisplayNameSet,
+                                   String crossBuildConfigurationName,
+                                   Configuration parentConfiguration) {
+        def requested = details.requested
+        if (allDependenciesAsDisplayNameSet
+                .contains("${requested.group}:${requested.name}:${requested.version}")) {
+            String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
+            if (targetConfiguration.name == crossBuildConfigurationName) {
+                strategyForCrossBuildConfiguration(
+                        crossBuildConfigurationName, supposedScalaVersion, details)
+            } else if (targetConfiguration.name == parentConfiguration.name) {
+                strategyForNonCrossBuildConfiguration(parentConfiguration, supposedScalaVersion, details)
             }
         }
     }
@@ -193,10 +217,13 @@ class ResolutionStrategyConfigurer {
             ScalaVersions scalaVersions) {
         def dependencySet = configuration.allDependencies
 
-        def crossBuildProjectDependencySet = DependencyInsights.extractAllCrossBuildProjectTypeDependenciesDependencies(
-                project.gradle, dependencySet, configuration.name)
+        def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySet,
+                configurations:[current:configuration])
+        def di = new DependencyInsights(diContext)
 
-        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
+        def crossBuildProjectDependencySet = di.findAllCrossBuildProjectTypeDependenciesDependencies(configuration.name)
+
+        def allDependencySet = (crossBuildProjectDependencySet + dependencySet)
 
         def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
 
@@ -227,8 +254,11 @@ class ResolutionStrategyConfigurer {
             ScalaVersions scalaVersions) {
         def dependencySet = configuration.allDependencies
 
-        def crossBuildProjectDependencySet = DependencyInsights.extractAllCrossBuildProjectTypeDependenciesDependencies(
-                project.gradle, dependencySet, configuration.name)
+        def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySet,
+                configurations:[current:configuration])
+        def di = new DependencyInsights(diContext)
+
+        def crossBuildProjectDependencySet = di.findAllCrossBuildProjectTypeDependenciesDependencies(configuration.name)
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
 

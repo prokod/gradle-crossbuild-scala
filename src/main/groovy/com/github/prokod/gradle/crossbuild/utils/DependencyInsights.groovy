@@ -1,18 +1,56 @@
 package com.github.prokod.gradle.crossbuild.utils
 
+import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.invocation.Gradle
 
 /**
  * A collection of Dependency related methods
  *
  */
 class DependencyInsights {
+
+    private final DependencyInsightsContext diContext
+
+    DependencyInsights(DependencyInsightsContext diContext) {
+        this.diContext = diContext
+    }
+
+    /**
+     * The dependencySet is being searched for projects {@link Project}
+     * that are used as a dependency of type {@link ProjectDependency}, which the cross build plugin
+     * ({@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin}) been applied on.
+     * After being found, all the related (direct) dependencies for the specified configuration within those projects
+     * are being returned.
+     *
+     * @param configurationName - configuration to have the dependencies extracted from
+     * @return List of {@link Dependency} from relevant projects that are themselves defined as dependencies and share
+     *          the same dependency graph with the ones originated from within initialDependencySet
+     */
+    List<Dependency> findAllCrossBuildProjectTypeDependenciesDependencies(String configurationName) {
+        def projectTypeDependencies = extractCrossBuildProjectTypeDependencies()
+
+        def dependenciesOfProjectDependencies = projectTypeDependencies.collectMany { prjDep ->
+            extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
+        }
+
+        dependenciesOfProjectDependencies
+    }
+
+    Set<Project> findAllCrossBuildPluginAppliedProjects() {
+        def project = diContext.project
+        def configuration = diContext.configurations?.current
+        def parentConfiguration = diContext.configurations?.parent
+        def moduleNames = project.gradle.rootProject.allprojects.findAll { it.plugins.hasPlugin(CrossBuildPlugin) }
+
+        project.logger.debug(LoggerUtils.logTemplate(project,
+                "${configuration?.name ?: 'N/A'}\\${parentConfiguration?.name ?: 'N/A'} | " +
+                        "Found crossbuild modules ${moduleNames.join(', ')}."))
+        moduleNames
+    }
 
     /**
      * Parses given dependency to its groupName:baseName part and its scala version part.
@@ -62,44 +100,27 @@ class DependencyInsights {
     }
 
     /**
-     * Filters out all dependencies that match given 'scalaVersion' from a set of dependencies.
-     *
-     * @param dependencySet set of dependencies in the form of {@link org.gradle.api.artifacts.DependencySet} to scan
-     * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
-     * @return a list of tuples in the form of
-     *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
-     *          i.e. ('lib', '2.11', ...)
-     */
-    static List<Tuple> findAllNonMatchingScalaVersionDependencies(List<Dependency> dependencySet, String scalaVersion) {
-        def nonMatchingDeps = dependencySet.collect {
-            def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it)
-            new Tuple(groupAndBaseName, supposedScalaVersion, it) }
-        .findAll { it[1] != null && it[1] != scalaVersion }
-
-        nonMatchingDeps
-    }
-
-    /**
      * Filters out all dependencies that match given 'scalaVersion' from a set of dependencies and then
      * enriches this list by converting each found dependency to a tuple containing itself and its counterparts.
      *
-     * @param dependencySet set of dependencies in the form of {@link DependencySet} to scan
+     * @param dependencies set of dependencies in the form of {@link org.gradle.api.artifacts.DependencySet} to scan
      * @param scalaVersion Scala Version to match against i.e '2.10', '2.11'
      * @return a list containing tuple2s  of tuple3s in the form of
-     *          (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
-     *          For example, in case that scalaVersion = '2.10'
-     *    [(('grp:lib', '2.11', ...), [('grp:lib', '2.10', ... version:'1.2'), ('grp:lib', '2.10', ... version:'1.2')]),
+     *         (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
+     *         For example, in case that scalaVersion = '2.10'
+     *    [
+     *     (('grp:lib', '2.11', ...), [('grp:lib', '2.10', ... version:'1.2'), ('grp:lib', '2.10', ... version:'1.2')]),
      *     (('grp:lib', '2.12', ...), [('grp:lib', '2.10', ... version:'1.2'), ('grp:lib', '2.10', ... version:'1.3')]),
      *     ((...), [(...), (...)]),
      *     ...
      *    ]
      */
     static List<Tuple2<Tuple, Set<Tuple>>> findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-            List<Dependency> dependencySet,
+            List<Dependency> dependencies,
             String scalaVersion) {
-        def nonMatchingDeps = findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion)
+        def nonMatchingDeps = findAllNonMatchingScalaVersionDependencies(dependencies, scalaVersion)
         def dependenciesView = nonMatchingDeps.collect { nonMatchingDepTuple ->
-            def matchingDepTupleSet = dependencySet.collect { dep ->
+            def matchingDepTupleSet = dependencies.collect { dep ->
                 def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(dep)
                 new Tuple(groupAndBaseName, supposedScalaVersion, dep)
             }.findAll { it[0] == nonMatchingDepTuple[0] && it[1] != null && it[1] == scalaVersion }.collect().toSet()
@@ -113,7 +134,7 @@ class DependencyInsights {
      * Filters out all dependencies that match given 'scalaVersion' from a set of dependencies.
      * Excluding dependencies with scala version placeholder '_?'
      *
-     * @param dependencySet set of dependencies in the form of {@link DependencySet} to scan
+     * @param dependencySet set of dependencies in the form of {@link org.gradle.api.artifacts.DependencySet} to scan
      * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
      * @return a list of tuples in the form of
      *          (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
@@ -139,48 +160,76 @@ class DependencyInsights {
     }
 
     /**
-     * The dependencySet is being searched for projects {@link Project}
-     *  that are used as a dependency of type {@link ProjectDependency}, which the cross build plugin
-     *  ({@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin}) been applied on.
-     * After being found, all the related (direct) dependencies for the specified configuration within those projects
-     *  are being returned.
+     * Filters out all dependencies that match given 'scalaVersion' from a set of dependencies.
      *
-     * @param gradle gradle space to retrieve rootProject ({@link Project}) from
-     * @param initialDependencySet A {@link DependencySet} originated from a specified configuration.
-     * @param configurationName configuration to have the dependencies extracted from
-     *
-     * @return List of {@link Dependency} from relevant projects that are themselves defined as dependencies and share
-     *          the same dependency graph with the ones originated from within initialDependencySet
+     * @param dependencySet set of dependencies in the form of {@link org.gradle.api.artifacts.DependencySet} to scan
+     * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
+     * @return a list of tuples in the form of
+     *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
+     *          i.e. ('lib', '2.11', ...)
      */
-    static List<Dependency> extractAllCrossBuildProjectTypeDependenciesDependencies(Gradle gradle,
-                                                                                    DependencySet initialDependencySet,
-                                                                                    String configurationName) {
-        def projectTypeDeps = extractCrossBuildProjectTypeDependencies(gradle, initialDependencySet, configurationName)
-        def crossBuildProjectDependencySetDeps = projectTypeDeps.collectMany { prjDep ->
-            extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
-        }
-        crossBuildProjectDependencySetDeps
+    static List<Tuple> findAllNonMatchingScalaVersionDependencies(List<Dependency> dependencySet, String scalaVersion) {
+        def nonMatchingDeps = dependencySet.collect {
+            def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it)
+            new Tuple(groupAndBaseName, supposedScalaVersion, it) }
+        .findAll { it[1] != null && it[1] != scalaVersion }
+
+        nonMatchingDeps
     }
+
+    static Closure isProjectDependency = { Dependency dependency -> dependency instanceof ProjectDependency }
 
     /**
      * The dependencySet is being searched for projects {@link Project}
-     *  that are used as a dependency of type {@link ProjectDependency}, which the cross build plugin
-     *  ({@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin}) has been applied on.
+     * that are used as a dependency of type {@link ProjectDependency}, which the cross build plugin
+     * ({@link com.github.prokod.gradle.crossbuild.CrossBuildPlugin}) has been applied on.
      * After being found, The dependency graph is being searched for all the related (direct and transient) project
-     *  type dependencies for the specified configuration.
+     * type dependencies for the specified configuration.
      *
-     * @param gradle gradle space to retrieve rootProject ({@link Project}) from
-     * @param initialDependencySet A {@link DependencySet} originated from a specified configuration.
-     * @param configurationName configuration to have the dependencies extracted from
-     * @return A set of {@link ProjectDependency} that are part of one dependency graph originated from the initial
-     *          ones found in the initial dependency set
+     * NOTE: The outcome is dependent on the lifecycle stage this method is called in. It is complete and stable
+     * after {@code gradle.projectsEvaluated} but changes after each {@code project.afterEvaluated}
+     *
+     * @return A set of {@link ProjectDependency} that belong to the dependency graph originated from the initial
+     *         project type dependencies found in the initial dependency set
      */
-    private static Set<ProjectDependency> extractCrossBuildProjectTypeDependencies(Gradle gradle,
-                                                                                   DependencySet initialDependencySet,
-                                                                                   String configurationName) {
-        def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(gradle)
-        extractCrossBuildProjectTypeDependenciesRecursively(moduleNames, initialDependencySet.toSet(),
-                configurationName, [] as Set)
+    private Set<ProjectDependency> extractCrossBuildProjectTypeDependencies() {
+        def modules = findAllCrossBuildPluginAppliedProjects()
+
+        def initialDependencySet = diContext.dependencies
+        def configuration = diContext.configurations.current
+        def dependencies = extractCrossBuildProjectTypeDependenciesRecursively(modules, initialDependencySet.toSet(),
+                configuration.name)
+
+        dependencies
+    }
+
+    private Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(
+            Set<Project> modules,
+            Set<Dependency> inputDependencySet,
+            String configurationName) {
+
+        Set<ProjectDependency> accum = []
+
+        def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
+                .findAll { isNotAccumulated(it, accum) }.collect { (ProjectDependency) it }
+        if (currentProjectTypDeps.size() > 0) {
+            accum.addAll(currentProjectTypDeps)
+            def currentProjectTypeDependenciesDependencies = currentProjectTypDeps.collectMany { prjDep ->
+                extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
+            }
+            accum.addAll(extractCrossBuildProjectTypeDependenciesRecursively(modules,
+                    currentProjectTypeDependenciesDependencies.toSet(), configurationName))
+        }
+
+        accum
+    }
+
+    private static boolean isValid(Dependency dependency, Set<Project> modules) {
+        modules*.name.contains(dependency.name)
+    }
+
+    private static boolean isNotAccumulated(Dependency dependency, Set<ProjectDependency> accum) {
+        !accum*.name.contains(dependency.name)
     }
 
     private static Set<Dependency> extractCrossBuildProjectTypeDependencyDependencies(ProjectDependency dependency,
@@ -189,27 +238,5 @@ class DependencyInsights {
                 dependency.dependencyProject.configurations.findByName(configurationName)?.allDependencies
 
         crossBuildProjectTypeDependencyDeps != null ? crossBuildProjectTypeDependencyDeps.toSet() : [] as Set
-    }
-
-    private static Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(
-            List<String> moduleNames,
-            Set<Dependency> inputDependencySet,
-            String configurationName,
-            Set<ProjectDependency> accum) {
-        def currentProjectTypDeps = inputDependencySet.findAll {
-            it instanceof ProjectDependency
-        }.findAll {
-            moduleNames.contains(it.name) && !accum*.name.contains(it.name)
-        }.collect { (ProjectDependency) it }
-        if (currentProjectTypDeps.size() > 0) {
-            accum.addAll(currentProjectTypDeps)
-            def currentProjectTypeDependenciesDependencies = currentProjectTypDeps.collectMany { prjDep ->
-                extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
-            }
-            extractCrossBuildProjectTypeDependenciesRecursively(moduleNames,
-                    currentProjectTypeDependenciesDependencies.toSet(), configurationName, accum)
-        } else {
-            accum
-        }
     }
 }

@@ -63,4 +63,16 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
     protected boolean fileExists(String path) {
         findFile(path) != null
     }
+
+    /**
+     * Prior to Gradle 5.0, the publishing {} block was (by default) implicitly treated as if all the logic inside it
+     * was executed after the project is evaluated.
+     * This behavior caused quite a bit of confusion and was deprecated in Gradle 4.8, because it was the only block
+     * that behaved that way.
+     */
+    protected boolean publishTaskSupportingDeferredConfiguration(String gradleVersion) {
+        def tokens = gradleVersion.tokenize('.').toList()
+        def major = tokens.head().toInteger()
+        major <= 4
+    }
 }

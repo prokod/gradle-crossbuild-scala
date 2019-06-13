@@ -15,38 +15,175 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import com.github.prokod.gradle.crossbuild.rules.CrossBuildPluginRules
+import static com.github.prokod.gradle.crossbuild.PomAidingConfigurations.*
+
+import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+import org.gradle.api.XmlProvider
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.scala.ScalaCompile
 
 /**
  * Crossbuild plugin entry point
  */
 class CrossBuildPlugin implements Plugin<Project> {
     void apply(Project project) {
-        if (project.plugins.hasPlugin(MavenPublishPlugin)) {
-            throw new GradleException("Applying both 'maven-publish' and '${this.class.getSimpleName()}' " +
-                    "is Illegal. Please remove relevant apply code from build.gradle for 'maven-publish' plugin.")
-        }
         project.pluginManager.apply('scala')
-        project.extensions.create('bridging', BridgingExtension, project)
-        project.pluginManager.apply(CrossBuildPluginRules)
-        project.pluginManager.apply(MavenPublishPlugin)
-        // enforce maven-publish plugin AFTER cross build plugin (Model shortcomings - cyclic rules)
 
-        def crossBuildSourceSets = new CrossBuildSourceSets(project, ScalaVersions.DEFAULT_SCALA_VERSIONS)
+        def extension = project.extensions.create('crossBuild', CrossBuildExtension, project)
 
-        // Create default source sets early enough to be used in build.gradle dependencies block
-        ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog*.key.each { String scalaVersion ->
-            def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, ScalaVersions.DEFAULT_SCALA_VERSIONS)
+        project.task('builds') {
+            doLast {
+                def msg = extension.builds*.toString().join('\n')
+                project.logger.info("cross build settings for $project.path\n{$msg}")
+            }
+        }
 
-            def sourceSetId = crossBuildSourceSets.getOrCreateCrossBuildScalaSourceSet(scalaVersionInsights).first
+        project.afterEvaluate {
+            def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
 
-            project.logger.info(LoggerUtils.logTemplate(project,
-                    "Creating source set (Pre Evaluate Lifecycle): [${sourceSetId}]"))
+            def fullyResolvedBuilds = extension.resolvedBuilds.collect { rb -> BuildResolver.resolve(rb, sv) }
+
+            realizeCrossBuildTasks(extension, fullyResolvedBuilds)
+
+            project.pluginManager.withPlugin('maven-publish') {
+                updateCrossBuildPublications(extension, fullyResolvedBuilds)
+            }
+        }
+    }
+
+    void realizeCrossBuildTasks(CrossBuildExtension extension,
+                                Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+        def main = extension.crossBuildSourceSets.container.findByName('main')
+        def mainScala = (SourceDirectorySet) main.scala
+
+        resolvedBuilds.findAll { rb ->
+            def scalaVersionInsights = rb.scalaVersionInsights
+
+            def (String sourceSetId, SourceSet sourceSet) =
+                    extension.crossBuildSourceSets.findByVersion(rb.scalaVersionInsights)
+
+            sourceSet.java.srcDirs = main.java.getSrcDirs()
+
+            def crossBuildScalaSourceDirSetScala = (SourceDirectorySet) sourceSet.scala
+            crossBuildScalaSourceDirSetScala.srcDirs = mainScala.getSrcDirs()
+
+            sourceSet.resources.srcDirs = main.resources.getSrcDirs()
+
+            extension.project.dependencies.add(sourceSet.compileConfigurationName,
+                    "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
+
+            //TODO: From gradle 3.4 runtime should be subtituted with runtimeClasspath
+            def configurer =
+                    new ResolutionStrategyConfigurer(extension.project, extension.scalaVersionsCatalog,
+                            rb.scalaVersionInsights)
+            configurer.applyForLinkWith([
+                    (sourceSet.compileConfigurationName):extension.project.configurations.compile,
+                    (sourceSet.compileClasspathConfigurationName):extension.project.configurations.compileClasspath,
+                    (sourceSet.compileOnlyConfigurationName):extension.project.configurations.compileOnly,
+                    (sourceSet.runtimeConfigurationName):extension.project.configurations.runtime])
+
+            //TODO: add tests to cover adding external configurations scenarios
+            def configs = extension.project.configurations.findAll { it.name.startsWith('test') } +
+                    extension.configurations
+            configurer.applyFor(configs)
+
+            def pomAidingConfigurations =
+                    new PomAidingConfigurations(extension.project, sourceSet, rb.scalaVersionInsights,
+                            rb.archive.appendix)
+            pomAidingConfigurations.createAndSetForMavenScope(ScopeType.COMPILE)
+            pomAidingConfigurations.createAndSetForMavenScope(ScopeType.PROVIDED)
+
+            extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
+                    "Creating crossbuild Jar task for sourceSet ${sourceSetId}." +
+                            " [Resolved Jar baseName appendix: ${rb.archive.appendix}]"))
+
+            extension.project.tasks.create(sourceSet.getJarTaskName(), Jar) {
+                group = BasePlugin.BUILD_GROUP
+                description = 'Assembles a jar archive containing ' +
+                        "${scalaVersionInsights.strippedArtifactInlinedVersion} classes"
+                baseName = baseName + rb.archive.appendix
+                from sourceSet.output
+            }
+
+            extension.project.tasks.withType(ScalaCompile) { ScalaCompile t ->
+                if (t.name == sourceSet.getCompileTaskName('scala')) {
+                    def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
+                    if (!analysisFile) {
+                        t.scalaCompileOptions.incrementalOptions.analysisFile = new File(
+                                "$extension.project.buildDir/tmp/scala/compilerAnalysis/" +
+                                        "${scalaVersionInsights.compilerVersion}/${extension.project.name}.analysis")
+                    }
+                }
+            }
+        }
+    }
+
+    void updateCrossBuildPublications(CrossBuildExtension extension,
+                                      Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+        def project = extension.project
+        def publishing = project.extensions.findByType(PublishingExtension)
+
+        resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle targetVersion ->
+            def (String sourceSetId, SourceSet sourceSet) =
+                    extension.crossBuildSourceSets.findByVersion(targetVersion.scalaVersionInsights)
+
+            def pomAidingConfigurations =
+                    new PomAidingConfigurations(project, sourceSet, targetVersion.scalaVersionInsights)
+            def pomAidingCompileScopeConfigName =
+                    pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.COMPILE)
+            def pomAidingProvidedScopeConfigName =
+                    pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.PROVIDED)
+
+            publishing.publications.all { MavenPublication pub ->
+                if (pub instanceof MavenPublication && probablyRelatedPublication(pub, targetVersion, sourceSetId)) {
+                    def jarBaseName = project.tasks.findByName(sourceSet.jarTaskName).baseName
+                    pub.artifactId = jarBaseName
+
+                    pub.pom.withXml {
+                        withXmlHandler(it, pomAidingCompileScopeConfigName, ScopeType.COMPILE, project)
+                    }
+                    pub.pom.withXml {
+                        withXmlHandler(it, pomAidingProvidedScopeConfigName, ScopeType.PROVIDED, project)
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean probablyRelatedPublication(MavenPublication pub,
+                                                      ResolvedBuildAfterEvalLifeCycle targetVersion,
+                                                      String sourceSetId) {
+        pub.artifactId.endsWith(targetVersion.archive.appendix) || pub.name.contains(sourceSetId)
+    }
+
+    private static void withXmlHandler(XmlProvider xmlProvider,
+                                       String pomAidingConfigName,
+                                       ScopeType scopeType,
+                                       Project project) {
+        def dependenciesNodeFunction = { XmlProvider xml ->
+            def dependenciesNode = xml.asNode()['dependencies']?.getAt(0)
+            if (dependenciesNode == null) {
+                return xmlProvider.asNode().appendNode('dependencies')
+            }
+            dependenciesNode
+        }
+
+        def dependenciesNode = dependenciesNodeFunction(xmlProvider)
+
+        project.configurations[pomAidingConfigName].allDependencies.each { dep ->
+            def dependencyNode = dependenciesNode.appendNode('dependency')
+            dependencyNode.appendNode('groupId', dep.group)
+            dependencyNode.appendNode('artifactId', dep.name)
+            dependencyNode.appendNode('version', dep.version)
+            dependencyNode.appendNode('scope', scopeType.toString().toLowerCase())
         }
     }
 }

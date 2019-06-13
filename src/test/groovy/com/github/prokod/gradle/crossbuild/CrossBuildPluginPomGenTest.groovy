@@ -24,61 +24,59 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
     File buildFile
     File propsFile
+    File mavenLocalRepo
 
     def setup() {
         buildFile = file('build.gradle')
         propsFile = file('gradle.properties')
+        mavenLocalRepo = directory('.m2')
     }
 
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
         buildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
 plugins {
     id 'com.github.prokod.gradle-crossbuild'
+    id 'maven-publish'
 }
 
 group = 'com.github.prokod.it'
+version = '1.0'
+archivesBaseName = 'test'
 
 repositories {
     mavenCentral()
 }
 
-model {
-    crossBuild {
-        targetVersions {
-            v210(ScalaVer) {
-                value = '2.10'
-            }
-            v211(ScalaVer) {
-                value = '2.11'
-            }
+crossBuild {
+    builds {
+        v210
+        v211
+    }
+}
+
+publishing {
+    publications {
+        crossBuild210(MavenPublication) {
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild210Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+        }
+        crossBuild211(MavenPublication) {
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
-    
-    publishing {
-        publications {
-            crossBuild210(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v210.artifactId
-                artifact \$.tasks.crossBuild210Jar
-            }
-            crossBuild211(MavenPublication) {
-                groupId = project.group
-                artifactId = \$.crossBuild.targetVersions.v211.artifactId
-                artifact \$.tasks.crossBuild211Jar
-            }
-        }
+}
+
+tasks.withType(GenerateMavenPom) { t ->
+    if (t.name.contains('CrossBuild210')) {
+        t.destination = file("\$buildDir/generated-pom_2.10.xml")
     }
-    
-    tasks.generatePomFileForCrossBuild210Publication {
-        destination = file("\$buildDir/generated-pom_2.10.xml")
-    }
-    
-    tasks.generatePomFileForCrossBuild211Publication {
-        destination = file("\$buildDir/generated-pom_2.11.xml")
+    if (t.name.contains('CrossBuild211')) {
+        t.destination = file("\$buildDir/generated-pom_2.11.xml")
     }
 }
 
@@ -100,7 +98,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('publishToMavenLocal', '--info', '--stacktrace')
+                .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
@@ -146,7 +144,13 @@ dependencies {
         project211.dependencies.dependency[3].version == '2.2.1'
         project211.dependencies.dependency[3].scope == 'provided'
 
+        fileExists"*/.m2/*test_2.10*jar"
+        fileExists"*/.m2/*test_2.11*jar"
+
         where:
-        [gradleVersion, defaultScalaVersion] << [['2.14.1', '2.10'], ['3.0', '2.10'], ['4.1', '2.10'], ['2.14.1', '2.11'], ['3.0', '2.11'], ['4.1', '2.11']]
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.10'
+        '4.10.3'        | '2.11'
+        '5.4.1'         | '2.10'
     }
 }
