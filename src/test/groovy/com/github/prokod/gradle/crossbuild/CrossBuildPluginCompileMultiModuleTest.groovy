@@ -17,6 +17,8 @@ package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
+import com.github.prokod.gradle.crossbuild.model.NamedVersion
+import org.gradle.api.internal.DefaultDomainObjectCollection
 import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Unroll
@@ -102,15 +104,15 @@ allprojects {
                 appendixPattern = '${ap}'
             }
             builds {
-                spark160_210 {
+                spark160 {
                     scalaVersion = '2.10'
                     ${oap1 != null ? 'archive.appendixPattern = \'' + oap1 + '\'': ''}
                 }
-                spark240_211 {
+                spark240 {
                     scalaVersion = '2.11'
                     ${oap2 != null ? 'archive.appendixPattern = \'' + oap2 + '\'' : ''}
                 }
-                spark241_212 {
+                spark241 {
                     scalaVersion = '2.12'
                         ${oap3 != null ? 'archive { appendixPattern = \'' + oap3 + '\' }': ''}
                 }
@@ -158,17 +160,17 @@ dependencies {
         result.task(":app:builds").outcome == SUCCESS
 
         expect:
-        def build1 = new Build('spark160_210').with { b ->
+        def build1 = new Build('spark160', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
             scalaVersion = '2.10'
             archive = new ArchiveNaming(appendixPattern: eap1)
             b
         }
-        def build2 = new Build('spark240_211').with { b ->
+        def build2 = new Build('spark240', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
             scalaVersion = '2.11'
             archive = new ArchiveNaming(appendixPattern: eap2)
             b
         }
-        def build3 = new Build('spark241_212').with { b ->
+        def build3 = new Build('spark241', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
             scalaVersion = '2.12'
             archive = new ArchiveNaming(appendixPattern: eap3)
             b
@@ -179,8 +181,8 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion | ap   | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
                 '4.2'   | '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
-                '4.2'   | '2.10'              | '_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-                '4.10.3'| '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
+                '4.10.3'| '2.11'              | '_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+                '5.4.1' | '2.12'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
 
     }
 
@@ -239,10 +241,14 @@ allprojects {
         publishing {
             publications {
                 crossBuild210(MavenPublication) {
-                    artifact crossBuild210Jar
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        artifact crossBuild210Jar
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
                 }
                 crossBuild211(MavenPublication) {
-                    artifact crossBuild211Jar
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        artifact crossBuild211Jar
+                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
                 }
             }
         }
@@ -352,6 +358,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
         '4.10.3'        | '2.11'
+        '5.4.1'         | '2.11'
     }
 
     /**
@@ -410,10 +417,14 @@ subprojects {
     publishing {
         publications {
             crossBuild210(MavenPublication) {
-                artifact crossBuild210Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild210Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
             crossBuild211(MavenPublication) {
-                artifact crossBuild211Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild211Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
         }
     }
@@ -506,6 +517,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
         '4.10.3'        | '2.11'
+        '5.4.1'         | '2.11'
     }
 
     @Unroll
@@ -549,10 +561,14 @@ subprojects {
     publishing {
         publications {
             crossBuild210(MavenPublication) {
-                artifact crossBuild210Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild210Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
             crossBuild211(MavenPublication) {
-                artifact crossBuild211Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    artifact crossBuild211Jar
+                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
         }
     }
@@ -697,5 +713,6 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
         '4.10.3'        | '2.11'
+        '5.4.1'         | '2.11'
     }
 }

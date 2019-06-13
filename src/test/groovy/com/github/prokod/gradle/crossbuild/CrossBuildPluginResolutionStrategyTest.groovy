@@ -78,11 +78,13 @@ crossBuild {
 publishing {
     publications {
         crossBuild210(MavenPublication) {
-            artifact crossBuild210Jar
-        }
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild210Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
         crossBuild211(MavenPublication) {
-            artifact crossBuild211Jar
-        }
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
     }
 }
 
@@ -137,9 +139,8 @@ dependencies {
         where:
         gradleVersion | defaultScalaVersion
         '4.2'         | '2.10'
-        '4.2'         | '2.11'
-        '4.9' | '2.11'
-
+        '4.10.3'      | '2.11'
+        '5.4.1'       | '2.11'
     }
 
     @Unroll
@@ -228,8 +229,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.11'
-        '4.2'           | '2.12'
-        '4.10.3'        | '2.11'
         '4.10.3'        | '2.12'
+        '5.4.1'         | '2.12'
     }
 }

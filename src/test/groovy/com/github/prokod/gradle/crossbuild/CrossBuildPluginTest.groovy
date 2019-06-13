@@ -62,7 +62,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.9']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -100,7 +100,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.9']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -124,10 +124,14 @@ crossBuild {
 publishing {
     publications {
         crossBuild211(MavenPublication) {
-            artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
         crossBuild212(MavenPublication) {
-            artifact crossBuild212Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild212Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
 }
@@ -149,7 +153,7 @@ publishing {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2','4.9']
+        gradleVersion << ['4.2','4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -183,7 +187,7 @@ crossBuild {
         result.task(":crossBuild212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.9']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -223,7 +227,7 @@ crossBuild {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.9']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -272,7 +276,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.9']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -354,10 +358,14 @@ crossBuild {
 publishing {
     publications {
         crossBuild210(MavenPublication) {
-            artifact crossBuild210Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild210Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
         crossBuild211(MavenPublication) {
-            artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
 }
@@ -380,7 +388,7 @@ publishing {
         result.task(":publishCrossBuild211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.9']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -459,6 +467,74 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['4.2', '4.9']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with build name following convention for implicit version and `build.scalaVersion` for explicit version, when the values conflict, then exception is raised"() {
+        given:
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+crossBuild {
+    scalaVersionsCatalog = ['2.13':'2.13.0']
+    
+    builds {
+        v212 {
+            scalaVersion = '2.13'
+        }
+    }
+}
+"""
+
+        when:
+        GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild213Jar', '--info')
+                .build()
+
+        then:
+        thrown(RuntimeException)
+
+        where:
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with build name following convention for implicit version and `build.scalaVersion` for explicit version, when the values are aligned, then crossBuildJar ask outcome should be success"() {
+        given:
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+crossBuild {
+    scalaVersionsCatalog = ['2.13':'2.13.0']
+    
+    builds {
+        v213 {
+            scalaVersion = '2.13'
+        }
+    }
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withArguments('crossBuild213Jar', '--info')
+                .build()
+
+        then:
+        result.task(":crossBuild213Jar").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 }

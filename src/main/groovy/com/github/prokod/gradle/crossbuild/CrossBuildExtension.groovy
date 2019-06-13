@@ -2,6 +2,7 @@ package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
+import com.github.prokod.gradle.crossbuild.model.NamedVersion
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
@@ -15,7 +16,6 @@ class CrossBuildExtension {
 
     final Project project
 
-    // TODO: rename to catalog
     Map<String, String> scalaVersionsCatalog = [:]
 
     ArchiveNaming archive
@@ -33,7 +33,9 @@ class CrossBuildExtension {
 
         this.archive = project.objects.newInstance(ArchiveNaming)
 
-        this.builds = project.container(Build)
+        this.builds = project.container(Build) { name ->
+            new Build(name, project.container(NamedVersion))
+        }
 
         this.crossBuildSourceSets = new CrossBuildSourceSets(project)
 
@@ -70,10 +72,12 @@ class CrossBuildExtension {
     void updateExtension(Build build) {
         def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
 
-        def resolvedBuild = BuildResolver.resolve(build, sv)
-        // Create cross build source sets
-        crossBuildSourceSets.fromBuilds([resolvedBuild])
+        build.onScalaVersion { version ->
+            def resolvedBuild = BuildResolver.resolve(build, sv)
+            // Create cross build source sets
+            crossBuildSourceSets.fromBuilds([resolvedBuild])
 
-        resolvedBuilds.add(resolvedBuild)
+            resolvedBuilds.add(resolvedBuild)
+        }
     }
 }

@@ -24,10 +24,12 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
     File buildFile
     File propsFile
+    File mavenLocalRepo
 
     def setup() {
         buildFile = file('build.gradle')
         propsFile = file('gradle.properties')
+        mavenLocalRepo = directory('.m2')
     }
 
     @Unroll
@@ -40,6 +42,8 @@ plugins {
 }
 
 group = 'com.github.prokod.it'
+version = '1.0'
+archivesBaseName = 'test'
 
 repositories {
     mavenCentral()
@@ -55,10 +59,14 @@ crossBuild {
 publishing {
     publications {
         crossBuild210(MavenPublication) {
-            artifact crossBuild210Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild210Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
         crossBuild211(MavenPublication) {
-            artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuild211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
 }
@@ -90,7 +98,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('publishToMavenLocal', '--info', '--stacktrace')
+                .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
@@ -136,10 +144,13 @@ dependencies {
         project211.dependencies.dependency[3].version == '2.2.1'
         project211.dependencies.dependency[3].scope == 'provided'
 
+        fileExists"*/.m2/*test_2.10*jar"
+        fileExists"*/.m2/*test_2.11*jar"
+
         where:
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
-        '4.2'           | '2.11'
-        '4.9'           | '2.11'
+        '4.10.3'        | '2.11'
+        '5.4.1'         | '2.10'
     }
 }

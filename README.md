@@ -38,7 +38,7 @@ buildscript {
 
 - `gradle tasks`
 
-    `gradle-crossbuild` plugin adds the following user faced tasks to the project `crossBuild211Classes`, `crossBuild211Jar`, `crossBuild212Classes`, `crossBuild212Jar` based on the plugin DSL `builds` block
+    `gradle-crossbuild` plugin adds the following user faced tasks to the project `crossBuild211Classes`, `crossBuild211Jar`, `crossBuild212Classes`, `crossBuild212Jar` based on the plugin DSL `builds {}` block
 
     ```sh
     > ./gradlew tasks
@@ -80,9 +80,9 @@ buildscript {
     ```
     
 #### Notes
-- When defining `builds`, a short hand convention can be used for default values.
+- When defining `builds {}`, a short hand convention can be used for default values.
   To be able to use that, `build` item should be named by the following convention, for example:
-  `xyz211` is translated to `{ "build": { "version": "2.11", "name": "xyz211" ... }`
+  `xyz211` is translated to `{ "build": { "scalaVersion": "2.11", "name": "xyz211" ... }`
 - When using a dependency with '?' in `compile` configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will try to deduce the scala version for task `build` based on the neighboring dependencies and explicit `scala-library` dependency if any. If it fails to deduce an exception will be thrown.
 - test/check tasks are not being cross compiled and they use the default scala version.
   If a user would like to run tests with different scala versions, he needs to change the default one by updating the `scala-library` version dependency in build.gradle
@@ -95,6 +95,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 apply plugin: 'maven-publish'
 
 group = 'x.y.z'
+archivesBaseName = 'lib'
 
 crossBuild {
     builds {
@@ -109,8 +110,7 @@ publishing {
         crossBuild211(MavenPublication) {
             // By default groupId equals group
             groupId = 'x.y.z'
-            // By default artifactId is resolved to be artifactId + resolved appendixPattern
-            // Default appendixPattern is _? which is resolved to _2.11 in this example
+            // By default artifactId is set to crossBuildJar task `baseName`
             artifactId = 'lib_2.11'
             // actual artifact for this publication as a Jar task from crossbuild plugin
             artifact crossBuild211Jar
@@ -150,11 +150,13 @@ publishing {
 
 #### Notes
 - To update 'maven-publish' cross-build related publications, 'gradle-crossbuild' plugin leverages Gradle's pluginManager.
-- Behind the scenes Configuration crossBuild2XXMavenCompileScope is being populated and used with in `pom.withXml` block.
+- Behind the scenes Configuration crossBuild2XXMavenCompileScope is being populated and used with in `pom.withXml {}` block.
     It follows a similar line of thought as `conf2ScopeMappings.addMapping()` in Gradle's maven plugin.
     Beware, Behind the scenes the jars and the publications are decoupled, the logical linkage between a cross built Jar and the publication is made by:
     - Either ensuring `artifactId` matches plugin resolved artifactId
     - Or giving the publication item a name of the following convention `crossBuildXXX(MavenPublication)` where XXX can be 210, 211, 212 etc.
+- For Gradle 5.x beware that `publishing {}` block does not support deferred configuration anymore and in that case `artifact crossBuild211Jar` should be wrapped in `afterEvaluate {}` block<br>
+  Please see Gradle documentation [here](https://docs.gradle.org/current/userguide/publishing_maven.html#publishing_maven:deferred_configuration)
 
 ### cross building DSL
 `targetVersionItem.archiveAppendix`, `crossBuild.scalaVersionsCatalog`, `crossBuild211XXX` pre defined configurations
@@ -170,7 +172,7 @@ crossBuild {
     builds {
         v210
         v211 {
-            version = '2.11'                // By default derived from build name
+            scalaVersion = '2.11'           // By default derived from build name
             archive.appendixPattern = '_?'  // By default the value is "_?"
                                             // In the default case will yield '_2.11')
                                             // If different from upper level config, it will override it.
@@ -194,7 +196,9 @@ dependencies {
 ```
 
 #### Notes
-- If `crossBuild.scalaVersionsCatalog` catalog is not defined a default one will be used (might get outdated).
+- If `crossBuild.scalaVersionsCatalog` is not defined a default one will be used (might get outdated).
+- Per build item in `builds {}` block, Scala version is set either by explicitly setting `build.scalaVersion` or implicitly through `build.name`.<br>
+  If both present in the same `build` item, they should match otherwise an exception is thrown.
 - The dependencies "duo":
   ```groovy
   dependencies {
@@ -204,8 +208,8 @@ dependencies {
   ```
   is resolved as follows: the spark version of the dependency specified for `compile/Only` configuration is the default one for `build`, `test/check` tasks. It is also the one to be used when calling `crossBuild210Jar` and `publishToMavenLocal`.
   The other dependency specified for Scala version 2.11 (`crossBuild211Compile/Only`), will be used only for `crossBuild211Jar` and `publishToMavenLocal`
-- The plugin provides pre defined configurations (sourceSets) being used by the matching pre generated Jar tasks:
-crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
+- The plugin provides pre defined configurations (sourceSets) being used by the matching pre generated Jar tasks:<br>
+  crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
 - `configurations = [...]` provides users with the option to tie their own Configuration (SourceSet) with the cross build plugin workings. Needed for instance when specifying dependency within that Configuration on a cross build sub project.
   For instance:
   ```groovy
@@ -331,3 +335,8 @@ subprojects {
     }
 }
 ```
+
+### Supported Gradle versions
+|plugin version | Tested Gradle versions |
+|---------------|------------------------|
+|0.5.0          | 4.2, 4.10.3, 5.4.1     |
