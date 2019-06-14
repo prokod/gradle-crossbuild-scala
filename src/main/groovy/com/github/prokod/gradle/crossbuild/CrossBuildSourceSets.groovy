@@ -1,12 +1,10 @@
 package com.github.prokod.gradle.crossbuild
 
-import com.github.prokod.gradle.crossbuild.model.CrossBuild
-import com.github.prokod.gradle.crossbuild.model.TargetVerItem
+import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.TaskContainer
 
 /**
  * {@link SourceSetContainer} manipulation class to set and view CrossBuild SourceSets
@@ -16,29 +14,23 @@ class CrossBuildSourceSets {
     static final String SOURCESET_BASE_NAME = 'crossBuild'
 
     private final Project project
-    private final ScalaVersions scalaVersions
-    private final Collection<TargetVerItem> targetVersionItems
     final SourceSetContainer container
 
-    CrossBuildSourceSets(Project project, ScalaVersions scalaVersions, Collection<TargetVerItem> targetVersionItems) {
+    CrossBuildSourceSets(Project project) {
         this.project = project
-        this.scalaVersions = scalaVersions
-        this.targetVersionItems = targetVersionItems
         this.container = getSourceSetContainer(project)
     }
 
-    CrossBuildSourceSets(Project project, ScalaVersions scalaVersions) {
-        this(project, scalaVersions, null)
-    }
+    void fromDefault(ScalaVersions scalaVersions) {
+        // Create default source sets early enough to be used in build.gradle dependencies block
+        scalaVersions.catalog*.key.each { String scalaVersion ->
+            def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, scalaVersions)
 
-    /**
-     * Alt Constructor
-     *
-     * @param crossBuild Mapped top level object {@link com.github.prokod.gradle.crossbuild.model.CrossBuild}
-     *                    in model space
-     */
-    CrossBuildSourceSets(CrossBuild crossBuild) {
-        this(crossBuild.project, crossBuild.scalaVersions, crossBuild.targetVersions.values())
+            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(scalaVersionInsights).first
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    "Creating source set (Default): [${sourceSetId}]"))
+        }
     }
 
     /**
@@ -46,27 +38,16 @@ class CrossBuildSourceSets {
      *  mapped top level object crossBuild in model space.
      *
      * @param sourceSets Project source set container
-     * @throws AssertionError if targetVersionItems is null
+     * @throws AssertionError if builds collection is null
      */
-    void reset() {
-        assert targetVersionItems != null : 'targetVersionItems should not be null'
-        def sourceSetIds = targetVersionItems.collect { targetVersion ->
-            def scalaVersionInsights = new ScalaVersionInsights(targetVersion.value, scalaVersions)
-
-            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(scalaVersionInsights).first
+    void fromBuilds(Collection<ResolvedBuildConfigLifecycle> builds) {
+        assert builds != null : 'builds should not be null'
+        def sourceSetIds = builds.collect { build ->
+            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(build.scalaVersionInsights).first
             project.logger.info(LoggerUtils.logTemplate(project,
-                    "Creating source set (Post Evaluate Lifecycle): [${sourceSetId}]"))
+                    "Creating source set (User request): [${sourceSetId}]"))
             sourceSetId.toString()
         }
-
-        // Remove unused source sets
-        cleanSourceSetsContainer(sourceSetIds)
-
-        // disable unused tasks
-        def nonActiveSourceSetIds = findNonActiveSourceSetIds(targetVersionItems*.value.toSet())
-        project.logger.info(LoggerUtils.logTemplate(project,
-                "Non active source set ids: [${nonActiveSourceSetIds.join(', ')}]"))
-        cleanTasksContainer(project.tasks, nonActiveSourceSetIds)
     }
 
     /**
@@ -82,31 +63,6 @@ class CrossBuildSourceSets {
         new Tuple2(sourceSetId, sourceSet)
     }
 
-    private void cleanSourceSetsContainer(List<String> sourceSetIds) {
-        // Remove unused source sets
-        container.removeIf { it.name.contains(SOURCESET_BASE_NAME) && !sourceSetIds.contains(it.name) }
-    }
-
-    private static Set<String> findNonActiveSourceSetIds(Set<String> targetVersions) {
-        // disable unused tasks
-        def nonActiveTargetVersions = ScalaVersions.DEFAULT_SCALA_VERSIONS
-                .mkRefTargetVersions()
-        nonActiveTargetVersions.removeAll(targetVersions)
-
-        def nonActiveSourceSetIds = nonActiveTargetVersions.collect {
-            "${SOURCESET_BASE_NAME}${it.replaceAll('\\.', '')}".toString()
-        }
-        nonActiveSourceSetIds.toSet()
-    }
-
-    private static boolean cleanTasksContainer(TaskContainer tasks, Set<String> nonActiveSourceSetIds) {
-        tasks.removeAll(tasks.findAll { t ->
-            nonActiveSourceSetIds.findAll {
-                ssid -> t.name.toLowerCase().contains(ssid.toLowerCase())
-            }.size() > 0
-        })
-    }
-
     Tuple2<String, SourceSet> getOrCreateCrossBuildScalaSourceSet(ScalaVersionInsights scalaVersionInsights) {
         def sourceSetId = generateSourceSetId(scalaVersionInsights)
 
@@ -118,6 +74,7 @@ class CrossBuildSourceSets {
                 tuple
             }
         }.first()
+
         crossBuildSourceSet
     }
 

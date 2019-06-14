@@ -7,7 +7,7 @@ apply plugin: 'codenarc'
 targetCompatibility = '1.6'
 
 group = 'com.github.prokod'
-version = '0.4.4'
+version = '0.5.0'
 
 repositories {
     mavenCentral()
@@ -43,7 +43,7 @@ dependencies {
     compile localGroovy()
 
     testCompile gradleTestKit()
-    testCompile ('org.spockframework:spock-core:1.0-groovy-2.4') {
+    testCompile ('org.spockframework:spock-core:1.2-groovy-2.4') {
         exclude module: 'groovy-all'
     }
 }

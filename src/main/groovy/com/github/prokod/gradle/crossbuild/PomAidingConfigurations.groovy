@@ -2,6 +2,7 @@ package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
+import com.github.prokod.gradle.crossbuild.utils.DependencyInsightsContext
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -26,9 +27,9 @@ class PomAidingConfigurations {
      * @param sourceSet A specific {@link org.gradle.api.tasks.SourceSet} that provides a configuration
      *                   to use as source of dependencies for the new configuration
      * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
-     * @param archiveAppendix {@link com.github.prokod.gradle.crossbuild.model.TargetVerItem} archiveAppendix
+     * @param archiveAppendix {@link com.github.prokod.gradle.crossbuild.model.ResolvedArchiveNaming} archive appendix
      *                         to aid with the replacement of non cross build
-     *                         {@link org.gradle.api.artifacts.ProjectDependency} with its cross build counterpart
+     *                        {@link org.gradle.api.artifacts.ProjectDependency} with its cross build counterpart
      *
      */
     PomAidingConfigurations(Project project,
@@ -104,11 +105,11 @@ class PomAidingConfigurations {
         assert archiveAppendix != null:'archiveAppendix must be set'
 
         def allDependencies = sourceDependencies
+        def diContext = new DependencyInsightsContext(project:project)
+        def di = new DependencyInsights(diContext)
 
-        def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(project.gradle)
-        def crossBuildProjectDependencySet = allDependencies.findAll {
-            it instanceof ProjectDependency
-        }.findAll {
+        def moduleNames = di.findAllCrossBuildPluginAppliedProjects()*.name
+        def crossBuildProjectDependencySet = allDependencies.findAll(DependencyInsights.isProjectDependency).findAll {
             moduleNames.contains(it.name)
         }
 
@@ -161,10 +162,12 @@ class PomAidingConfigurations {
     private Set<Dependency> assemble3rdPartyDependencies(Set<Dependency> sourceDependencies) {
         def allDependencies = sourceDependencies
 
-        def moduleNames = CrossBuildPluginUtils.findAllNamesForCrossBuildPluginAppliedProjects(project.gradle)
-        def crossBuildProjectDependencySet = allDependencies.findAll {
-            it instanceof ProjectDependency
-        }.findAll {
+        def diContext = new DependencyInsightsContext(project:project)
+        def di = new DependencyInsights(diContext)
+
+        def moduleNames = di.findAllCrossBuildPluginAppliedProjects()*.name
+
+        def crossBuildProjectDependencySet = allDependencies.findAll(DependencyInsights.isProjectDependency)findAll {
             moduleNames.contains(it.name)
         }
 
