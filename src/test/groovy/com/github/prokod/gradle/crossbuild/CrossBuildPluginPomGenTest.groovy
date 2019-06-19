@@ -58,24 +58,24 @@ crossBuild {
 
 publishing {
     publications {
-        crossBuild210(MavenPublication) {
+        crossBuildV210(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild210Jar
+                artifact crossBuildV210Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
-        crossBuild211(MavenPublication) {
+        crossBuildV211(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild211Jar
+                artifact crossBuildV211Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
 }
 
 tasks.withType(GenerateMavenPom) { t ->
-    if (t.name.contains('CrossBuild210')) {
+    if (t.name.contains('CrossBuildV210')) {
         t.destination = file("\$buildDir/generated-pom_2.10.xml")
     }
-    if (t.name.contains('CrossBuild211')) {
+    if (t.name.contains('CrossBuildV211')) {
         t.destination = file("\$buildDir/generated-pom_2.11.xml")
     }
 }
@@ -86,8 +86,8 @@ dependencies {
     compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 
     compileOnly "org.apache.spark:spark-sql_${defaultScalaVersion}:${defaultScalaVersion == '2.10' ? '1.6.3' : '2.2.1'}"
-    crossBuild210CompileOnly "org.apache.spark:spark-sql_2.10:1.6.3"
-    crossBuild211CompileOnly "org.apache.spark:spark-sql_2.11:2.2.1"
+    crossBuildV210CompileOnly "org.apache.spark:spark-sql_2.10:1.6.3"
+    crossBuildV211CompileOnly "org.apache.spark:spark-sql_2.11:2.2.1"
 }
 """
 

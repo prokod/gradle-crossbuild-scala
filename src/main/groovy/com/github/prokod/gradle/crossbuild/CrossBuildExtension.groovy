@@ -2,8 +2,8 @@ package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
-import com.github.prokod.gradle.crossbuild.model.NamedVersion
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
+import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
@@ -16,6 +16,8 @@ class CrossBuildExtension {
 
     final Project project
 
+    final CrossBuildSourceSets crossBuildSourceSets
+
     Map<String, String> scalaVersionsCatalog = [:]
 
     ArchiveNaming archive
@@ -26,24 +28,22 @@ class CrossBuildExtension {
 
     Collection<ResolvedBuildConfigLifecycle> resolvedBuilds = []
 
-    CrossBuildSourceSets crossBuildSourceSets
-
     CrossBuildExtension(Project project) {
         this.project = project
 
         this.archive = project.objects.newInstance(ArchiveNaming, '_?')
 
-        this.builds = project.container(Build) { name ->
-            new Build(name, project.container(NamedVersion))
-        }
-
         this.crossBuildSourceSets = new CrossBuildSourceSets(project)
+
+        this.builds = project.container(Build, buildFactory)
 
         builds.all { Build build ->
             updateBuild(build)
             updateExtension(build)
         }
     }
+
+    private final Closure buildFactory = { name -> new Build(name, this) }
 
     @SuppressWarnings(['ConfusingMethodName'])
     void archive(Action<? super ArchiveNaming> action) {
@@ -67,14 +67,23 @@ class CrossBuildExtension {
     }
 
     void updateExtension(Build build) {
+        def project = build.extension.project
         def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
 
-        build.onScalaVersion { version ->
-            def resolvedBuild = BuildResolver.resolve(build, sv)
+        build.onScalaVersionsUpdate { event ->
+            def resolvedBuilds = BuildResolver.resolve(build, sv)
             // Create cross build source sets
-            crossBuildSourceSets.fromBuilds([resolvedBuild])
+            project.logger.debug(LoggerUtils.logTemplate(project,
+                    lifecycle:'config',
+                    msg:'`onScalaVersionsUpdate` callback triggered. Going to create source-sets accordingly.\n' +
+                            'Event source (build):\n-----------------\n' +
+                            "${event.source.toString()}\n" +
+                            "Current build:\n------------\n${build.toString()}\n" +
+                            "Resolved builds:\n------------\n${resolvedBuilds*.toString().join('\n')}"
+            ))
+            crossBuildSourceSets.fromBuilds(resolvedBuilds)
 
-            resolvedBuilds.add(resolvedBuild)
+            this.resolvedBuilds.addAll(resolvedBuilds)
         }
     }
 }

@@ -67,32 +67,32 @@ crossBuild {
 
     builds {
         v210 {
-            scalaVersion = '2.10'
+            scalaVersions = ['2.10']
         }
         v211 {
-            scalaVersion = '2.11'
+            scalaVersions = ['2.11']
         }
     }
 }
 
 publishing {
     publications {
-        crossBuild210(MavenPublication) {
+        crossBuildV210(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild210Jar
+                artifact crossBuildV210Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
-        crossBuild211(MavenPublication) {
+        crossBuildV211(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild211Jar
+                artifact crossBuildV211Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
     }
 }
 
 tasks.withType(GenerateMavenPom) { t ->
-    if (t.name.contains('CrossBuild210')) {
+    if (t.name.contains('CrossBuildV210')) {
         t.destination = file("\$buildDir/generated-pom_2.10.xml")
     }
-    if (t.name.contains('CrossBuild211')) {
+    if (t.name.contains('CrossBuildV211')) {
         t.destination = file("\$buildDir/generated-pom_2.11.xml")
     }
 }
@@ -105,7 +105,7 @@ dependencies {
     // In this case, when cross building this project to Scala 2.10, that dependency should be excluded
     //  from 'crossBuild210Compile' configurations which inherit from 'compile'. 
     compile 'org.apache.flink:flink-connector-kafka-0.10_2.11:1.4.1'
-    crossBuild210Compile 'org.apache.flink:flink-connector-kafka-0.10_2.10:1.3.2'
+    crossBuildV210Compile 'org.apache.flink:flink-connector-kafka-0.10_2.10:1.3.2'
 }
 
 
@@ -190,10 +190,10 @@ crossBuild {
 
     builds {
         v211 {
-            scalaVersion = '2.11'
+            scalaVersions = ['2.11']
         }
         v212 {
-            scalaVersion = '2.12'
+            scalaVersions = ['2.12']
         }
     }
 }
