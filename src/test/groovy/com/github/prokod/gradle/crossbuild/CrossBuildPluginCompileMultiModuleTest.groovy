@@ -17,9 +17,9 @@ package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
-import com.github.prokod.gradle.crossbuild.model.NamedVersion
-import org.gradle.api.internal.DefaultDomainObjectCollection
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.internal.impldep.org.junit.Assume
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Unroll
 
@@ -105,15 +105,15 @@ allprojects {
             }
             builds {
                 spark160 {
-                    scalaVersion = '2.10'
+                    scalaVersions = ['2.10']
                     ${oap1 != null ? 'archive.appendixPattern = \'' + oap1 + '\'': ''}
                 }
                 spark240 {
-                    scalaVersion = '2.11'
+                    scalaVersions = ['2.11']
                     ${oap2 != null ? 'archive.appendixPattern = \'' + oap2 + '\'' : ''}
                 }
                 spark241 {
-                    scalaVersion = '2.12'
+                    scalaVersions = ['2.12']
                         ${oap3 != null ? 'archive { appendixPattern = \'' + oap3 + '\' }': ''}
                 }
             }
@@ -160,18 +160,22 @@ dependencies {
         result.task(":app:builds").outcome == SUCCESS
 
         expect:
-        def build1 = new Build('spark160', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
-            scalaVersion = '2.10'
+        def project = ProjectBuilder.builder().build()
+        // Before instantiating CrossBuildExtension, project should contain sourceSets otherwise, CrossBuildSourceSets
+        // instantiation will fail.
+        project.pluginManager.apply(JavaBasePlugin)
+        def build1 = new Build('spark160', new CrossBuildExtension(project)).with { b ->
+            scalaVersions = ['2.10']
             archive = new ArchiveNaming(eap1)
             b
         }
-        def build2 = new Build('spark240', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
-            scalaVersion = '2.11'
+        def build2 = new Build('spark240', new CrossBuildExtension(project)).with { b ->
+            scalaVersions = ['2.11']
             archive = new ArchiveNaming(eap2)
             b
         }
-        def build3 = new Build('spark241', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
-            scalaVersion = '2.12'
+        def build3 = new Build('spark241', new CrossBuildExtension(project)).with { b ->
+            scalaVersions = ['2.12']
             archive = new ArchiveNaming(eap3)
             b
         }
@@ -240,24 +244,24 @@ allprojects {
     project.pluginManager.withPlugin('maven-publish') {
         publishing {
             publications {
-                crossBuild210(MavenPublication) {
+                crossBuildSpark160_210(MavenPublication) {
                     ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                        artifact crossBuild210Jar
+                        artifact crossBuildSpark160_210Jar
                     ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
                 }
-                crossBuild211(MavenPublication) {
+                crossBuildSpark240_211(MavenPublication) {
                     ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                        artifact crossBuild211Jar
+                        artifact crossBuildSpark240_211Jar
                     ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
                 }
             }
         }
 
         tasks.withType(GenerateMavenPom) { t ->
-            if (t.name.contains('CrossBuild210')) {
+            if (t.name.contains('CrossBuildSpark160_210')) {
                 t.destination = file("\$buildDir/generated-pom_2.10.xml")
             }
-            if (t.name.contains('CrossBuild211')) {
+            if (t.name.contains('CrossBuildSpark240_211')) {
                 t.destination = file("\$buildDir/generated-pom_2.11.xml")
             }
         }
@@ -330,7 +334,7 @@ dependencies {
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withDebug(true)
-                .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
+                .withArguments('tasks', 'build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
@@ -378,7 +382,7 @@ dependencies {
      * @return
      */
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project and calling crossBuildXXJar tasks on it should build correctly"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project and calling crossBuildXXXJar tasks on it should build correctly"() {
         given:
         // root project settings.gradle
         settingsFile << """
@@ -416,24 +420,24 @@ subprojects {
     
     publishing {
         publications {
-            crossBuild210(MavenPublication) {
+            crossBuildSpark160_210(MavenPublication) {
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                    artifact crossBuild210Jar
+                    artifact crossBuildSpark160_210Jar
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
-            crossBuild211(MavenPublication) {
+            crossBuildSpark240_211(MavenPublication) {
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                    artifact crossBuild211Jar
+                    artifact crossBuildSpark240_211Jar
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
         }
     }
 
     tasks.withType(GenerateMavenPom) { t ->
-        if (t.name.contains('CrossBuild210')) {
+        if (t.name.contains('CrossBuildSpark160_210')) {
             t.destination = file("\$buildDir/generated-pom_2.10.xml")
         }
-        if (t.name.contains('CrossBuild211')) {
+        if (t.name.contains('CrossBuildSpark240_211')) {
             t.destination = file("\$buildDir/generated-pom_2.11.xml")
         }
     }
@@ -499,14 +503,14 @@ dependencies {
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withDebug(true)
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.task(":lib:crossBuild210Jar").outcome == SUCCESS
-        result.task(":lib:crossBuild211Jar").outcome == SUCCESS
-        result.task(":app:crossBuild210Jar").outcome == SUCCESS
-        result.task(":app:crossBuild211Jar").outcome == SUCCESS
+        result.task(":lib:crossBuildSpark160_210Jar").outcome == SUCCESS
+        result.task(":lib:crossBuildSpark240_211Jar").outcome == SUCCESS
+        result.task(":app:crossBuildSpark160_210Jar").outcome == SUCCESS
+        result.task(":app:crossBuildSpark240_211Jar").outcome == SUCCESS
 
         fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10.jar")
         fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11.jar")
@@ -560,24 +564,24 @@ subprojects {
     
     publishing {
         publications {
-            crossBuild210(MavenPublication) {
+            crossBuildSpark160_210(MavenPublication) {
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                    artifact crossBuild210Jar
+                    artifact crossBuildSpark160_210Jar
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
-            crossBuild211(MavenPublication) {
+            crossBuildSpark240_211(MavenPublication) {
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                    artifact crossBuild211Jar
+                    artifact crossBuildSpark240_211Jar
                 ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
             }
         }
     }
 
     tasks.withType(GenerateMavenPom) { t ->
-        if (t.name.contains('CrossBuild210')) {
+        if (t.name.contains('CrossBuildSpark160_210')) {
             t.destination = file("\$buildDir/generated-pom_2.10.xml")
         }
-        if (t.name.contains('CrossBuild211')) {
+        if (t.name.contains('CrossBuildSpark240_211')) {
             t.destination = file("\$buildDir/generated-pom_2.11.xml")
         }
     }
