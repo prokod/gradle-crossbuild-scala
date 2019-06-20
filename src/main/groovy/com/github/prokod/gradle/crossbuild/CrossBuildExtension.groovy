@@ -31,7 +31,7 @@ class CrossBuildExtension {
     CrossBuildExtension(Project project) {
         this.project = project
 
-        this.archive = project.objects.newInstance(ArchiveNaming)
+        this.archive = project.objects.newInstance(ArchiveNaming, '_?')
 
         this.builds = project.container(Build) { name ->
             new Build(name, project.container(NamedVersion))
@@ -59,14 +59,11 @@ class CrossBuildExtension {
     }
 
     void updateBuild(Build build) {
-        build.archive = project.objects.newInstance(ArchiveNaming)
-        applyArchiveDefaults(build)
+        build.archive = project.objects.newInstance(ArchiveNaming, '_?')
     }
 
     void applyArchiveDefaults(Build build) {
-        if (build.archive.appendixPattern == null) {
-            build.archive.appendixPattern = this.archive.appendixPattern
-        }
+        build.archive.appendixPattern = this.archive.appendixPattern
     }
 
     void updateExtension(Build build) {

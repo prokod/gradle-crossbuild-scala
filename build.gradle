@@ -1,3 +1,7 @@
+plugins {
+    id "com.gradle.plugin-publish" version "0.10.1"
+}
+
 apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven'
@@ -7,10 +11,10 @@ apply plugin: 'codenarc'
 targetCompatibility = '1.6'
 
 group = 'com.github.prokod'
-version = '0.5.0'
+version = '0.5.1'
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 task javadocJar(type: Jar) {
@@ -45,6 +49,29 @@ dependencies {
     testCompile gradleTestKit()
     testCompile ('org.spockframework:spock-core:1.2-groovy-2.4') {
         exclude module: 'groovy-all'
+    }
+}
+
+gradlePlugin {
+    plugins {
+        crossBuildPlugin {
+            id = 'com.github.prokod.gradle-crossbuild'
+            implementationClass = 'com.github.prokod.gradle.crossbuild.CrossBuildPlugin'
+        }
+    }
+}
+
+pluginBundle {
+    website = 'https://github.com/prokod/gradle-crossbuild-scala'
+    vcsUrl = 'https://github.com/prokod/gradle-crossbuild-scala'
+    description = 'Adds cross building functionality to Gradle for Scala based projects'
+    tags = ['gradle', 'cross-build-scala-plugins', 'cross-compile', 'scala']
+
+    plugins {
+        crossBuildPlugin {
+            // id is captured from java-gradle-plugin configuration
+            displayName = 'Gradle cross build (Scala) plugin'
+        }
     }
 }
 

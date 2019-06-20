@@ -75,7 +75,7 @@ plugins {
 
 crossBuild {
     archive {
-        appendixPattern = '_?'
+        appendixPattern = '-2-4-3_?'
     }
     builds {
         v211
@@ -97,6 +97,8 @@ crossBuild {
         !result.output.contains('publishCrossBuild211PublicationToMavenLocal')
         result.output.contains('crossBuild212Jar')
         !result.output.contains('publishCrossBuild212PublicationToMavenLocal')
+        result.output.contains('-2-4-3_2.11]')
+        result.output.contains('-2-4-3_2.12]')
         result.task(":tasks").outcome == SUCCESS
 
         where:
