@@ -49,7 +49,10 @@ class ResolutionStrategyConfigurer {
 
             def allDependencies = crossBuildConfiguration.allDependencies
             project.logger.info(LoggerUtils.logTemplate(project,
-                    "Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
+                    lifecycle:'afterEvaluate',
+                    configuration:crossBuildConfigurationName,
+                    parentConfiguration:parentConfiguration.name,
+                    msg:"Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
                             'configuration dependencies: ' +
                             "[${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
             ))
@@ -110,8 +113,9 @@ class ResolutionStrategyConfigurer {
         else if (supposedScalaVersion == '?') {
             resolveQMarkDep(details, scalaVersionInsights.artifactInlinedVersion)
             project.logger.info(LoggerUtils.logTemplate(project,
-                    "${crossBuildConfigurationName} | " +
-                            "Dependency Scan | Found crossbuild glob '?' in dependency name ${requested.name}. " +
+                    lifecycle:'afterEvaluate',
+                    configuration:crossBuildConfigurationName,
+                    msg:"Dependency Scan | Found crossbuild glob '?' in dependency name ${requested.name}. " +
                             "Subtituted with [${details.target.name}]"
             ))
             // Replace 3d party scala dependency which ends with '_?' in cross build config scope
@@ -123,7 +127,9 @@ class ResolutionStrategyConfigurer {
                 useScalaLibTargetDependencyInstead(details, scalaVersionInsights)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
-                        "${crossBuildConfigurationName} | Dependency Scan " +
+                        lifecycle:'afterEvaluate',
+                        configuration:crossBuildConfigurationName,
+                        msg:'Dependency Scan ' +
                                 "| Found polluting dependency ${requested.name}:${requested.version}. Replacing all " +
                                 "together with [${details.target.name}:${details.target.version}]"
                 ))
@@ -140,16 +146,18 @@ class ResolutionStrategyConfigurer {
         if (supposedScalaVersion == '?') {
             if (tryResolvingQMarkInTargetDependencyName(details, parentConfiguration, scalaVersions)) {
                 project.logger.info(LoggerUtils.logTemplate(project,
-                        "${parentConfiguration.name} | Found crossbuild glob '?' in " +
-                                "dependency name ${requested.name}." +
+                        lifecycle:'afterEvaluate',
+                        configuration:parentConfiguration.name,
+                        msg:"Found crossbuild glob '?' in dependency name ${requested.name}." +
                                 " Subtituted with [${details.target.name}]"
                 ))
             } else {
                 project.logger.info(LoggerUtils.logTemplate(project,
-                        "${parentConfiguration.name} | Could not infer Scala version " +
-                                "to be applied to dependency '$requested.group:$requested.name'. " +
-                                'Reason: scala-library dependency version not found or ' +
-                                'multiple versions'
+                        lifecycle:'afterEvaluate',
+                        configuration:parentConfiguration.name,
+                        msg:'Could not infer Scala version to be applied to dependency ' +
+                                "'$requested.group:$requested.name'. " +
+                                'Reason: scala-library dependency version not found or multiple versions'
                 ))
                 resolveQMarkInTargetDependencyName(details, parentConfiguration, scalaVersions)
             }
@@ -178,7 +186,9 @@ class ResolutionStrategyConfigurer {
                         // configurations like `testCompile`, `testCompileOnly`, `testImplementation` ...
                         strategyForNonCrossBuildConfiguration(c, probableScalaVersion, details)
                         project.logger.info(LoggerUtils.logTemplate(project,
-                                "${c.name} | Found crossbuild glob '?' in dependency name ${requested.name}. " +
+                                lifecycle:'afterEvaluate',
+                                configuration:c.name,
+                                msg:"Found crossbuild glob '?' in dependency name ${requested.name}. " +
                                         "Subtituted with [${details.target.name}]"
                         ))
                     }

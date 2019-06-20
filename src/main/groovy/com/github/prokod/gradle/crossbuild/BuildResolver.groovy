@@ -11,16 +11,17 @@ import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
  */
 class BuildResolver {
     /**
-     * resolve build suitable for Gradle config lifecycle {@link Build} -> {@link ResolvedBuildConfigLifecycle}
+     * Resolve build suitable for Gradle config lifecycle.
+     * Possibly one {@link Build} -> many {@link ResolvedBuildConfigLifecycle}
      *
-     * @param build
-     * @param catalog
-     * @return
+     * @param build Input build as was created from plugin DSL
+     * @param scalaVersions Scala versions catalog
+     * @return A set of resolved builds
      */
-    static ResolvedBuildConfigLifecycle resolve(Build build, ScalaVersions scalaVersions) {
-        def scalaVersionInsights = new ScalaVersionInsights(build.scalaVersion, scalaVersions)
-
-        new ResolvedBuildConfigLifecycle(build, scalaVersionInsights)
+    static Set<ResolvedBuildConfigLifecycle> resolve(Build build, ScalaVersions scalaVersions) {
+        build.scalaVersions.collect { new ScalaVersionInsights(it, scalaVersions) }.collect { svi ->
+            new ResolvedBuildConfigLifecycle(build, svi)
+        }.toSet()
     }
 
     /**
@@ -28,22 +29,18 @@ class BuildResolver {
      * {@link ResolvedBuildConfigLifecycle} -> {@link ResolvedBuildAfterEvalLifeCycle}
      *
      * @param build
-     * @param catalog
      * @return
      */
-    static ResolvedBuildAfterEvalLifeCycle resolve(ResolvedBuildConfigLifecycle build, ScalaVersions scalaVersions) {
-        def scalaVersionInsights = new ScalaVersionInsights(build.scalaVersion, scalaVersions)
-
-        def resolvedAppendix = resolveAppendix(build, scalaVersionInsights)
+    static ResolvedBuildAfterEvalLifeCycle resolve(ResolvedBuildConfigLifecycle build) {
+        def resolvedAppendix = resolveAppendix(build)
         def resolvedArchiveNaming = new ResolvedArchiveNaming(build.delegate.archive.appendixPattern, resolvedAppendix)
 
-        new ResolvedBuildAfterEvalLifeCycle(build.delegate, scalaVersionInsights, resolvedArchiveNaming)
+        new ResolvedBuildAfterEvalLifeCycle(build, resolvedArchiveNaming)
     }
 
-    private static String resolveAppendix(ResolvedBuildConfigLifecycle build,
-                                          ScalaVersionInsights scalaVersionInsights) {
+    private static String resolveAppendix(ResolvedBuildConfigLifecycle build) {
         generateCrossArchivesNameAppndix(build.delegate.archive.appendixPattern,
-                scalaVersionInsights.artifactInlinedVersion)
+                build.scalaVersionInsights.artifactInlinedVersion)
     }
 
     /**

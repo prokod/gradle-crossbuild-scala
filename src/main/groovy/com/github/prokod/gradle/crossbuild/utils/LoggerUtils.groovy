@@ -22,7 +22,24 @@ import org.gradle.api.Project
  */
 class LoggerUtils {
 
-    static String logTemplate(Project project, String msg) {
-        "[${project.path}] | ${msg}".toString()
+    static String logTemplate(Map conf, Project project) {
+        def msg = conf.msg
+
+        "${generateMessageOrientation(project, conf)} | ${msg}".toString()
+    }
+
+    private static String generateMessageOrientation(Project project, Map conf) {
+        def lifecycle = conf.lifecycle
+        def sourceset = conf.sourceset
+        def configuration = conf.configuration
+        def parentConfiguration = conf.parentConfiguration
+
+        def prj = "PRJ=${project.path}"
+        def lc = lifecycle != null ? "LC=$lifecycle" : 'LC=N/A'
+        def sset = sourceset != null ? "SSET=$sourceset" : null
+        def c = configuration != null ? "C=$configuration" : null
+        def pc = parentConfiguration != null ? "PC=$parentConfiguration" : null
+
+        [prj, lc, sset, c, pc].findAll { it != null }.join(' / ')
     }
 }

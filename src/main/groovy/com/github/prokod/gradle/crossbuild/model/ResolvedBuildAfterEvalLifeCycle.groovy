@@ -18,6 +18,11 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
         this.archive = archive
     }
 
+    ResolvedBuildAfterEvalLifeCycle(ResolvedBuildConfigLifecycle resolvedBuild, ResolvedArchiveNaming archive) {
+        super(resolvedBuild)
+        this.archive = archive
+    }
+
     String toString() {
         JsonOutput.toJson([name:name,
                            scalaVersion:scalaVersion,
