@@ -6,7 +6,7 @@
 #### Using the plugin DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version "0.5.0"
+    id "com.github.prokod.gradle-crossbuild" version "0.6.0"
 }
 ```  
     
@@ -14,7 +14,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.5.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.6.0")
     }
 }
 ```
@@ -164,7 +164,7 @@ publishing {
     It follows a similar line of thought as `conf2ScopeMappings.addMapping()` in Gradle's maven plugin.
     Beware, Behind the scenes the jars and the publications are decoupled, the logical linkage between a cross built Jar and the publication is made by:
     - Either ensuring `artifactId` matches plugin resolved artifactId
-    - Or giving the publication item a name of the following convention <code>crossBuild*XYZ*(MavenPublication)<code> where XYZ is the build name from `builds {}` block followed by `_210`, `_211`, `_212` etc in most cases (except short hand scenario).
+    - Or giving the publication item a name of the following convention <code>crossBuild*XYZ*(MavenPublication)</code> where XYZ is the build name from `builds {}` block followed by `_210`, `_211`, `_212` etc in most cases (except short hand scenario).
 - For Gradle 5.x beware that `publishing {}` block does not support deferred configuration anymore and in that case `artifact crossBuild211Jar` should be wrapped in `afterEvaluate {}` block<br>
   Please see Gradle documentation [here](https://docs.gradle.org/current/userguide/publishing_maven.html#publishing_maven:deferred_configuration)
 
@@ -253,10 +253,10 @@ The following table shows some commonly build scenarios expressed through the pl
 
 | build scenario | SourceSet/s    | Configurations/s | Task/s |
 |----------------|----------------|------------------|--------|
-|`v210`          | crossBuild*V210* | crossBuild*V210*Compile<br/>crossBuild*V210*CompileOnly<br/>crossBuild*V210*Runtime<br/>crossBuild*V210*CompileClasspath | JavaPlugin -> crossBuild*V210*Java<br/>ScalaPlugin -> crossBuild*V210*Scala<br/>crossBuild*V210*Jar |
-|`v211 {`<br/>`    scalaVersions = ['2.11', '2.12']`<br/>`}` | crossBuild*V211_211*, crossBuild*V211_212* | crossBuild*V211_211*Compile<br/>...<br/>crossBuild*V211_212*Compile<br/>... | JavaPlugin -> crossBuild*V211_211*Java, crossBuild*V211_212*Java<br/>ScalaPlugin -> crossBuild*V211_211*Scala, crossBuild*V211_212*Scala<br/>crossBuild*V211_211*Jar, crossBuild*V211_212*Jar |
-|`v213 {`<br/>`    scalaVersions = ['2.13']`<br/>`}` | crossBuild*V213* | crossBuild*V213*Compile<br/>... | JavaPlugin -> crossBuild*V213*Java<br/>ScalaPlugin -> crossBuild*V213*Scala<br/>crossBuild*V213*Jar |
-|`spark24 {`<br/>`    scalaVersions = ['2.11', '2.12']`<br/>`}` |  crossBuild*Spark24_211*, crossBuild*Spark24_212* | crossBuild*Spark24_211*Compile<br/>...<br/>crossBuild*Spark24_212*Compile<br/>... | JavaPlugin -> crossBuild*Spark24_211*Java, crossBuild*Spark24_212*Java<br/>ScalaPlugin -> crossBuild*Spark24_211*Scala, crossBuild*Spark24_212*Scala<br/>crossBuild*Spark24_211*Jar, crossBuild*Spark24_212*Jar |
+|<pre>`v210`</pre>          | crossBuild*V210* | <ul><li>crossBuild*V210*Compile</li><li>crossBuild*V210*CompileOnly</li><li>crossBuild*V210*Runtime</li><li>crossBuild*V210*CompileClasspath</li></ul> | <ul><li>JavaPlugin -> crossBuild*V210*Java</li><li>ScalaPlugin -> crossBuild*V210*Scala</li><li>crossBuild*V210*Jar</li></ul> |
+|<pre>`v211 {`<br/>`    scalaVersions = ['2.11', '2.12']`<br/>`}`</pre> | crossBuild*V211_211*, crossBuild*V211_212* | <ul><li>crossBuild*V211_211*Compile<br/>...</li><li>crossBuild*V211_212*Compile<br/>...</li></ul> | <ul><li>JavaPlugin -> crossBuild*V211_211*Java, crossBuild*V211_212*Java</li><li>ScalaPlugin -> crossBuild*V211_211*Scala, crossBuild*V211_212*Scala</li><li>crossBuild*V211_211*Jar, crossBuild*V211_212*Jar</li></ul> |
+|<pre>`v213 {`<br/>`    scalaVersions = ['2.13']`<br/>`}`</pre> | crossBuild*V213* | <ul><li>crossBuild*V213*Compile<br/>...</li></ul> | <ul><li>JavaPlugin -> crossBuild*V213*Java</li><li>ScalaPlugin -> crossBuild*V213*Scala</li><li>crossBuild*V213*Jar</li></ul> |
+|<pre>`spark24 {`<br/>`    scalaVersions = ['2.11', '2.12']`<br/>`}`</pre> |  crossBuild*Spark24_211*, crossBuild*Spark24_212* | <ul><li>crossBuild*Spark24_211*Compile<br/>...</li><li>crossBuild*Spark24_212*Compile<br/>...</li></ul> | <ul><li>JavaPlugin -> crossBuild*Spark24_211*Java, crossBuild*Spark24_212*Java</li><li>ScalaPlugin -> crossBuild*Spark24_211*Scala, crossBuild*Spark24_212*Scala</li><li>crossBuild*Spark24_211*Jar, crossBuild*Spark24_212*Jar</li></ul> |
 
 ### multi-module project
 To apply cross building to a multi-module project use one of the following suggested layouts:
@@ -359,4 +359,5 @@ subprojects {
 ### Supported Gradle versions
 |plugin version | Tested Gradle versions |
 |---------------|------------------------|
-|0.5.0          | 4.2, 4.10.3, 5.4.1     |
+|0.5.x          | 4.2, 4.10.3, 5.4.1     |
+|0.6.x          | 4.2, 4.10.3, 5.4.1     |
