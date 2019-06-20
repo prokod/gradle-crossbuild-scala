@@ -9,7 +9,7 @@ class ResolvedArchiveNaming extends ArchiveNaming {
     final String appendix
 
     ResolvedArchiveNaming(String appendixPattern, String appendix) {
-        this.appendixPattern = appendixPattern
+        super(appendixPattern)
         this.appendix = appendix
     }
 }
