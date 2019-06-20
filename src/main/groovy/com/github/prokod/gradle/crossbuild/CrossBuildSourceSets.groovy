@@ -29,42 +29,46 @@ class CrossBuildSourceSets {
             def sourceSetId = getOrCreateCrossBuildScalaSourceSet(scalaVersionInsights).first
 
             project.logger.info(LoggerUtils.logTemplate(project,
-                    "Creating source set (Default): [${sourceSetId}]"))
+                    lifecycle:'config',
+                    msg:"Creating source set (Default): [${sourceSetId}]"))
         }
     }
 
     /**
-     * Creates additional {@link org.gradle.api.tasks.SourceSet} per target version enlisted under
-     *  mapped top level object crossBuild in model space.
+     * Creates additional {@link org.gradle.api.tasks.SourceSet} per scala version for each build item enlisted under
+     * {@code builds {}} block within crossBuild DSL.
      *
-     * @param sourceSets Project source set container
+     * @param builds resolved builds collection to create/get source-sets from
+     * @return set of source-set ids the were created/retrieved
+     *
      * @throws AssertionError if builds collection is null
      */
-    void fromBuilds(Collection<ResolvedBuildConfigLifecycle> builds) {
+    List<String> fromBuilds(Collection<ResolvedBuildConfigLifecycle> builds) {
         assert builds != null : 'builds should not be null'
         def sourceSetIds = builds.collect { build ->
-            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(build.scalaVersionInsights).first
+            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(build.name).first
             project.logger.info(LoggerUtils.logTemplate(project,
-                    "Creating source set (User request): [${sourceSetId}]"))
+                    lifecycle:'config',
+                    msg:"Creating source set (User request): [${sourceSetId}]"))
             sourceSetId.toString()
         }
+        sourceSetIds
     }
 
     /**
      * Find Scala source set id and instance in a source set container based on specific Scala version insights.
      *
-     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
-     * @param sourceSets Source set container (per project)
+     * @param buildName plugin DSL build item name
      * @return A tuple of source set id and its {@link SourceSet} instance
      */
-    Tuple2<String, SourceSet> findByVersion(ScalaVersionInsights scalaVersionInsights) {
-        def sourceSetId = generateSourceSetId(scalaVersionInsights)
+    Tuple2<String, SourceSet> findByName(String buildName) {
+        def sourceSetId = generateSourceSetId(buildName)
         def sourceSet = container.findByName(sourceSetId)
         new Tuple2(sourceSetId, sourceSet)
     }
 
-    Tuple2<String, SourceSet> getOrCreateCrossBuildScalaSourceSet(ScalaVersionInsights scalaVersionInsights) {
-        def sourceSetId = generateSourceSetId(scalaVersionInsights)
+    Tuple2<String, SourceSet> getOrCreateCrossBuildScalaSourceSet(String buildName) {
+        def sourceSetId = generateSourceSetId(buildName)
 
         def crossBuildSourceSet = [sourceSetId].collect { id ->
             new Tuple2<String, SourceSet>(id, container.findByName(id)) }.collect { tuple ->
@@ -81,11 +85,11 @@ class CrossBuildSourceSets {
     /**
      * Generates SourceSet id from a scala version info provided through {@link ScalaVersionInsights} object.
      *
-     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     * @param buildName plugin DSL build item name
      * @return A tuple of source set id and its {@link org.gradle.api.tasks.SourceSet} instance
      */
-    static String generateSourceSetId(ScalaVersionInsights scalaVersionInsights) {
-        "$SOURCESET_BASE_NAME${scalaVersionInsights.strippedArtifactInlinedVersion}".toString()
+    static String generateSourceSetId(String buildName) {
+        "$SOURCESET_BASE_NAME${buildName}".toString()
     }
 
     /**
@@ -99,5 +103,34 @@ class CrossBuildSourceSets {
         def sourceSets = project.hasProperty('sourceSets') ? (SourceSetContainer)project.sourceSets : null
         assert sourceSets != null : "Missing 'sourceSets' property under Project ${project.name} properties."
         sourceSets
+    }
+
+    /**
+     * Removal of source set from container based on fraction of source set name.
+     *
+     * NOTE: current impl. is not guarding against removal of source set other then the intended one which can lead
+     * to unwanted affects.
+     *
+     * TODO: Tighten method so it will only remove one sourceSet and only the intended one
+     *
+     * @param idPostfix
+     */
+    void cleanSourceSetsContainer(String idPostfix) {
+        container.removeIf { sourceSet -> sourceSet.name.contains(idPostfix) }
+    }
+
+    /**
+     * Removal of task from tasks container based on fraction of task name
+     *
+     * NOTE: current impl. is not guarding against removal of tasks other then the intended ones which can lead
+     * to unwanted affects.
+     *
+     * TODO: Tighten method so it will only remove the set of tasks associated to a specific sourceSet
+     *
+     * @param idPostfix
+     */
+    void cleanTasksContainer(String idPostfix) {
+        def tasks = project.tasks
+        tasks.removeIf { task -> task.name.contains(idPostfix) }
     }
 }

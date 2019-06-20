@@ -3,6 +3,7 @@ package com.github.prokod.gradle.crossbuild
 import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsightsContext
+import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -61,12 +62,22 @@ class PomAidingConfigurations {
      *         container.
      */
     Configuration createAndSetForMavenScope(ScopeType scopeType) {
-        def dependencySetFunction = { ScopeType scope ->
+        def mavenToGradleScope = { ScopeType scope ->
             switch (scope) {
                 case ScopeType.COMPILE:
-                    return project.configurations[sourceSet.compileConfigurationName].allDependencies
+                    return project.configurations[sourceSet.compileConfigurationName]
                 case ScopeType.PROVIDED:
-                    def compileOnlySet = project.configurations[sourceSet.compileOnlyConfigurationName].allDependencies
+                    return project.configurations[sourceSet.compileOnlyConfigurationName]
+            }
+        }
+
+        def dependencySetFunction = { ScopeType scope ->
+            def configuration = mavenToGradleScope(scope)
+            switch (scope) {
+                case ScopeType.COMPILE:
+                    return configuration.allDependencies
+                case ScopeType.PROVIDED:
+                    def compileOnlySet = configuration.allDependencies
                     def compileSet = project.configurations[sourceSet.compileConfigurationName].allDependencies
                     return (compileOnlySet - compileSet)
             }
@@ -74,6 +85,13 @@ class PomAidingConfigurations {
 
         def createdTargetMavenScopeConfig =
                 project.configurations.create(mavenScopeConfigurationNameFor(scopeType))
+
+        project.logger.info(LoggerUtils.logTemplate(project,
+                lifecycle:'afterEvaluate',
+                sourceset:sourceSet.name,
+                configuration:mavenToGradleScope(scopeType).name,
+                msg:"Created Maven scope ${scopeType} related configuration: ${createdTargetMavenScopeConfig.name}"
+        ))
 
         set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType))
         createdTargetMavenScopeConfig
@@ -92,7 +110,7 @@ class PomAidingConfigurations {
 
     @SuppressWarnings('FieldTypeRequired')
     private static final MAVEN_SCOPE_SUFFIX_FUNC = { ScopeType scopeType ->
-        "Maven${scopeType.toString()}Scope"
+        "Maven${scopeType.toString().toLowerCase().capitalize()}Scope"
     }
 
     /**

@@ -31,7 +31,7 @@ class CrossBuildPluginTest extends CrossBuildGradleRunnerSpec {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix and value for each specified targetVersion and no publishing block should produce expected set of crossbuild jar task(s) when calling `tasks`"() {
+    def "[#gradleVersion] applying crossbuild plugin with default values and no publishing plugin/block should produce expected set of crossbuild jar task(s) with matching resolved appendix for archive names when calling `tasks`"() {
         given:
         buildFile << """
 plugins {
@@ -55,10 +55,12 @@ crossBuild {
                 .build()
 
         then:
-        result.output.contains('crossBuild211Jar')
-        !result.output.contains('publishCrossBuild211PublicationToMavenLocal')
-        result.output.contains('crossBuild212Jar')
-        !result.output.contains('publishCrossBuild212PublicationToMavenLocal')
+        result.output.contains('crossBuildV211Jar')
+        !result.output.contains('publishCrossBuildV211PublicationToMavenLocal')
+        result.output.contains('crossBuildV212Jar')
+        !result.output.contains('publishCrossBuildV212PublicationToMavenLocal')
+        result.output.contains('_2.11]')
+        result.output.contains('_2.12]')
         result.task(":tasks").outcome == SUCCESS
 
         where:
@@ -66,7 +68,7 @@ crossBuild {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and no publishing block should produce expected set of crossbuild jar task(s) when calling `tasks`"() {
+    def "[#gradleVersion] applying crossbuild plugin with crossBuild.archiveAppendix custom value and no publishing plugin/block should produce expected set of crossbuild jar task(s) with matching resolved appendix for archive names when calling `tasks`"() {
         given:
         buildFile << """
 plugins {
@@ -89,14 +91,15 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.output.contains('crossBuild211Jar')
-        !result.output.contains('publishCrossBuild211PublicationToMavenLocal')
-        result.output.contains('crossBuild212Jar')
-        !result.output.contains('publishCrossBuild212PublicationToMavenLocal')
+        result.output.contains('crossBuildV211Jar')
+        !result.output.contains('publishCrossBuildV211PublicationToMavenLocal')
+        result.output.contains('crossBuildV212Jar')
+        !result.output.contains('publishCrossBuildV212PublicationToMavenLocal')
         result.output.contains('-2-4-3_2.11]')
         result.output.contains('-2-4-3_2.12]')
         result.task(":tasks").outcome == SUCCESS
@@ -106,7 +109,7 @@ crossBuild {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and calling `tasks` should produce expected set of crossbuild jar task(s)"() {
+    def "[#gradleVersion] applying noth crossbuild plugin and maven-publish plugin should produce expected set of crossbuild jar task(s) and publish task(s) when calling `tasks`"() {
         given:
         buildFile << """
 plugins {
@@ -125,14 +128,14 @@ crossBuild {
 
 publishing {
     publications {
-        crossBuild211(MavenPublication) {
+        crossBuildV211(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild211Jar
+                artifact crossBuildV211Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
-        crossBuild212(MavenPublication) {
+        crossBuildV212(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild212Jar
+                artifact crossBuildV212Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
@@ -148,10 +151,10 @@ publishing {
                 .build()
 
         then:
-        result.output.contains('crossBuild211Jar')
-        result.output.contains('publishCrossBuild211PublicationToMavenLocal')
-        result.output.contains('crossBuild212Jar')
-        result.output.contains('publishCrossBuild212PublicationToMavenLocal')
+        result.output.contains('crossBuildV211Jar')
+        result.output.contains('publishCrossBuildV211PublicationToMavenLocal')
+        result.output.contains('crossBuildV212Jar')
+        result.output.contains('publishCrossBuildV212PublicationToMavenLocal')
         result.task(":tasks").outcome == SUCCESS
 
         where:
@@ -159,7 +162,7 @@ publishing {
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with default archiveAppendix for each specified targetVersion and calling `crossBuild2XJar` should produce expected set of crossbuild jar task(s) with matching archive name"() {
+    def "[#gradleVersion] applying crossbuild plugin with defaults and calling `crossBuildXXXJar` tasks, should produce expected set of crossbuild jar task(s) with matching resolved appendix for archive names"() {
         given:
         buildFile << """
 plugins {
@@ -179,21 +182,21 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuild211Jar', 'crossBuild212Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildV211Jar', 'crossBuildV212Jar', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.output.contains('_2.11')
-        result.output.contains('_2.12')
-        result.task(":crossBuild211Jar").outcome == SUCCESS
-        result.task(":crossBuild212Jar").outcome == SUCCESS
+        result.output.contains('_2.11]')
+        result.output.contains('_2.12]')
+        result.task(":crossBuildV211Jar").outcome == SUCCESS
+        result.task(":crossBuildV212Jar").outcome == SUCCESS
 
         where:
         gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with custom archiveAppendix for each specified targetVersion should produce expected set of crossbuild jar task(s) with matching archive name"() {
+    def "[#gradleVersion] applying crossbuild plugin with custom archiveAppendix for each specified targetVersion should produce expected set of crossbuild jar task(s) with matching resolved appendix for archive names"() {
         given:
         propsFile << 'prop=A'
 
@@ -219,21 +222,21 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.output.contains('_2.10_A')
-        result.output.contains('_2.11_A')
-        result.task(":crossBuild210Jar").outcome == SUCCESS
-        result.task(":crossBuild211Jar").outcome == SUCCESS
+        result.output.contains('_2.10_A]')
+        result.output.contains('_2.11_A]')
+        result.task(":crossBuildV210Jar").outcome == SUCCESS
+        result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
         gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
-    def "[#gradleVersion] applying crossbuild plugin with custom archiveAppendix and custom archivesBaseName for each specified targetVersion should produce expected set of crossbuild jar task/s with matching archive name"() {
+    def "[#gradleVersion] applying crossbuild plugin with custom archiveAppendix and custom archivesBaseName for each specified targetVersion should produce expected set of crossbuild jar task/s with matching archive names"() {
         given:
         propsFile << 'prop=A'
 
@@ -257,8 +260,8 @@ crossBuild {
 }
 
 gradle.projectsEvaluated {
-    logger.info(tasks.crossBuild210Jar.baseName)
-    logger.info(tasks.crossBuild211Jar.baseName)
+    logger.info('__' + tasks.crossBuildV210Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV211Jar.baseName + '__')
 }
 """
 
@@ -268,50 +271,137 @@ gradle.projectsEvaluated {
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withDebug(true)
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--debug', '--stacktrace')
                 .build()
 
         then:
-        result.output.contains('mylib_2.10_A')
-        result.output.contains('mylib_2.11_A')
-        result.task(":crossBuild210Jar").outcome == SUCCESS
-        result.task(":crossBuild211Jar").outcome == SUCCESS
+        result.output.contains('__mylib_2.10_A__')
+        result.output.contains('__mylib_2.11_A__')
+        result.task(":crossBuildV210Jar").outcome == SUCCESS
+        result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
         gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
-    @Ignore
-    def "[#gradleVersion] applying crossbuild plugin with custom target version value for each specified ScalaVer should produce expected set of crossbuild jar task/s with matching archive name"() {
+    def "[#gradleVersion] applying crossbuild plugin with custom scala version value for each specified build item should produce expected set of crossbuild jar task/s with matching archive names"() {
         given:
         propsFile << 'prop=A'
 
         buildFile << """
-import com.github.prokod.gradle.crossbuild.model.*
-
 plugins {
     id 'com.github.prokod.gradle-crossbuild'
 }
 
-model {
-    crossBuild {
-        targetVersions {
-            archivesBaseName = 'mylib'
-            v210(ScalaVer) {
-                value = '2.10'
-            }
-            v210_A(ScalaVer) {
-                value = '2.10'
-                archiveAppendix = "_?_\${prop}"
-            }
-            V211(ScalaVer) {
-                value = '2.11'
-            }
-            V211_A(ScalaVer) {
-                value = '2.11'
-                archiveAppendix = "_?_\${prop}"
-            }
+archivesBaseName = 'mylib'
+
+crossBuild {
+    scalaVersionsCatalog = ['2.13':'2.13.0']
+    builds {
+        v210
+        v211 {
+            scalaVersions = ['2.11', '2.12']
+        }
+        v211_A {
+            scalaVersions = ['2.11']
+            archive.appendixPattern = "_?_\${prop}"
+        }
+        v212 {
+            scalaVersions = ['2.13']
+            archive.appendixPattern = "-2-12_?"
+        }
+        v213 {
+            scalaVersions = ['2.13']
+        }
+        spark24 {
+            scalaVersions = ['2.11', '2.12']
+            archive.appendixPattern = "-2-4-3_?"
+        }
+    }
+}
+
+gradle.projectsEvaluated {
+    logger.info('__' + tasks.crossBuildV210Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV211_211Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV211_212Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV211_A_211Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV212_213Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV213Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildSpark24_211Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildSpark24_212Jar.baseName + '__')
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withDebug(true)
+                .withPluginClasspath()
+                .withArguments('crossBuildV210Jar',
+                        'crossBuildV211_211Jar',
+                        'crossBuildV211_212Jar',
+                        'crossBuildV211_A_211Jar',
+                        'crossBuildV212_213Jar',
+                        'crossBuildV213Jar',
+                        'crossBuildSpark24_211Jar',
+                        'crossBuildSpark24_212Jar',
+                        '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.output.contains('__mylib_2.10__')
+        result.output.contains('__mylib_2.11__')
+        result.output.contains('__mylib_2.12__')
+        result.output.contains('__mylib_2.11_A__')
+        result.output.contains('__mylib-2-12_2.13__')
+        result.output.contains('__mylib_2.13__')
+        result.output.contains('__mylib-2-4-3_2.11__')
+        result.output.contains('__mylib-2-4-3_2.12__')
+        result.task(":crossBuildV210Jar").outcome == SUCCESS
+        result.task(":crossBuildV211_211Jar").outcome == SUCCESS
+        result.task(":crossBuildV211_212Jar").outcome == SUCCESS
+        result.task(":crossBuildV211_A_211Jar").outcome == SUCCESS
+        result.task(":crossBuildV212_213Jar").outcome == SUCCESS
+        result.task(":crossBuildV213Jar").outcome == SUCCESS
+        result.task(":crossBuildSpark24_211Jar").outcome == SUCCESS
+        result.task(":crossBuildSpark24_212Jar").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+    }
+
+    @Unroll
+    def "[#gradleVersion] applying crossbuild plugin with custom scala version value for each specified build item should produce expected set of crossbuild jar task/s when calling `tasks`"() {
+        given:
+        propsFile << 'prop=A'
+
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+crossBuild {
+    scalaVersionsCatalog = ['2.13':'2.13.0']
+    builds {
+        v210
+        v211 {
+            scalaVersions = ['2.11', '2.12']
+        }
+        v211_A {
+            scalaVersions = ['2.11']
+            archive.appendixPattern = "_?_\${prop}"
+        }
+        v212 {
+            scalaVersions = ['2.13']
+        }
+        v213 {
+            scalaVersions = ['2.13']
+        }
+        spark24 {
+            scalaVersions = ['2.11', '2.12']
+            archive.appendixPattern = "-2-4-3_?"
         }
     }
 }
@@ -321,22 +411,37 @@ model {
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
+                .withDebug(true)
                 .withPluginClasspath()
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'crossBuild210_AJar', 'crossBuild211_AJar', '--info', '--stacktrace')
+                .withArguments('tasks',
+                        '--info', '--stacktrace')
                 .build()
 
         then:
-        result.output.contains('\'mylib_2.10_A\'')
-        result.output.contains('\'mylib_2.10\'')
-        result.output.contains('\'mylib_2.11_A\'')
-        result.output.contains('\'mylib_2.11\'')
-        result.task(":crossBuild210Jar").outcome == SUCCESS
-        result.task(":crossBuild211Jar").outcome == SUCCESS
-        result.task(":crossBuild210_AJar").outcome == SUCCESS
-        result.task(":crossBuild211_AJar").outcome == SUCCESS
+        result.output.contains("""
+crossBuildSpark24_211Classes - Assembles cross build spark24 211 classes.
+crossBuildSpark24_211Jar - Assembles a jar archive containing 211 classes
+crossBuildSpark24_212Classes - Assembles cross build spark24 212 classes.
+crossBuildSpark24_212Jar - Assembles a jar archive containing 212 classes
+crossBuildV210Classes - Assembles cross build v210 classes.
+crossBuildV210Jar - Assembles a jar archive containing 210 classes
+crossBuildV211_211Classes - Assembles cross build v211 211 classes.
+crossBuildV211_211Jar - Assembles a jar archive containing 211 classes
+crossBuildV211_212Classes - Assembles cross build v211 212 classes.
+crossBuildV211_212Jar - Assembles a jar archive containing 212 classes
+crossBuildV211_A_211Classes - Assembles cross build v211 a 211 classes.
+crossBuildV211_A_211Jar - Assembles a jar archive containing 211 classes
+crossBuildV211Classes - Assembles cross build v211 classes.
+crossBuildV212_213Classes - Assembles cross build v212 213 classes.
+crossBuildV212_213Jar - Assembles a jar archive containing 213 classes
+crossBuildV212Classes - Assembles cross build v212 classes.
+crossBuildV213Classes - Assembles cross build v213 classes.
+crossBuildV213Jar - Assembles a jar archive containing 213 classes
+""")
+        result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.14.1', '3.0', '4.1']
+        gradleVersion << ['4.2', '4.10.3', '5.4.1']
     }
 
     @Unroll
@@ -359,14 +464,14 @@ crossBuild {
 
 publishing {
     publications {
-        crossBuild210(MavenPublication) {
+        crossBuildV210(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild210Jar
+                artifact crossBuildV210Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
-        crossBuild211(MavenPublication) {
+        crossBuildV211(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild211Jar
+                artifact crossBuildV211Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
@@ -378,16 +483,16 @@ publishing {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', 'publishToMavenLocal', '--info', '--stacktrace')
+                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
         result.output.contains('_2.10')
         result.output.contains('_2.11')
-        result.task(":crossBuild210Jar").outcome == SUCCESS
-        result.task(":publishCrossBuild210PublicationToMavenLocal").outcome == SUCCESS
-        result.task(":crossBuild211Jar").outcome == SUCCESS
-        result.task(":publishCrossBuild211PublicationToMavenLocal").outcome == SUCCESS
+        result.task(":crossBuildV210Jar").outcome == SUCCESS
+        result.task(":publishCrossBuildV210PublicationToMavenLocal").outcome == SUCCESS
+        result.task(":crossBuildV211Jar").outcome == SUCCESS
+        result.task(":publishCrossBuildV211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
         gradleVersion << ['4.2', '4.10.3', '5.4.1']
@@ -519,7 +624,7 @@ crossBuild {
     
     builds {
         v213 {
-            scalaVersion = '2.13'
+            scalaVersions = ['2.13']
         }
     }
 }
@@ -530,11 +635,11 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuild213Jar', '--info')
+                .withArguments('crossBuildV213Jar', '--info')
                 .build()
 
         then:
-        result.task(":crossBuild213Jar").outcome == SUCCESS
+        result.task(":crossBuildV213Jar").outcome == SUCCESS
 
         where:
         gradleVersion << ['4.2', '4.10.3', '5.4.1']

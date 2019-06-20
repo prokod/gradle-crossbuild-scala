@@ -47,8 +47,10 @@ class DependencyInsights {
         def moduleNames = project.gradle.rootProject.allprojects.findAll { it.plugins.hasPlugin(CrossBuildPlugin) }
 
         project.logger.debug(LoggerUtils.logTemplate(project,
-                "${configuration?.name ?: 'N/A'}\\${parentConfiguration?.name ?: 'N/A'} | " +
-                        "Found crossbuild modules ${moduleNames.join(', ')}."))
+                lifecycle:'afterEvaluate',
+                configuration:configuration?.name,
+                parentConfiguration:parentConfiguration?.name,
+                msg:"Found the following crossbuild modules ${moduleNames.join(', ')}."))
         moduleNames
     }
 

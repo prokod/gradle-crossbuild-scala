@@ -90,24 +90,24 @@ crossBuild {
 
 publishing {
     publications {
-        crossBuild210(MavenPublication) {
+        crossBuildV210(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild210Jar
+                artifact crossBuildV210Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
-        crossBuild211(MavenPublication) {
+        crossBuildV211(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
-                artifact crossBuild211Jar
+                artifact crossBuildV211Jar
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
         }
     }
 }
     
 tasks.withType(GenerateMavenPom) { t ->
-    if (t.name.contains('CrossBuild210')) {
+    if (t.name.contains('CrossBuildV210')) {
         t.destination = file("\$buildDir/generated-pom_2.10.xml")
     }
-    if (t.name.contains('CrossBuild211')) {
+    if (t.name.contains('CrossBuildV211')) {
         t.destination = file("\$buildDir/generated-pom_2.11.xml")
     }
 }
@@ -137,12 +137,12 @@ dependencies {
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withDebug(true)
-                .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.task(":crossBuild210Jar").outcome == SUCCESS
-        result.task(":crossBuild211Jar").outcome == SUCCESS
+        result.task(":crossBuildV210Jar").outcome == SUCCESS
+        result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.10.jar")
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
@@ -226,13 +226,13 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuild211Jar', 'crossBuild212Jar', 'check', '--info', '--stacktrace')
+                .withArguments('crossBuildV211Jar', 'crossBuildV212Jar', 'check', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":test").outcome == SUCCESS
-        result.task(":crossBuild211Jar").outcome == SUCCESS
-        result.task(":crossBuild212Jar").outcome == SUCCESS
+        result.task(":crossBuildV211Jar").outcome == SUCCESS
+        result.task(":crossBuildV212Jar").outcome == SUCCESS
 
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.12.jar")

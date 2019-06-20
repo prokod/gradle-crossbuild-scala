@@ -47,9 +47,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate {
-            def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
-
-            def fullyResolvedBuilds = extension.resolvedBuilds.collect { rb -> BuildResolver.resolve(rb, sv) }
+            def fullyResolvedBuilds = extension.resolvedBuilds.collect { rb -> BuildResolver.resolve(rb) }
 
             realizeCrossBuildTasks(extension, fullyResolvedBuilds)
 
@@ -68,7 +66,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             def scalaVersionInsights = rb.scalaVersionInsights
 
             def (String sourceSetId, SourceSet sourceSet) =
-                    extension.crossBuildSourceSets.findByVersion(rb.scalaVersionInsights)
+                    extension.crossBuildSourceSets.findByName(rb.name)
 
             sourceSet.java.srcDirs = main.java.getSrcDirs()
 
@@ -101,17 +99,18 @@ class CrossBuildPlugin implements Plugin<Project> {
             pomAidingConfigurations.createAndSetForMavenScope(ScopeType.COMPILE)
             pomAidingConfigurations.createAndSetForMavenScope(ScopeType.PROVIDED)
 
-            extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
-                    "Creating crossbuild Jar task for sourceSet ${sourceSetId}." +
-                            " [Resolved Jar baseName appendix: ${rb.archive.appendix}]"))
-
-            extension.project.tasks.create(sourceSet.getJarTaskName(), Jar) {
+            def task = extension.project.tasks.create(sourceSet.getJarTaskName(), Jar) {
                 group = BasePlugin.BUILD_GROUP
                 description = 'Assembles a jar archive containing ' +
                         "${scalaVersionInsights.strippedArtifactInlinedVersion} classes"
                 baseName = baseName + rb.archive.appendix
                 from sourceSet.output
             }
+
+            extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
+                    lifecycle:'afterEvaluate',
+                    msg:"Created crossbuild Jar task for sourceSet ${sourceSetId}." +
+                            " [Resolved Jar baseName (w/ appendix): ${task.baseName}]"))
 
             extension.project.tasks.withType(ScalaCompile) { ScalaCompile t ->
                 if (t.name == sourceSet.getCompileTaskName('scala')) {
@@ -131,19 +130,19 @@ class CrossBuildPlugin implements Plugin<Project> {
         def project = extension.project
         def publishing = project.extensions.findByType(PublishingExtension)
 
-        resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle targetVersion ->
+        resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle rb ->
             def (String sourceSetId, SourceSet sourceSet) =
-                    extension.crossBuildSourceSets.findByVersion(targetVersion.scalaVersionInsights)
+                    extension.crossBuildSourceSets.findByName(rb.name)
 
             def pomAidingConfigurations =
-                    new PomAidingConfigurations(project, sourceSet, targetVersion.scalaVersionInsights)
+                    new PomAidingConfigurations(project, sourceSet, rb.scalaVersionInsights)
             def pomAidingCompileScopeConfigName =
                     pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.COMPILE)
             def pomAidingProvidedScopeConfigName =
                     pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.PROVIDED)
 
             publishing.publications.all { MavenPublication pub ->
-                if (pub instanceof MavenPublication && probablyRelatedPublication(pub, targetVersion, sourceSetId)) {
+                if (pub instanceof MavenPublication && probablyRelatedPublication(pub, rb, sourceSetId)) {
                     def jarBaseName = project.tasks.findByName(sourceSet.jarTaskName).baseName
                     pub.artifactId = jarBaseName
 
