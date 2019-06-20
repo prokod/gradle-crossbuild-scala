@@ -162,17 +162,17 @@ dependencies {
         expect:
         def build1 = new Build('spark160', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
             scalaVersion = '2.10'
-            archive = new ArchiveNaming(appendixPattern: eap1)
+            archive = new ArchiveNaming(eap1)
             b
         }
         def build2 = new Build('spark240', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
             scalaVersion = '2.11'
-            archive = new ArchiveNaming(appendixPattern: eap2)
+            archive = new ArchiveNaming(eap2)
             b
         }
         def build3 = new Build('spark241', new DefaultDomainObjectCollection(NamedVersion, [])).with { b ->
             scalaVersion = '2.12'
-            archive = new ArchiveNaming(appendixPattern: eap3)
+            archive = new ArchiveNaming(eap3)
             b
         }
         def expected = [build1, build2, build3].collect {it.toString()}.join('\n')
