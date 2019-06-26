@@ -21,6 +21,7 @@ import org.gradle.api.Project
  * Logger utils
  */
 class LoggerUtils {
+    private static final int SUB_ORIENTATION_MAX_SIZE = 17
 
     static String logTemplate(Map conf, Project project) {
         def msg = conf.msg
@@ -40,6 +41,8 @@ class LoggerUtils {
         def c = configuration != null ? "C=$configuration" : null
         def pc = parentConfiguration != null ? "PC=$parentConfiguration" : null
 
-        [prj, lc, sset, c, pc].findAll { it != null }.join(' / ')
+        [prj, lc, sset, c, pc]
+                .findAll { it != null }
+                .collect { it.take(SUB_ORIENTATION_MAX_SIZE).padRight(SUB_ORIENTATION_MAX_SIZE) }.join('/')
     }
 }

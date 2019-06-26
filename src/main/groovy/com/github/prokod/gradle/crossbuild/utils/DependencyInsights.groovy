@@ -189,12 +189,13 @@ class DependencyInsights {
      * type dependencies for the specified configuration.
      *
      * NOTE: The outcome is dependent on the lifecycle stage this method is called in. It is complete and stable
-     * after {@code gradle.projectsEvaluated} but changes after each {@code project.afterEvaluated}
+     * after {@code gradle.projectsEvaluated} and gives a limited visibility (of one level only)
+     * in {@code project.afterEvaluated}
      *
      * @return A set of {@link ProjectDependency} that belong to the dependency graph originated from the initial
      *         project type dependencies found in the initial dependency set
      */
-    private Set<ProjectDependency> extractCrossBuildProjectTypeDependencies() {
+    Set<ProjectDependency> extractCrossBuildProjectTypeDependencies() {
         def modules = findAllCrossBuildPluginAppliedProjects()
 
         def initialDependencySet = diContext.dependencies
@@ -205,6 +206,14 @@ class DependencyInsights {
         dependencies
     }
 
+    /**
+     * Valid Project type dependencies for this method are those with targetConfiguration as 'default' only
+     *
+     * @param modules
+     * @param inputDependencySet
+     * @param configurationName
+     * @return
+     */
     private Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(
             Set<Project> modules,
             Set<Dependency> inputDependencySet,
@@ -214,9 +223,10 @@ class DependencyInsights {
 
         def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
                 .findAll { isNotAccumulated(it, accum) }.collect { (ProjectDependency) it }
-        if (currentProjectTypDeps.size() > 0) {
-            accum.addAll(currentProjectTypDeps)
-            def currentProjectTypeDependenciesDependencies = currentProjectTypDeps.collectMany { prjDep ->
+        def currentProjectTypDepsForDefault = currentProjectTypDeps.findAll { it.targetConfiguration == null }
+        if (currentProjectTypDepsForDefault.size() > 0) {
+            accum.addAll(currentProjectTypDepsForDefault)
+            def currentProjectTypeDependenciesDependencies = currentProjectTypDepsForDefault.collectMany { prjDep ->
                 extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
             }
             accum.addAll(extractCrossBuildProjectTypeDependenciesRecursively(modules,

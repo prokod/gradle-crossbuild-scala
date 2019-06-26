@@ -340,10 +340,10 @@ dependencies {
         then:
         result.task(":lib:publishToMavenLocal").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10*.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10*.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
 
         def pom210 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def pom211 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml").text
@@ -512,10 +512,10 @@ dependencies {
         result.task(":app:crossBuildSpark160_210Jar").outcome == SUCCESS
         result.task(":app:crossBuildSpark240_211Jar").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10*.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10*.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
 
         where:
         gradleVersion   | defaultScalaVersion
@@ -666,7 +666,7 @@ object HelloWorldApp {
 
         appBuildFile << """
 dependencies {
-    compile project(':lib')
+    compile project(':lib2')
 }
 """
 
@@ -683,12 +683,12 @@ dependencies {
         then:
         result.task(":lib:publishToMavenLocal").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib2_2.10.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib2_2.11.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10*.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
+        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.10*.jar")
+        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.11*.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10*.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
 
         def pom210 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def pom211 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml").text

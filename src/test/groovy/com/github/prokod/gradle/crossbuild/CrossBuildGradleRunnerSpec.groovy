@@ -39,24 +39,33 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
     protected File findFile(String path) {
         def proot = Paths.get(dir.root.absolutePath)
         if (Files.isDirectory(proot)) {
-            proot.toFile().traverse { f ->
-                System.out.println(f.toPath().toString())
-            }
-        }
-        if (path.contains('*')) {
             File found = null
-            // Create a Pattern object
-            def cpattern = "^" + (path.startsWith(File.separator) ? "" : path.startsWith('*') ? "" : ".*?") + path.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".*?") + "\$"
-            System.out.println(cpattern)
-            def pattern = Pattern.compile(cpattern);
-            if (Files.isDirectory(proot)) {
-                proot.toFile().traverse { f -> def m = pattern.matcher(f.toPath().toString()); if (m.find()) found = f }
-                found
+            if (path.contains('*')) {
+                // Create a Pattern object
+                def cpattern = "^" + (path.startsWith(File.separator) ? "" : path.startsWith('*') ? "" : ".*?") + path.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".*?") + "\$"
+                System.out.println(cpattern)
+                def pattern = Pattern.compile(cpattern)
+
+                proot.toFile().traverse { f ->
+                    def fPath = f.toPath().toString()
+                    System.out.println(fPath)
+                    def m = pattern.matcher(fPath)
+                    if (m.find()) {
+                        found = f
+                    }
+                }
             } else {
-                null
+                proot.toFile().traverse { f ->
+                    def fPath = f.toPath().toString()
+                    System.out.println(fPath)
+                    if (fPath == path) {
+                        found = f
+                    }
+                }
             }
+            found
         } else {
-            new File(dir.root, path)
+            null
         }
     }
 

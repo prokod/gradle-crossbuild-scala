@@ -10,28 +10,43 @@ import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
  * Utility class for resolving a {@link Build} -> ResolvedBuild
  */
 class BuildResolver {
+
     /**
-     * Resolve build suitable for Gradle config lifecycle.
+     * Resolve dsl build item to Gradle afterEvaluate lifecycle build item/s
      * Possibly one {@link Build} -> many {@link ResolvedBuildConfigLifecycle}
      *
      * @param build Input build as was created from plugin DSL
      * @param scalaVersions Scala versions catalog
      * @return A set of resolved builds
      */
-    static Set<ResolvedBuildConfigLifecycle> resolve(Build build, ScalaVersions scalaVersions) {
+    static Set<ResolvedBuildAfterEvalLifeCycle> resolve(Build build, ScalaVersions scalaVersions) {
+        def resolvedBuildsInConfigLC = resolveDslBuild(build, scalaVersions)
+
+        resolvedBuildsInConfigLC.collect { resolveConfigPhaseBuild(it) }
+    }
+
+    /**
+     * Resolve dsl build item to Gradle config lifecycle build item/s
+     * Possibly one {@link Build} -> many {@link ResolvedBuildConfigLifecycle}
+     *
+     * @param build Input build as was created from plugin DSL
+     * @param scalaVersions Scala versions catalog
+     * @return A set of resolved builds
+     */
+    static Set<ResolvedBuildConfigLifecycle> resolveDslBuild(Build build, ScalaVersions scalaVersions) {
         build.scalaVersions.collect { new ScalaVersionInsights(it, scalaVersions) }.collect { svi ->
             new ResolvedBuildConfigLifecycle(build, svi)
         }.toSet()
     }
 
     /**
-     * resolve build suitable for Gradle afterEvaluate lifecycle
+     * resolve config phase build item to Gradle afterEvaluate lifecycle build item
      * {@link ResolvedBuildConfigLifecycle} -> {@link ResolvedBuildAfterEvalLifeCycle}
      *
-     * @param build
-     * @return
+     * @param build Config phase resolved build item
+     * @return An afterEvaluate phase resolved build item
      */
-    static ResolvedBuildAfterEvalLifeCycle resolve(ResolvedBuildConfigLifecycle build) {
+    static ResolvedBuildAfterEvalLifeCycle resolveConfigPhaseBuild(ResolvedBuildConfigLifecycle build) {
         def resolvedAppendix = resolveAppendix(build)
         def resolvedArchiveNaming = new ResolvedArchiveNaming(build.delegate.archive.appendixPattern, resolvedAppendix)
 
