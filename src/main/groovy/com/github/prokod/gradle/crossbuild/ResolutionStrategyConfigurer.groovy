@@ -80,6 +80,36 @@ class ResolutionStrategyConfigurer {
         }
     }
 
+    // TODO: evaluate if alternate project dependency with crossbuild configuration helps with something ...
+    void generateNonDefaultProjectTypeDependnecies(List<Tuple2<String, String>> configurations) {
+        configurations.findAll { configTuple ->
+            def crossBuildConfigurationName = configTuple.first
+            def crossBuildConfiguration = project.configurations[crossBuildConfigurationName]
+
+            def allDependencies = crossBuildConfiguration.allDependencies
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle:'afterEvaluate',
+                    configuration:crossBuildConfigurationName,
+                    msg:"Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
+                            'configuration dependencies: ' +
+                            "[${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
+            ))
+
+            def diContext = new DependencyInsightsContext(project:project, dependencies:allDependencies,
+                    configurations:[current:crossBuildConfiguration])
+
+            def di = new DependencyInsights(diContext)
+
+            def a = di.extractCrossBuildProjectTypeDependencies()
+            a.each { dep ->
+                project.dependencies {
+                    "${crossBuildConfiguration.name}" project(path:dep.dependencyProject.path,
+                            configuration:configTuple.second)
+                }
+            }
+        }
+    }
+
     void resolutionStrategyHandler(Configuration targetConfiguration,
                                    DependencyResolveDetails details,
                                    Set<String> allDependenciesAsDisplayNameSet,
