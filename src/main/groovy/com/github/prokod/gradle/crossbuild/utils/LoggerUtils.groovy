@@ -21,7 +21,8 @@ import org.gradle.api.Project
  * Logger utils
  */
 class LoggerUtils {
-    private static final int SUB_ORIENTATION_MAX_SIZE = 17
+    private static final int SUB_ORIENTATION_MAX_SIZE = 20
+    private static final String ELLIPSIS = '...'
 
     static String logTemplate(Map conf, Project project) {
         def msg = conf.msg
@@ -41,8 +42,11 @@ class LoggerUtils {
         def c = configuration != null ? "C=$configuration" : null
         def pc = parentConfiguration != null ? "PC=$parentConfiguration" : null
 
-        [prj, lc, sset, c, pc]
-                .findAll { it != null }
-                .collect { it.take(SUB_ORIENTATION_MAX_SIZE).padRight(SUB_ORIENTATION_MAX_SIZE) }.join('/')
+        [prj, lc, sset, c, pc].findAll { it != null }.collect {
+            def needsEllipsis = it.size() > SUB_ORIENTATION_MAX_SIZE
+            def subOrientationValue = needsEllipsis ? it.take(SUB_ORIENTATION_MAX_SIZE) + ELLIPSIS : it
+            def padding = needsEllipsis ? SUB_ORIENTATION_MAX_SIZE + ELLIPSIS.size() : SUB_ORIENTATION_MAX_SIZE
+            subOrientationValue.padRight(padding)
+        }.join('|')
     }
 }
