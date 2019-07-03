@@ -64,7 +64,8 @@ class ResolutionStrategyConfigurer {
             def crossBuildSubProjects = di.findAllCrossBuildPluginAppliedProjects()
             def targetProjects = crossBuildSubProjects + project
 
-            def projectDependencies = di.findAllCrossBuildProjectTypeDependenciesDependencies(parentConfiguration.name)
+            def projectDependencies =
+                    di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(parentConfiguration.name)
             def allDependenciesAsDisplayNameSet = (allDependencies + projectDependencies).collect { dep ->
                 "${dep.group}:${dep.name}:${dep.version}"
             }.toSet()
@@ -73,7 +74,7 @@ class ResolutionStrategyConfigurer {
                 it.configurations.all { Configuration c ->
                     c.resolutionStrategy.eachDependency { details ->
                         resolutionStrategyHandler(c, details, allDependenciesAsDisplayNameSet,
-                                crossBuildConfigurationName, parentConfiguration)
+                                crossBuildConfiguration, parentConfiguration)
                     }
                 }
             }
@@ -113,24 +114,26 @@ class ResolutionStrategyConfigurer {
     void resolutionStrategyHandler(Configuration targetConfiguration,
                                    DependencyResolveDetails details,
                                    Set<String> allDependenciesAsDisplayNameSet,
-                                   String crossBuildConfigurationName,
+                                   Configuration crossBuildConfiguration,
                                    Configuration parentConfiguration) {
+        def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
         if (allDependenciesAsDisplayNameSet
                 .contains("${requested.group}:${requested.name}:${requested.version}")) {
             String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
             if (targetConfiguration.name == crossBuildConfigurationName) {
                 strategyForCrossBuildConfiguration(
-                        crossBuildConfigurationName, supposedScalaVersion, details)
+                        crossBuildConfiguration, supposedScalaVersion, details)
             } else if (targetConfiguration.name == parentConfiguration.name) {
                 strategyForNonCrossBuildConfiguration(parentConfiguration, supposedScalaVersion, details)
             }
         }
     }
 
-    private void strategyForCrossBuildConfiguration(String crossBuildConfigurationName,
+    private void strategyForCrossBuildConfiguration(Configuration crossBuildConfiguration,
                                                     String supposedScalaVersion,
                                                     DependencyResolveDetails details) {
+        def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
 
         // Not a cross built dependency
@@ -154,7 +157,10 @@ class ResolutionStrategyConfigurer {
             // Try "removing" offending target dependency only if contains wrong scala version
             //  and only in cross build config context.
             if (supposedScalaVersion != scalaVersionInsights.artifactInlinedVersion) {
-                useScalaLibTargetDependencyInstead(details, scalaVersionInsights)
+                tryCorrectingTargetDependencyName(details,
+                        scalaVersionInsights.artifactInlinedVersion, crossBuildConfiguration, scalaVersions)
+
+//                useScalaLibTargetDependencyInstead(details, scalaVersionInsights)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
                         lifecycle:'afterEvaluate',
@@ -261,7 +267,8 @@ class ResolutionStrategyConfigurer {
                 configurations:[current:configuration])
         def di = new DependencyInsights(diContext)
 
-        def crossBuildProjectDependencySet = di.findAllCrossBuildProjectTypeDependenciesDependencies(configuration.name)
+        def crossBuildProjectDependencySet =
+                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet)
 
@@ -275,6 +282,58 @@ class ResolutionStrategyConfigurer {
             return true
         }
         false
+    }
+
+    /**
+     * Try correcting a probable Scala dependency {@link DependencyResolveDetails} to use the sourceSet scala version,
+     *  based on provided {@link DependencySet} (of the configuration being handled) and {@link ScalaVersions}.
+     * The resolution is going over the tree of dependencies and collects the different scala versions
+     * for the same library base name. Afterwards, based on the findings and the sourceSet designated scala version,
+     * the offending dependency is being altered.
+     *
+     * Solves, usually, the following plugin DSL
+     *
+     * @param offenderDetails {@link DependencyResolveDetails} from resolution strategy
+     * @param targetScalaVersion Scala version to correct to.
+     * @param configuration Specified configuration to retrieve all dependencies from.
+     *
+     * @throws AssertionError if Scala version cannot be inferred
+     */
+    private void tryCorrectingTargetDependencyName(DependencyResolveDetails offenderDetails,
+                                                   String targetScalaVersion,
+                                                   Configuration configuration) {
+        def dependencySet = configuration.allDependencies
+
+        def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySet,
+                configurations:[current:configuration])
+        def di = new DependencyInsights(diContext)
+
+        def crossBuildProjectDependencySet =
+                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
+
+        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
+
+        def libGrid = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
+                allDependencySet, targetScalaVersion)
+
+        // dependencyMap key is name of dependency and value contains suggested correct dependency/ies
+        def dependencyMap = libGrid.collectEntries { tuple ->
+            new AbstractMap.SimpleEntry(tuple.first[2].name, tuple.second)
+        }
+
+        def requested = offenderDetails.requested
+
+        def correctDependencies = dependencyMap[requested.name]
+
+        assert correctDependencies.size() == 1 : 'More than one candidate to replace offending dependency ' +
+                "'$requested.group:$requested.name' for target scala version $targetScalaVersion : " +
+                "[${correctDependencies.collect { it[2] }.name.join(', ')}]"
+
+        def correctDependencyTuple = correctDependencies.head()
+        def correctDependency = correctDependencyTuple[2]
+
+        // Assuming group is staying the same ...
+        offenderDetails.useTarget requested.group + ':' + correctDependency.name + ':' + correctDependency.version
     }
 
     /**
@@ -298,7 +357,7 @@ class ResolutionStrategyConfigurer {
                 configurations:[current:configuration])
         def di = new DependencyInsights(diContext)
 
-        def crossBuildProjectDependencySet = di.findAllCrossBuildProjectTypeDependenciesDependencies(configuration.name)
+        def crossBuildProjectDependencySet = di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
 
@@ -318,22 +377,5 @@ class ResolutionStrategyConfigurer {
                 "'$requested.group:$requested.name'"
         def probableScalaVersion = probableScalaVersionRaw.head().first.toString()
         resolveQMarkDep(details, probableScalaVersion)
-    }
-
-    /**
-     * Resolution rule: replace original requested dependency with relevant Scala Lib dependency
-     * This is useful when default configurations (compile, compileOnly ...) "pollute" cross build configuration,
-     *  which inherits from them, with mismatched scala version dependencies.
-     * In this case we want to eliminate the dependency - this cannot be done directly so as an alternative
-     *  that polluting dependency is being replaced by un-harmful (surely needed) dependency - scala-lib
-     *
-     * @param details {@link DependencyResolveDetails} from resolution strategy
-     * @param scalaVersionInsights Holds all version permutations for a specific Scala version
-     * @return true when target was updated, false when not needed.
-     */
-    private static void useScalaLibTargetDependencyInstead(
-            DependencyResolveDetails details,
-            ScalaVersionInsights scalaVersionInsights) {
-        details.useTarget "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}"
     }
 }

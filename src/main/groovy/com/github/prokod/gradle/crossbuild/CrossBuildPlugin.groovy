@@ -17,11 +17,10 @@ package com.github.prokod.gradle.crossbuild
 
 import static com.github.prokod.gradle.crossbuild.PomAidingConfigurations.*
 
+import com.github.prokod.gradle.crossbuild.utils.ScalaCompileTasks
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsightsContext
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.tasks.scala.ScalaCompile
 
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import org.gradle.api.Plugin
@@ -110,7 +109,8 @@ class CrossBuildPlugin implements Plugin<Project> {
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
-            def dependencies = getCrossBuildProjectTypeDependenciesFor(extension.project, sourceSet)
+            def di = DependencyInsights.from(extension.project, sourceSet)
+            def dependencies = di.extractCrossBuildProjectTypeDependencies()
 
             applyCrossBuildTasksDependencyPerSourceSet(extension.project, sourceSet, dependencies)
         }
@@ -127,26 +127,51 @@ class CrossBuildPlugin implements Plugin<Project> {
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
-            def dependencies = getCrossBuildProjectTypeDependenciesFor(extension.project, sourceSet)
+            def di = DependencyInsights.from(extension.project, sourceSet)
+            def projectTypeDependencies = di.extractCrossBuildProjectTypeDependencies()
+            def allDependencies = di.findAllDependenciesForCurrentConfiguration()
 
-            tuneCrossBuildScalaCompileTask(extension.project, sourceSet, dependencies)
+            ScalaCompileTasks.tuneCrossBuildScalaCompileTask(extension.project,
+                    sourceSet, projectTypeDependencies, allDependencies)
         }
-    }
-
-    private static Set<ProjectDependency> getCrossBuildProjectTypeDependenciesFor(Project project,
-                                                                                  SourceSet sourceSet) {
-        def crossBuildConfiguration = project.configurations.findByName(sourceSet.compileConfigurationName)
-
-        def diContext = new DependencyInsightsContext(project:project,
-                dependencies:crossBuildConfiguration.allDependencies,
-                configurations:[current:crossBuildConfiguration, parent:project.configurations.compile])
-
-        def di = new DependencyInsights(diContext)
-        di.extractCrossBuildProjectTypeDependencies()
     }
 
     private static void applyCrossBuildTasksDependencyPerSourceSet(Project project, SourceSet sourceSet,
                                                                    Set<ProjectDependency> dependencies) {
+//
+//        def conf = project.configurations.findByName(sourceSet.getCompileConfigurationName())
+//
+//        def confs = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getCompileConfigurationName()) }
+//
+//        println("<<<C>>> $conf, [${confs*.toString().join(', ')}]")
+//
+//        confs.each { conf.extendsFrom(it) }
+//
+//        def conf1 = project.configurations.findByName(sourceSet.getCompileClasspathConfigurationName())
+//
+//        def confs1 = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getCompileClasspathConfigurationName()) }
+//
+//        println("<<<C>>> $conf1, [${confs1*.toString().join(', ')}]")
+//
+//        confs1.each { conf1.extendsFrom(it) }
+//
+//        def conf2 = project.configurations.findByName(sourceSet.getCompileOnlyConfigurationName())
+//
+//        def confs2 = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getCompileOnlyConfigurationName()) }
+//
+//        println("<<<C>>> $conf2, [${confs2*.toString().join(', ')}]")
+//
+//        confs2.each { conf2.extendsFrom(it) }
+//
+//        def conf3 = project.configurations.findByName(sourceSet.getRuntimeConfigurationName())
+//
+//        def confs3 = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getRuntimeConfigurationName()) }
+//
+//        println("<<<C>>> $conf3, [${confs3*.toString().join(', ')}]")
+//
+//        confs3.each { conf3.extendsFrom(it) }
+//
+
         def jarTask = project.tasks.findByName(sourceSet.getJarTaskName())
 
         def jarTasks = dependencies.collect { it.dependencyProject.tasks.findByName(sourceSet.getJarTaskName()) }
@@ -160,59 +185,30 @@ class CrossBuildPlugin implements Plugin<Project> {
 
         scalaCompileTask?.dependsOn(scalaCompileTasks)
 
+//        def javaCompileTask = project.tasks.findByName(sourceSet.getCompileJavaTaskName())
+//
+//        def javaCompileTasks = dependencies.collect {
+//            it.dependencyProject.tasks.findByName(sourceSet.getCompileJavaTaskName()) }
+//
+//        javaCompileTask?.dependsOn(javaCompileTasks)
+
         scalaCompileTask?.dependsOn(jarTasks)
+
+//        javaCompileTask?.dependsOn(jarTasks)
+
+//        sourceSet.compiledBy(jarTasks*.path)
 
         project.logger.info(LoggerUtils.logTemplate(project,
                 lifecycle:'afterEvaluate',
                 sourceset:sourceSet.name,
                 msg:'Created cross build tasks inter dependencies:\n' +
-                        "${jarTask.name} -> ${jarTasks*.name.join(', ')}\n" +
-                        "${scalaCompileTask.name} -> ${scalaCompileTasks*.name.join(', ')}\n" +
-                        "${scalaCompileTask.name} -> ${jarTasks*.name.join(', ')}\n"
+                        "$jarTask.project.name:${jarTask.name} -> " +
+                        "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                        "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
+                        "${scalaCompileTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                        "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
+                        "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n"
         ))
-    }
-
-    private static void tuneCrossBuildScalaCompileTask(Project project,
-                                                       SourceSet sourceSet,
-                                                       Set<ProjectDependency> dependencies) {
-        project.tasks.withType(ScalaCompile) { ScalaCompile t ->
-            if (t.name == sourceSet.getCompileTaskName('scala')) {
-                def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
-                if (!analysisFile) {
-                    t.scalaCompileOptions.incrementalOptions.analysisFile = new File(
-                            "$project.buildDir/tmp/scala/compilerAnalysis/" +
-                                    "${sourceSet.name}/${project.name}.analysis")
-                }
-                t.doFirst {
-                    project.logger.info(LoggerUtils.logTemplate(project,
-                            lifecycle:'projectsEvaluated',
-                            sourceset:sourceSet.name,
-                            msg:'Modified cross build scala compile task classpath:\n' +
-                                    "${t.classpath*.toString().join('\n')}"
-                    ))
-                }
-                t.doFirst {
-                    def tuples = dependencies.collect {
-                        def projectName = it.dependencyProject.name
-                        def crossBuildJarTaskName = it.dependencyProject.tasks.findByName(sourceSet.getJarTaskName())
-                        new Tuple2(projectName, crossBuildJarTaskName)
-                    }
-                    def fileCollections = tuples*.second.collect { it.outputs.files }
-                    def crossBuildClasspath = fileCollections.inject(project.files()) { result, c ->
-                        result + c
-                    }
-                    def classpathFilterPredicate = { List<String> projectNames, File f ->
-                        projectNames.findAll { projectName ->
-                            def pattern = ~/^$projectName[-|\.].*$/
-                            f.name ==~ pattern
-                        }.size() == 0
-                    }
-                    def origClasspathFiltered = t.classpath.filter { classpathFilterPredicate(tuples*.first, it) }
-
-                    t.classpath = crossBuildClasspath + origClasspathFiltered
-                }
-            }
-        }
     }
 
     private static void updateCrossBuildPublications(CrossBuildExtension extension) {

@@ -133,7 +133,7 @@ sourceSets {
 }
 
 dependencies {
-    compile "com.google.guava:guava:18.0"
+    compile "org.scalaz:scalaz-core_?:7.2.28"
     compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
 """
@@ -352,6 +352,15 @@ subprojects {
 """
 
         libScalaFile << """
+
+object scalazOption {
+  import scalaz._
+  import Scalaz._ 
+  val boolT = 6 < 10
+  
+  boolT.option("corrie")
+}
+
 object Factorial {
   // The actual implementation is regular old-fashioned scala code:
   def normalFactorial(n: Int): Int =
@@ -373,7 +382,8 @@ sourceSets {
 }
 
 dependencies {
-    compile "com.google.guava:guava:18.0"
+    ${scalazQmarked ? "compile 'org.scalaz:scalaz-core_?:7.2.28'" : "compile 'org.scalaz:scalaz-core_2.12:7.2.28'\ncrossBuildSpark230_211Compile 'org.scalaz:scalaz-core_2.11:7.2.28'"}
+
     compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
 """
@@ -432,9 +442,17 @@ dependencies {
 """
 
         appScalaFile << """
-import CompileTimeFactorial._
+object scalazOption {
+  import scalaz._
+  import Scalaz._ 
+  val boolT = 6 < 10
+  
+  boolT.option("corrie")
+}
 
 object Test extends App {
+    import CompileTimeFactorial._
+
     println(factorial(10))
 
     // When uncommented, this will produce an error at compile-time, as we
@@ -487,9 +505,12 @@ dependencies {
         !fileExists("$dir.root.absolutePath/app/build/libs/app_2.12*.jar")
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        gradleVersion   | defaultScalaVersion | scalazQmarked
+        '4.2'           | '2.11'              | false
+        '4.10.3'        | '2.12'              | false
+        '5.4.1'         | '2.12'              | false
+        '4.2'           | '2.11'              | true
+        '4.10.3'        | '2.12'              | true
+        '5.4.1'         | '2.12'              | true
     }
 }
