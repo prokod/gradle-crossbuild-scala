@@ -154,13 +154,11 @@ class ResolutionStrategyConfigurer {
             // Replace 3d party scala dependency which ends with '_?' in cross build config scope
         } else {
             // A cross built dependency - explicit
-            // Try "removing" offending target dependency only if contains wrong scala version
+            // Try correcting offending target dependency only if contains wrong scala version
             //  and only in cross build config context.
             if (supposedScalaVersion != scalaVersionInsights.artifactInlinedVersion) {
                 tryCorrectingTargetDependencyName(details,
-                        scalaVersionInsights.artifactInlinedVersion, crossBuildConfiguration, scalaVersions)
-
-//                useScalaLibTargetDependencyInstead(details, scalaVersionInsights)
+                        scalaVersionInsights.artifactInlinedVersion, crossBuildConfiguration)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
                         lifecycle:'afterEvaluate',
@@ -257,10 +255,9 @@ class ResolutionStrategyConfigurer {
      * @param configuration Specified configuration to retrieve all dependencies from.
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      */
-    private boolean tryResolvingQMarkInTargetDependencyName(
-            DependencyResolveDetails details,
-            Configuration configuration,
-            ScalaVersions scalaVersions) {
+    private boolean tryResolvingQMarkInTargetDependencyName(DependencyResolveDetails details,
+                                                            Configuration configuration,
+                                                            ScalaVersions scalaVersions) {
         def dependencySet = configuration.allDependencies
 
         def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySet,
@@ -291,7 +288,13 @@ class ResolutionStrategyConfigurer {
      * for the same library base name. Afterwards, based on the findings and the sourceSet designated scala version,
      * the offending dependency is being altered.
      *
-     * Solves, usually, the following plugin DSL
+     * Solves, usually, the following plugin DSL scenario {@see CrossBuildPluginCompileMultiModuleAdvancedTest}:
+     * <pre>
+     *     dependencies {
+     *         compile 'org.scalaz:scalaz-core_2.12:7.2.28'
+     *         crossBuildSpark230_211Compile 'org.scalaz:scalaz-core_2.11:7.2.28'
+     *     }
+     * </pre>
      *
      * @param offenderDetails {@link DependencyResolveDetails} from resolution strategy
      * @param targetScalaVersion Scala version to correct to.
@@ -338,9 +341,9 @@ class ResolutionStrategyConfigurer {
 
     /**
      * Resolve dependency names containing question mark to the actual scala version,
-     *  based on provided {@link DependencySet} (of the configuration being handled) and {@link ScalaVersions}.
+     * based on provided {@link DependencySet} (of the configuration being handled) and {@link ScalaVersions}.
      * The resolution is going over the tree of dependencies and tries to figure out the scala version being used
-     *  by consensus of Scala 3rd lib dependencies found and their Scala base version
+     * by consensus of Scala 3rd lib dependencies found and their Scala base version
      *
      * @param details {@link DependencyResolveDetails} from resolution strategy
      * @param configuration Specified configuration to retrieve all dependencies from.
@@ -357,7 +360,8 @@ class ResolutionStrategyConfigurer {
                 configurations:[current:configuration])
         def di = new DependencyInsights(diContext)
 
-        def crossBuildProjectDependencySet = di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
+        def crossBuildProjectDependencySet =
+                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
 
