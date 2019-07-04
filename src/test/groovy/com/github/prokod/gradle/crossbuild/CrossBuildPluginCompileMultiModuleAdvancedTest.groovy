@@ -264,11 +264,265 @@ dependencies {
         lib2pom211.contains('scala-reflect')
         lib2pom211.contains('2.11.12')
         lib2pom211.contains('1.0-SNAPSHOT')
+        lib2pom211.contains('lib_2.11')
         !lib2pom212.contains('2.12.+')
         !lib2pom212.contains('2.11.')
         lib2pom212.contains('2.12.8')
         lib2pom212.contains('scala-reflect')
         lib2pom212.contains('1.0-SNAPSHOT')
+        lib2pom212.contains('lib_2.12')
+
+        def appPom211 = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def appPom212Exist = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.12.xml").exists()
+
+        !appPom211.contains('2.12.')
+        appPom211.contains('2.11.12')
+        appPom211.contains('lib2_2.11')
+        !appPom212Exist
+
+        where:
+        gradleVersion   | defaultScalaVersion
+        '4.2'           | '2.11'
+        '4.10.3'        | '2.12'
+        '5.4.1'         | '2.12'
+    }
+
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin lazily on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
+        given:
+        // root project settings.gradle
+        settingsFile << """
+include 'lib'
+include 'lib2'
+include 'app'
+"""
+
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
+
+allprojects {
+    group = 'com.github.prokod.it'
+    version = '1.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+        maven { url 'https://artifactory.srv.int.avast.com/artifactory/maven' }
+    }
+}
+
+subprojects {
+    project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
+        if (!project.name.endsWith('app')) {
+            crossBuild {
+                builds {
+                    spark230_211 
+                    spark240_212
+                }
+            }
+        }
+    }
+    
+    project.pluginManager.withPlugin('maven-publish') {
+        if (!project.name.endsWith('app')) {
+            publishing {
+                publications {
+                    crossBuildSpark230_211(MavenPublication) {
+                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                            artifact crossBuildSpark230_211Jar
+                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                    }
+                    crossBuildSpark240_212(MavenPublication) {
+                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                            artifact crossBuildSpark240_212Jar
+                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                    }
+                }
+            }
+        }
+    }
+
+    tasks.withType(GenerateMavenPom) { t ->
+        if (t.name.contains('CrossBuildSpark230_211')) {
+            t.destination = file("\$buildDir/generated-pom_2.11.xml")
+        }
+        if (t.name.contains('CrossBuildSpark240_212')) {
+            t.destination = file("\$buildDir/generated-pom_2.12.xml")
+        }
+    }
+}
+"""
+
+        libScalaFile << """
+object Factorial {
+  // The actual implementation is regular old-fashioned scala code:
+  def normalFactorial(n: Int): Int =
+    if (n == 0) 1
+    else n * normalFactorial(n - 1)
+}
+"""
+
+        libBuildFile << """
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'maven-publish'
+
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    compile "com.google.guava:guava:18.0"
+    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+}
+"""
+
+        lib2ScalaFile << """
+object CompileTimeFactorial {
+
+  import scala.language.experimental.macros
+  import Factorial._
+
+  // This function exposed to consumers has a normal Scala type:
+  def factorial(n: Int): Int =
+  // but it is implemented as a macro:
+  macro CompileTimeFactorial.factorial_impl
+
+  import scala.reflect.macros.blackbox.Context
+
+  // The macro implementation will receive a ‘Context’ and
+  // the AST’s of the parameters passed to it:
+  def factorial_impl(c: Context)(n: c.Expr[Int]): c.Expr[Int] = {
+    import c.universe._
+
+    // We can pattern-match on the AST:
+    n match {
+      case Expr(Literal(Constant(nValue: Int))) =>
+        // We perform the calculation:
+        val result = normalFactorial(nValue)
+        // And produce an AST for the result of the computation:
+        c.Expr(Literal(Constant(result)))
+      case other =>
+        // Yes, this will be printed at compile time:
+        println("Yow!")
+        ???
+    }
+  }
+}
+"""
+
+        lib2BuildFile << """
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'maven-publish'
+
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    compile project(':lib')
+    compile 'org.scala-lang:scala-reflect:2.12.8'
+    crossBuildSpark230_211Compile 'org.scala-lang:scala-reflect:2.11.12'
+}
+"""
+
+        appScalaFile << """
+import CompileTimeFactorial._
+
+object Test extends App {
+    println(factorial(10))
+
+    // When uncommented, this will produce an error at compile-time, as we
+    // only implemented a case for an Int literal, not a variable:
+    // val n = 10
+    // println(factorial(n))
+}
+"""
+
+        appBuildFile << """
+apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'maven-publish'
+
+crossBuild {
+    builds {
+        spark230_211 
+    }
+}
+
+publishing {
+    publications {
+        crossBuildSpark230_211(MavenPublication) {
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuildSpark230_211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+        }
+    }
+}
+        
+dependencies {
+    compile project(':lib2')
+}
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withDebug(true)
+                .withArguments('publishToMavenLocal', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.task(":app:crossBuildSpark230_211Jar").outcome == SUCCESS
+
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.12*.jar")
+        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.11*.jar")
+        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.12*.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
+        !fileExists("$dir.root.absolutePath/app/build/libs/app_2.12*.jar")
+
+        def pom211 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def pom212 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.12.xml").text
+
+        !pom211.contains('2.12.')
+        pom211.contains('2.11.12')
+        pom211.contains('18.0')
+        !pom212.contains('2.12.+')
+        !pom212.contains('2.11.')
+        pom212.contains('2.12.8')
+        pom212.contains('18.0')
+
+        def lib2pom211 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def lib2pom212 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.12.xml").text
+
+        !lib2pom211.contains('2.12.')
+        lib2pom211.contains('scala-reflect')
+        lib2pom211.contains('2.11.12')
+        lib2pom211.contains('1.0-SNAPSHOT')
+        lib2pom211.contains('lib_2.11')
+        !lib2pom212.contains('2.12.+')
+        !lib2pom212.contains('2.11.')
+        lib2pom212.contains('2.12.8')
+        lib2pom212.contains('scala-reflect')
+        lib2pom212.contains('1.0-SNAPSHOT')
+        lib2pom212.contains('lib_2.12')
 
         def appPom211 = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.11.xml").text
         def appPom212Exist = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.12.xml").exists()
