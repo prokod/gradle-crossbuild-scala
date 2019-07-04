@@ -6,7 +6,7 @@
 #### Using the plugin DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version "0.6.0"
+    id "com.github.prokod.gradle-crossbuild" version "0.7.0"
 }
 ```  
     
@@ -14,7 +14,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.6.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.7.0")
     }
 }
 ```
@@ -359,5 +359,4 @@ subprojects {
 ### Supported Gradle versions
 |plugin version | Tested Gradle versions |
 |---------------|------------------------|
-|0.5.x          | 4.2, 4.10.3, 5.4.1     |
-|0.6.x          | 4.2, 4.10.3, 5.4.1     |
+|0.7.x          | 4.2, 4.10.3, 5.4.1     |
