@@ -2,12 +2,15 @@ package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
-import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
+import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.bundling.Jar
 
 /**
  * Extension class impl. for thec cross build plugin
@@ -26,7 +29,7 @@ class CrossBuildExtension {
 
     NamedDomainObjectContainer<Build> builds
 
-    Collection<ResolvedBuildConfigLifecycle> resolvedBuilds = []
+    Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds = []
 
     CrossBuildExtension(Project project) {
         this.project = project
@@ -39,7 +42,6 @@ class CrossBuildExtension {
 
         builds.all { Build build ->
             updateBuild(build)
-            updateExtension(build)
         }
     }
 
@@ -56,6 +58,10 @@ class CrossBuildExtension {
     @SuppressWarnings(['ConfusingMethodName', 'BuilderMethodWithSideEffects', 'FactoryMethodName'])
     void builds(Action<? super NamedDomainObjectContainer<Build>> action) {
         action.execute(builds)
+
+        builds.all { Build build ->
+            updateExtension(build)
+        }
     }
 
     void updateBuild(Build build) {
@@ -66,11 +72,17 @@ class CrossBuildExtension {
         build.archive.appendixPattern = this.archive.appendixPattern
     }
 
+    /**
+     * Also realize cross build tasks
+     *
+     * @param build
+     */
     void updateExtension(Build build) {
         def project = build.extension.project
         def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
 
         build.onScalaVersionsUpdate { event ->
+            // TODO: Unify both resolve methods to one
             def resolvedBuilds = BuildResolver.resolve(build, sv)
             // Create cross build source sets
             project.logger.debug(LoggerUtils.logTemplate(project,
@@ -84,6 +96,30 @@ class CrossBuildExtension {
             crossBuildSourceSets.fromBuilds(resolvedBuilds)
 
             this.resolvedBuilds.addAll(resolvedBuilds)
+
+            realizeCrossBuildTasks(resolvedBuilds)
+        }
+    }
+
+    void realizeCrossBuildTasks(Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+        resolvedBuilds.findAll { rb ->
+            def scalaVersionInsights = rb.scalaVersionInsights
+
+            def (String sourceSetId, SourceSet sourceSet) =
+            crossBuildSourceSets.findByName(rb.name)
+
+            def task = project.tasks.create(sourceSet.getJarTaskName(), Jar) {
+                group = BasePlugin.BUILD_GROUP
+                description = 'Assembles a jar archive containing ' +
+                        "${scalaVersionInsights.strippedArtifactInlinedVersion} classes"
+                baseName = baseName + rb.archive.appendix
+                from sourceSet.output
+            }
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle:'config',
+                    msg:"Created crossbuild Jar task for sourceSet ${sourceSetId}." +
+                            " [Resolved Jar baseName (w/ appendix): ${task.baseName}]"))
         }
     }
 }
