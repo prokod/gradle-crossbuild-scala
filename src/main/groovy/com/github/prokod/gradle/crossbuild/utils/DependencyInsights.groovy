@@ -61,6 +61,17 @@ class DependencyInsights {
         findAllCrossBuildProjectTypeDependenciesDependenciesForCurrentConfiguration() + configuration.allDependencies
     }
 
+    /**
+     * This method returns stable result (No matter how the user decides to use the plugin DSL in build.gradle)
+     * when executed from within {@code Gradle.projectsEvaluated {}} block.
+     *
+     * NOTE: In certain cases of build.gradle composition together with this method being used from within
+     * {@code project.afterEvaluate {}} block the result will be the same.
+     *
+     * @return Set of {@link Project}s with {@link CrossBuildPlugin} applied.
+     *
+     * TODO: Find a way to achieve the same result in a stable way from {@code project.afterEvaluate {}} block
+     */
     Set<Project> findAllCrossBuildPluginAppliedProjects() {
         def project = diContext.project
         def configuration = diContext.configurations?.current
