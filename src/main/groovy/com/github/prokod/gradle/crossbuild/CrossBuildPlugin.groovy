@@ -17,18 +17,19 @@ package com.github.prokod.gradle.crossbuild
 
 import static com.github.prokod.gradle.crossbuild.PomAidingConfigurations.*
 
-import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
+import com.github.prokod.gradle.crossbuild.utils.ScalaCompileTasks
+import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
+import org.gradle.api.artifacts.ProjectDependency
+
+import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.scala.ScalaCompile
 
 /**
  * Crossbuild plugin entry point
@@ -47,28 +48,31 @@ class CrossBuildPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate {
-            def fullyResolvedBuilds = extension.resolvedBuilds.collect { rb -> BuildResolver.resolve(rb) }
-
-            realizeCrossBuildTasks(extension, fullyResolvedBuilds)
+            resolveCrossBuildDependencies(extension)
 
             project.pluginManager.withPlugin('maven-publish') {
-                updateCrossBuildPublications(extension, fullyResolvedBuilds)
+                updateCrossBuildPublications(extension)
             }
+        }
+
+        project.gradle.projectsEvaluated {
+            applyCrossBuildTasksDependency(extension)
+            alterCrossBuildCompileTasks(extension)
         }
     }
 
-    void realizeCrossBuildTasks(CrossBuildExtension extension,
-                                Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+    private static void resolveCrossBuildDependencies(CrossBuildExtension extension) {
         def main = extension.crossBuildSourceSets.container.findByName('main')
         def mainScala = (SourceDirectorySet) main.scala
 
-        resolvedBuilds.findAll { rb ->
+        extension.resolvedBuilds.findAll { rb ->
             def scalaVersionInsights = rb.scalaVersionInsights
 
-            def (String sourceSetId, SourceSet sourceSet) =
-                    extension.crossBuildSourceSets.findByName(rb.name)
+            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
             sourceSet.java.srcDirs = main.java.getSrcDirs()
+
+            sourceSet.scala.srcDirs = main.scala.getSrcDirs()
 
             def crossBuildScalaSourceDirSetScala = (SourceDirectorySet) sourceSet.scala
             crossBuildScalaSourceDirSetScala.srcDirs = mainScala.getSrcDirs()
@@ -98,39 +102,83 @@ class CrossBuildPlugin implements Plugin<Project> {
                             rb.archive.appendix)
             pomAidingConfigurations.createAndSetForMavenScope(ScopeType.COMPILE)
             pomAidingConfigurations.createAndSetForMavenScope(ScopeType.PROVIDED)
-
-            def task = extension.project.tasks.create(sourceSet.getJarTaskName(), Jar) {
-                group = BasePlugin.BUILD_GROUP
-                description = 'Assembles a jar archive containing ' +
-                        "${scalaVersionInsights.strippedArtifactInlinedVersion} classes"
-                baseName = baseName + rb.archive.appendix
-                from sourceSet.output
-            }
-
-            extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
-                    lifecycle:'afterEvaluate',
-                    msg:"Created crossbuild Jar task for sourceSet ${sourceSetId}." +
-                            " [Resolved Jar baseName (w/ appendix): ${task.baseName}]"))
-
-            extension.project.tasks.withType(ScalaCompile) { ScalaCompile t ->
-                if (t.name == sourceSet.getCompileTaskName('scala')) {
-                    def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
-                    if (!analysisFile) {
-                        t.scalaCompileOptions.incrementalOptions.analysisFile = new File(
-                                "$extension.project.buildDir/tmp/scala/compilerAnalysis/" +
-                                        "${scalaVersionInsights.compilerVersion}/${extension.project.name}.analysis")
-                    }
-                }
-            }
         }
     }
 
-    void updateCrossBuildPublications(CrossBuildExtension extension,
-                                      Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+    private static void applyCrossBuildTasksDependency(CrossBuildExtension extension) {
+        extension.resolvedBuilds.findAll { rb ->
+            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
+
+            def di = DependencyInsights.from(extension.project, sourceSet)
+            def dependencies = di.extractCrossBuildProjectTypeDependencies()
+
+            applyCrossBuildTasksDependencyPerSourceSet(extension.project, sourceSet, dependencies)
+        }
+    }
+
+    /**
+     * Should be called in {@code projectsEvaluated} phase as {@code getCrossBuildProjectTypeDependenciesFor} output
+     * is highly influenced by that and brings the intended set of dependencies to the table.
+     *
+     * @param extension
+     * @param resolvedBuilds
+     */
+    private static void alterCrossBuildCompileTasks(CrossBuildExtension extension) {
+        extension.resolvedBuilds.findAll { rb ->
+            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
+
+            def di = DependencyInsights.from(extension.project, sourceSet)
+            def projectTypeDependencies = di.extractCrossBuildProjectTypeDependencies()
+            def allDependencies = di.findAllDependenciesForCurrentConfiguration()
+
+            ScalaCompileTasks.tuneCrossBuildScalaCompileTask(extension.project,
+                    sourceSet, projectTypeDependencies, allDependencies)
+        }
+    }
+
+    private static void applyCrossBuildTasksDependencyPerSourceSet(Project project, SourceSet sourceSet,
+                                                                   Set<ProjectDependency> dependencies) {
+        if (dependencies.size() > 0) {
+            def jarTask = project.tasks.findByName(sourceSet.getJarTaskName())
+            def jarTasks = dependencies.collect { it.dependencyProject.tasks.findByName(sourceSet.getJarTaskName()) }
+            jarTask?.dependsOn(jarTasks)
+
+            def scalaCompileTask = project.tasks.findByName(sourceSet.getCompileTaskName('scala'))
+            def scalaCompileTasks = dependencies.collect {
+                it.dependencyProject.tasks.findByName(sourceSet.getCompileTaskName('scala'))
+            }
+            scalaCompileTask?.dependsOn(scalaCompileTasks)
+
+            def javaCompileTask = project.tasks.findByName(sourceSet.getCompileJavaTaskName())
+            def javaCompileTasks = dependencies.collect {
+                it.dependencyProject.tasks.findByName(sourceSet.getCompileJavaTaskName())
+            }
+            javaCompileTask?.dependsOn(javaCompileTasks)
+
+            scalaCompileTask?.dependsOn(jarTasks)
+            javaCompileTask?.dependsOn(jarTasks)
+
+            project.logger.debug(LoggerUtils.logTemplate(project,
+                    lifecycle:'afterEvaluate',
+                    sourceset:sourceSet.name,
+                    msg:'Created cross build tasks inter dependencies:\n' +
+                            "$jarTask.project.name:${jarTask.name} -> " +
+                            "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                            "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
+                            "${scalaCompileTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                            "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
+                            "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                            "${javaCompileTask.project.name}:${javaCompileTask.name} -> " +
+                            "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}"
+            ))
+        }
+    }
+
+    private static void updateCrossBuildPublications(CrossBuildExtension extension) {
         def project = extension.project
         def publishing = project.extensions.findByType(PublishingExtension)
 
-        resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle rb ->
+        extension.resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle rb ->
             def (String sourceSetId, SourceSet sourceSet) =
                     extension.crossBuildSourceSets.findByName(rb.name)
 

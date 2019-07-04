@@ -21,7 +21,6 @@ import org.gradle.api.Project
  * Logger utils
  */
 class LoggerUtils {
-
     static String logTemplate(Map conf, Project project) {
         def msg = conf.msg
 
@@ -34,12 +33,11 @@ class LoggerUtils {
         def configuration = conf.configuration
         def parentConfiguration = conf.parentConfiguration
 
-        def prj = "PRJ=${project.path}"
-        def lc = lifecycle != null ? "LC=$lifecycle" : 'LC=N/A'
-        def sset = sourceset != null ? "SSET=$sourceset" : null
-        def c = configuration != null ? "C=$configuration" : null
-        def pc = parentConfiguration != null ? "PC=$parentConfiguration" : null
+        def pname = "${project.name}"
+        def lc = lifecycle ?: 'n/a'
+        def sset = sourceset
+        def c = configuration ?: parentConfiguration
 
-        [prj, lc, sset, c, pc].findAll { it != null }.join(' / ')
+        [pname, lc, sset, c].findAll { it != null }.join(' > ')
     }
 }

@@ -122,7 +122,7 @@ class Build {
                 this.eventDispatcher.remove(oldEvent)
                 def catalog = extension.scalaVersionsCatalog
                 def resolvedCatalog = ScalaVersions.withDefaultsAsFallback(catalog)
-                def resolvedBuildsReplay = BuildResolver.resolve(oldEvent.source, resolvedCatalog)
+                def resolvedBuildsReplay = BuildResolver.resolveDslBuild(oldEvent.source, resolvedCatalog)
                 resolvedBuildsReplay.each { rb ->
                     // TODO: consider removal of previously created and obsolete sourceset
                     // TODO: for that, propagate crossBuildSourceSets from extension object

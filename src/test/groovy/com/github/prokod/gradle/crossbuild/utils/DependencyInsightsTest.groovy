@@ -8,7 +8,7 @@ import org.gradle.internal.Describables
 import spock.lang.Specification
 
 class DependencyInsightsTest extends Specification {
-    def "When parseDependencyName given a simple scala lib dependency it should return correctly"() {
+    def "When parseDependencyName is given a simple scala lib dependency it should return correctly"() {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.3')
         when:
@@ -18,7 +18,7 @@ class DependencyInsightsTest extends Specification {
             scalaVersion == '2.11'
     }
 
-    def "When parseDependencyName given a scala lib dependency with '_suffix' it should return correctly"() {
+    def "When parseDependencyName is given a scala lib dependency with '_suffix' it should return correctly"() {
         given:
         def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_suffix', '1.2.3')
         when:
@@ -28,7 +28,7 @@ class DependencyInsightsTest extends Specification {
         scalaVersion == '2.11'
     }
 
-    def "When parseDependencyName given a complex scala lib dependency it should return correctly"() {
+    def "When parseDependencyName is given an unconventional scala lib dependency with `_version` as suffix it should return correctly"() {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_2.2.1', '1.2.3')
         when:
@@ -36,6 +36,16 @@ class DependencyInsightsTest extends Specification {
         then:
             baseName == 'some.group:somescalalib'
             scalaVersion == '2.11'
+    }
+
+    def "When parseDependencyName given an unconventional scala lib dependency with `-version` before scala version it should return correctly"() {
+        given:
+        def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib-v2-2.2.1_2.11', '1.2.3')
+        when:
+        def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep)
+        then:
+        baseName == 'some.group:somescalalib-v2-2.2.1'
+        scalaVersion == '2.11'
     }
 
     def "When findAllNonMatchingScalaVersionDependencies given a dependency set it should return correctly"() {

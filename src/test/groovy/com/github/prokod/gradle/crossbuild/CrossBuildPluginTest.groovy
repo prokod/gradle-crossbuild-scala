@@ -431,10 +431,8 @@ crossBuildV211_212Classes - Assembles cross build v211 212 classes.
 crossBuildV211_212Jar - Assembles a jar archive containing 212 classes
 crossBuildV211_A_211Classes - Assembles cross build v211 a 211 classes.
 crossBuildV211_A_211Jar - Assembles a jar archive containing 211 classes
-crossBuildV211Classes - Assembles cross build v211 classes.
 crossBuildV212_213Classes - Assembles cross build v212 213 classes.
 crossBuildV212_213Jar - Assembles a jar archive containing 213 classes
-crossBuildV212Classes - Assembles cross build v212 classes.
 crossBuildV213Classes - Assembles cross build v213 classes.
 crossBuildV213Jar - Assembles a jar archive containing 213 classes
 """)
