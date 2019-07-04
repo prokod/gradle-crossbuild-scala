@@ -24,7 +24,7 @@ class ScalaCompileTasks {
                                     "${sourceSet.name}/${project.name}.analysis")
                 }
                 t.doFirst {
-                    project.logger.info(LoggerUtils.logTemplate(project,
+                    project.logger.debug(LoggerUtils.logTemplate(project,
                             lifecycle:'projectsEvaluated',
                             sourceset:sourceSet.name,
                             msg:'Modified cross build scala compile task classpath:\n' +
@@ -38,25 +38,13 @@ class ScalaCompileTasks {
                         new Tuple2(projectName, crossBuildJarTaskName)
                     }
                     def fileCollections = tuples*.second.collect { it.outputs.files }
-                    def crossBuildClasspath = fileCollections.inject(project.files()) { result, c ->
-                        result + c
-                    }
+                    def crossBuildClasspath = fileCollections.inject(project.files()) { result, c -> result + c }
 
                     def deps = allDependencies - projectDependencies
-                    println("<<<>>> ${deps.collect { "$it.name-$it.version" }.join(', ') }")
 
-                    def origClasspathFiltered = t.classpath.filter {
-                        classpathFilterPredicate(it, tuples*.first, deps) }
+                    def origClasspathFiltered = t.classpath.filter { classpathFilterPredicate(it, tuples*.first, deps) }
 
                     t.classpath = crossBuildClasspath + origClasspathFiltered
-                }
-                t.doFirst {
-                    project.logger.info(LoggerUtils.logTemplate(project,
-                            lifecycle:'projectsEvaluated',
-                            sourceset:sourceSet.name,
-                            msg:'Unmodified cross build scala compile task classpath:\n' +
-                                    "${t.classpath*.toString().join('\n')}"
-                    ))
                 }
             }
         }
@@ -70,7 +58,6 @@ class ScalaCompileTasks {
         }.size() > 0
 
         def fileIsActuallyA3rdPartyDependency = allDependencies.collect { "$it.name-$it.version" }.findAll {
-//            println("$candidate.name, $it")
             candidate.name.startsWith(it)
         }.size() > 0
 

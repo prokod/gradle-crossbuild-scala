@@ -133,7 +133,7 @@ sourceSets {
 }
 
 dependencies {
-    compile "org.scalaz:scalaz-core_?:7.2.28"
+    compile "com.google.guava:guava:18.0"
     compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
 """
@@ -286,7 +286,7 @@ dependencies {
     }
 
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl should produce expected: jars, pom files; and pom files content should be correct1"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion | question-marked-scalaz-lib-dependency ? #scalazQmarked] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
         // root project settings.gradle
         settingsFile << """

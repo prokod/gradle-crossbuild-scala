@@ -138,77 +138,40 @@ class CrossBuildPlugin implements Plugin<Project> {
 
     private static void applyCrossBuildTasksDependencyPerSourceSet(Project project, SourceSet sourceSet,
                                                                    Set<ProjectDependency> dependencies) {
-//
-//        def conf = project.configurations.findByName(sourceSet.getCompileConfigurationName())
-//
-//        def confs = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getCompileConfigurationName()) }
-//
-//        println("<<<C>>> $conf, [${confs*.toString().join(', ')}]")
-//
-//        confs.each { conf.extendsFrom(it) }
-//
-//        def conf1 = project.configurations.findByName(sourceSet.getCompileClasspathConfigurationName())
-//
-//        def confs1 = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getCompileClasspathConfigurationName()) }
-//
-//        println("<<<C>>> $conf1, [${confs1*.toString().join(', ')}]")
-//
-//        confs1.each { conf1.extendsFrom(it) }
-//
-//        def conf2 = project.configurations.findByName(sourceSet.getCompileOnlyConfigurationName())
-//
-//        def confs2 = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getCompileOnlyConfigurationName()) }
-//
-//        println("<<<C>>> $conf2, [${confs2*.toString().join(', ')}]")
-//
-//        confs2.each { conf2.extendsFrom(it) }
-//
-//        def conf3 = project.configurations.findByName(sourceSet.getRuntimeConfigurationName())
-//
-//        def confs3 = dependencies.collect { it.dependencyProject.configurations.findByName(sourceSet.getRuntimeConfigurationName()) }
-//
-//        println("<<<C>>> $conf3, [${confs3*.toString().join(', ')}]")
-//
-//        confs3.each { conf3.extendsFrom(it) }
-//
+        if (dependencies.size() > 0) {
+            def jarTask = project.tasks.findByName(sourceSet.getJarTaskName())
+            def jarTasks = dependencies.collect { it.dependencyProject.tasks.findByName(sourceSet.getJarTaskName()) }
+            jarTask?.dependsOn(jarTasks)
 
-        def jarTask = project.tasks.findByName(sourceSet.getJarTaskName())
+            def scalaCompileTask = project.tasks.findByName(sourceSet.getCompileTaskName('scala'))
+            def scalaCompileTasks = dependencies.collect {
+                it.dependencyProject.tasks.findByName(sourceSet.getCompileTaskName('scala'))
+            }
+            scalaCompileTask?.dependsOn(scalaCompileTasks)
 
-        def jarTasks = dependencies.collect { it.dependencyProject.tasks.findByName(sourceSet.getJarTaskName()) }
+            def javaCompileTask = project.tasks.findByName(sourceSet.getCompileJavaTaskName())
+            def javaCompileTasks = dependencies.collect {
+                it.dependencyProject.tasks.findByName(sourceSet.getCompileJavaTaskName())
+            }
+            javaCompileTask?.dependsOn(javaCompileTasks)
 
-        jarTask?.dependsOn(jarTasks)
+            scalaCompileTask?.dependsOn(jarTasks)
+            javaCompileTask?.dependsOn(jarTasks)
 
-        def scalaCompileTask = project.tasks.findByName(sourceSet.getCompileTaskName('scala'))
-
-        def scalaCompileTasks = dependencies.collect {
-            it.dependencyProject.tasks.findByName(sourceSet.getCompileTaskName('scala')) }
-
-        scalaCompileTask?.dependsOn(scalaCompileTasks)
-
-//        def javaCompileTask = project.tasks.findByName(sourceSet.getCompileJavaTaskName())
-//
-//        def javaCompileTasks = dependencies.collect {
-//            it.dependencyProject.tasks.findByName(sourceSet.getCompileJavaTaskName()) }
-//
-//        javaCompileTask?.dependsOn(javaCompileTasks)
-
-        scalaCompileTask?.dependsOn(jarTasks)
-
-//        javaCompileTask?.dependsOn(jarTasks)
-
-//        sourceSet.compiledBy(jarTasks*.path)
-
-        project.logger.info(LoggerUtils.logTemplate(project,
-                lifecycle:'afterEvaluate',
-                sourceset:sourceSet.name,
-                msg:'Created cross build tasks inter dependencies:\n' +
-                        "$jarTask.project.name:${jarTask.name} -> " +
-                        "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
-                        "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
-                        "${scalaCompileTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
-                        "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
-                        "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n"
-        ))
+            project.logger.debug(LoggerUtils.logTemplate(project,
+                    lifecycle:'afterEvaluate',
+                    sourceset:sourceSet.name,
+                    msg:'Created cross build tasks inter dependencies:\n' +
+                            "$jarTask.project.name:${jarTask.name} -> " +
+                            "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                            "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
+                            "${scalaCompileTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                            "${scalaCompileTask.project.name}:${scalaCompileTask.name} -> " +
+                            "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}\n" +
+                            "${javaCompileTask.project.name}:${javaCompileTask.name} -> " +
+                            "${jarTasks.collect { "$it.project.name:$it.name" }.join(', ')}"
+            ))
+        }
     }
 
     private static void updateCrossBuildPublications(CrossBuildExtension extension) {
