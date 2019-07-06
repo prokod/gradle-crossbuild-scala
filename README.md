@@ -6,7 +6,7 @@
 #### Using the plugin DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version "0.7.0"
+    id "com.github.prokod.gradle-crossbuild" version "0.7.1"
 }
 ```  
     
@@ -14,7 +14,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.7.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.7.1")
     }
 }
 ```
