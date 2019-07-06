@@ -43,12 +43,10 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
             if (path.contains('*')) {
                 // Create a Pattern object
                 def cpattern = "^" + (path.startsWith(File.separator) ? "" : path.startsWith('*') ? "" : ".*?") + path.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".*?") + "\$"
-                System.out.println(cpattern)
                 def pattern = Pattern.compile(cpattern)
 
                 proot.toFile().traverse { f ->
                     def fPath = f.toPath().toString()
-                    System.out.println(fPath)
                     def m = pattern.matcher(fPath)
                     if (m.find()) {
                         found = f
@@ -57,7 +55,6 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
             } else {
                 proot.toFile().traverse { f ->
                     def fPath = f.toPath().toString()
-                    System.out.println(fPath)
                     if (fPath == path) {
                         found = f
                     }
