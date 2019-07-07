@@ -56,7 +56,8 @@ class CrossBuildPlugin implements Plugin<Project> {
         }
 
         project.gradle.projectsEvaluated {
-            applyCrossBuildTasksDependency(extension)
+            generatePomAidingConfigurations(extension)
+            applyCrossBuildTasksDependencies(extension)
             alterCrossBuildCompileTasks(extension)
         }
     }
@@ -96,6 +97,12 @@ class CrossBuildPlugin implements Plugin<Project> {
             def configs = extension.project.configurations.findAll { it.name.startsWith('test') } +
                     extension.configurations
             configurer.applyFor(configs)
+        }
+    }
+
+    private static void generatePomAidingConfigurations(CrossBuildExtension extension) {
+        extension.resolvedBuilds.findAll { rb ->
+            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
             def pomAidingConfigurations =
                     new PomAidingConfigurations(extension.project, sourceSet, rb.scalaVersionInsights,
@@ -105,7 +112,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         }
     }
 
-    private static void applyCrossBuildTasksDependency(CrossBuildExtension extension) {
+    private static void applyCrossBuildTasksDependencies(CrossBuildExtension extension) {
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
