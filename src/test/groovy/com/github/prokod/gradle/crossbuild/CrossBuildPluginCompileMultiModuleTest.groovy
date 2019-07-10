@@ -15,7 +15,6 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.internal.impldep.org.junit.Assume
@@ -166,27 +165,27 @@ dependencies {
         project.pluginManager.apply(JavaBasePlugin)
         def build1 = new Build('spark160', new CrossBuildExtension(project)).with { b ->
             scalaVersions = ['2.10']
-            archive = new ArchiveNaming(eap1)
+            archive.appendixPattern = eap1
             b
         }
         def build2 = new Build('spark240', new CrossBuildExtension(project)).with { b ->
             scalaVersions = ['2.11']
-            archive = new ArchiveNaming(eap2)
+            archive.appendixPattern = eap2
             b
         }
         def build3 = new Build('spark241', new CrossBuildExtension(project)).with { b ->
             scalaVersions = ['2.12']
-            archive = new ArchiveNaming(eap3)
+            archive.appendixPattern = eap3
             b
         }
         def expected = [build1, build2, build3].collect {it.toString()}.join('\n')
         result.output.contains(expected)
 
         where:
-        gradleVersion   | defaultScalaVersion | ap   | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
-                '4.2'   | '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
-                '4.10.3'| '2.11'              | '_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-                '5.4.1' | '2.12'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
+        gradleVersion   | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
+                '4.2'   | '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
+                '4.10.3'| '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+                '5.4.1' | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
 
     }
 

@@ -101,11 +101,12 @@ class CrossBuildPlugin implements Plugin<Project> {
     }
 
     private static void generatePomAidingConfigurations(CrossBuildExtension extension) {
+        def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
             def pomAidingConfigurations =
-                    new PomAidingConfigurations(extension.project, sourceSet, rb.scalaVersionInsights,
+                    new PomAidingConfigurations(extension.project, sourceSet, rb.scalaVersionInsights, sv,
                             rb.archive.appendix)
             pomAidingConfigurations.createAndSetForMavenScope(ScopeType.COMPILE)
             pomAidingConfigurations.createAndSetForMavenScope(ScopeType.PROVIDED)
@@ -184,13 +185,14 @@ class CrossBuildPlugin implements Plugin<Project> {
     private static void updateCrossBuildPublications(CrossBuildExtension extension) {
         def project = extension.project
         def publishing = project.extensions.findByType(PublishingExtension)
+        def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
 
         extension.resolvedBuilds.findAll { ResolvedBuildAfterEvalLifeCycle rb ->
             def (String sourceSetId, SourceSet sourceSet) =
                     extension.crossBuildSourceSets.findByName(rb.name)
 
             def pomAidingConfigurations =
-                    new PomAidingConfigurations(project, sourceSet, rb.scalaVersionInsights)
+                    new PomAidingConfigurations(project, sourceSet, rb.scalaVersionInsights, sv)
             def pomAidingCompileScopeConfigName =
                     pomAidingConfigurations.mavenScopeConfigurationNameFor(ScopeType.COMPILE)
             def pomAidingProvidedScopeConfigName =
