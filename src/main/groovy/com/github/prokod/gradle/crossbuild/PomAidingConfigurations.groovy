@@ -19,6 +19,7 @@ class PomAidingConfigurations {
     private final Project project
     private final SourceSet sourceSet
     private final ScalaVersionInsights scalaVersionInsights
+    private final ScalaVersions scalaVersions
     private final String archiveAppendix
 
     /**
@@ -28,6 +29,7 @@ class PomAidingConfigurations {
      * @param sourceSet A specific {@link org.gradle.api.tasks.SourceSet} that provides a configuration
      *                   to use as source of dependencies for the new configuration
      * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
+     * @param scalaVersions
      * @param archiveAppendix {@link com.github.prokod.gradle.crossbuild.model.ResolvedArchiveNaming} archive appendix
      *                         to aid with the replacement of non cross build
      *                        {@link org.gradle.api.artifacts.ProjectDependency} with its cross build counterpart
@@ -36,19 +38,23 @@ class PomAidingConfigurations {
     PomAidingConfigurations(Project project,
                             SourceSet sourceSet,
                             ScalaVersionInsights scalaVersionInsights,
+                            ScalaVersions scalaVersions,
                             String archiveAppendix) {
         this.project = project
         this.sourceSet = sourceSet
         this.scalaVersionInsights = scalaVersionInsights
+        this.scalaVersions = scalaVersions
         this.archiveAppendix = archiveAppendix
     }
 
     PomAidingConfigurations(Project project,
                             SourceSet sourceSet,
-                            ScalaVersionInsights scalaVersionInsights) {
+                            ScalaVersionInsights scalaVersionInsights,
+                            ScalaVersions scalaVersions) {
         this.project = project
         this.sourceSet = sourceSet
         this.scalaVersionInsights = scalaVersionInsights
+        this.scalaVersions = scalaVersions
         this.archiveAppendix = null
     }
 
@@ -154,7 +160,7 @@ class PomAidingConfigurations {
         def allDependencies = sourceDependencies
 
         def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
+                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion, scalaVersions)
 
         // External cross built valid dependencies
         //  (pick latest version if the same dependency module appears multiple times with different versions)
@@ -190,7 +196,7 @@ class PomAidingConfigurations {
         }
 
         def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
+                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion, scalaVersions)
 
         // External non cross built dependencies
         def crossBuiltExternalDependencySet = dependenciesView.collectMany { entry ->
@@ -230,7 +236,7 @@ class PomAidingConfigurations {
         def allDependencies = sourceDependencies
 
         def dependenciesView = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion)
+                allDependencies.collect(), scalaVersionInsights.artifactInlinedVersion, scalaVersions)
 
         // External cross built globed (_?) dependencies
         def resolvedCrossBuiltExternalDependencySet = dependenciesView.collect { entry ->

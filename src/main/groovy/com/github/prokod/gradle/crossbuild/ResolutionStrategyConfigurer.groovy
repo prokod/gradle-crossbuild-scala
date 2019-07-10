@@ -27,7 +27,7 @@ class ResolutionStrategyConfigurer {
     ResolutionStrategyConfigurer(Project project,
                                  Map<String, String> catalog,
                                  ScalaVersionInsights scalaVersionInsights) {
-        this(project, ScalaVersions.DEFAULT_SCALA_VERSIONS + new ScalaVersions(catalog), scalaVersionInsights)
+        this(project, ScalaVersions.withDefaultsAsFallback(catalog), scalaVersionInsights)
     }
 
     /**
@@ -120,7 +120,7 @@ class ResolutionStrategyConfigurer {
         def requested = details.requested
         if (allDependenciesAsDisplayNameSet
                 .contains("${requested.group}:${requested.name}:${requested.version}")) {
-            String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
+            String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name, scalaVersions)[1]
             if (targetConfiguration.name == crossBuildConfigurationName) {
                 strategyForCrossBuildConfiguration(
                         crossBuildConfiguration, supposedScalaVersion, details)
@@ -214,7 +214,7 @@ class ResolutionStrategyConfigurer {
                 c.resolutionStrategy.eachDependency { details ->
                     def requested = details.requested
                     // Replace 3d party scala dependency which contains '_?'
-                    def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
+                    def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name, scalaVersions)[1]
                     if (probableScalaVersion == '?') {
                         // We do not have plugin generated cross build configurations specifically dependent on test
                         // configurations like `testCompile`, `testCompileOnly`, `testImplementation` ...
@@ -317,7 +317,7 @@ class ResolutionStrategyConfigurer {
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
 
         def libGrid = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-                allDependencySet, targetScalaVersion)
+                allDependencySet, targetScalaVersion, scalaVersions)
 
         // dependencyMap key is name of dependency and value contains suggested correct dependency/ies
         def dependencyMap = libGrid.collectEntries { tuple ->
@@ -368,7 +368,7 @@ class ResolutionStrategyConfigurer {
         def probableScalaVersionRaw = scalaVersions.catalog*.key.collect { String scalaVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, scalaVersions)
             def deps = DependencyInsights.findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
-                    allDependencySet, scalaVersionInsights.artifactInlinedVersion)
+                    allDependencySet, scalaVersionInsights.artifactInlinedVersion, scalaVersions)
             new Tuple2(scalaVersionInsights.artifactInlinedVersion, deps.size())
         }.findAll { tuple ->
             // Means this is a sane state where the dependency to be resolved does not have any other alternatives in

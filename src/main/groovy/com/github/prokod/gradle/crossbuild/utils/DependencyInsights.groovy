@@ -8,6 +8,8 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.SourceSet
 
+import java.util.regex.Pattern
+
 /**
  * A collection of Dependency related methods
  *
@@ -90,11 +92,12 @@ class DependencyInsights {
      * Parses given dependency to its groupName:baseName part and its scala version part.
      * Throws Assertion Exception if dependency name does not contain separating char '_'
      *
-     * @param dependency to parse
-     * @return tuple in the form of (groupName:baseName, scalaVersion) i.e. ('group:lib', '2.11')
+     * @param dep dependency to parse
+     * @param scalaVersions
+     * @return {@code true} if the dependency is named in scala lib convention, {@code false} otherwise
      */
-    static boolean isScalaLib(Dependency dep) {
-        def supposedlyScalaVersion = parseDependencyName(dep).second
+    static boolean isScalaLib(Dependency dep, ScalaVersions scalaVersions) {
+        def supposedlyScalaVersion = parseDependencyName(dep, scalaVersions).second
         supposedlyScalaVersion != null
     }
 
@@ -105,8 +108,8 @@ class DependencyInsights {
      * @param dependency to parse
      * @return tuple in the form of (groupName:baseName, scalaVersion) i.e. ('group:lib', '2.11')
      */
-    static Tuple2<String, String> parseDependencyName(Dependency dep) {
-        def (baseName, supposedScalaVersion, nameSuffix) = parseDependencyName(dep.name)
+    static Tuple2<String, String> parseDependencyName(Dependency dep, ScalaVersions scalaVersions) {
+        def (baseName, supposedScalaVersion, nameSuffix) = parseDependencyName(dep.name, scalaVersions)
         new Tuple2("${dep.group}:$baseName", supposedScalaVersion)
     }
 
@@ -115,21 +118,50 @@ class DependencyInsights {
      * returns the dependency name unparsed if dependency name does not contain separating char '_'
      *
      * @param depName dependency name to parse
-     * @return tuple in the form of (baseName, scalaVersion, nameSuffix) i.e. ('lib', '2.11', '2.2.0')
+     * @parma scalaVersions
+     * @return tuple in the form of (baseName, scalaVersion, appendix) i.e. ('lib', '2.11', '2.2.0')
      *         returns (name, {@code null}, {@code null}) otherwise.
      */
-    static Tuple parseDependencyName(String name) {
-        def index = name.indexOf('_')
-        if (index > 0) {
-            def baseName = name[0..index - 1]
-            def supposedScalaVersionRaw = name[index + 1..-1]
-            def innerIndex = supposedScalaVersionRaw.indexOf('_')
-            def supposedScalaVersion = innerIndex > 0 ?
-                    supposedScalaVersionRaw[0..innerIndex - 1] : supposedScalaVersionRaw
-            def nameSuffix = innerIndex > 0 ? supposedScalaVersionRaw[innerIndex + 1..-1] : null
-            new Tuple("$baseName", supposedScalaVersion, nameSuffix)
-        } else {
+    static Tuple parseDependencyName(String name, ScalaVersions scalaVersions) {
+        def refTargetVersions = scalaVersions.mkRefTargetVersions()
+        def qMarkDelimiter = Pattern.quote('_?')
+        def qMarkSplitPattern = "(?=(?!^)$qMarkDelimiter)|(?<=$qMarkDelimiter)"
+        def qMarkTokens = name.split(qMarkSplitPattern)
+        def qMarkParsedTuple =  parseTokens(qMarkTokens)
+
+        def parsedTuples = refTargetVersions.collect { version ->
+            def delimiter = Pattern.quote('_' + version)
+            def splitPattern = "(?=(?!^)$delimiter)|(?<=$delimiter)"
+            def tokens = name.split(splitPattern)
+            parseTokens(tokens)
+        }
+        def allParsedTuples = parsedTuples + [qMarkParsedTuple]
+        def filtered = allParsedTuples.findAll { it != null }
+        if (filtered.size() == 1) {
+            filtered.head()
+        }
+        else {
             new Tuple(name, null, null)
+        }
+    }
+
+    private static Tuple parseTokens(String[] tokens) {
+        if (tokens.size() < 2) {
+            null
+        }
+        else if (tokens.size() == 2) {
+            def baseName = tokens[0]
+            def supposedScalaVersion = tokens[1].substring(1)
+            new Tuple(baseName, supposedScalaVersion, null)
+        }
+        else if (tokens.size() == 3) {
+            def baseName = tokens[0]
+            def supposedScalaVersion = tokens[1].substring(1)
+            def appendix = tokens[2]
+            new Tuple(baseName, supposedScalaVersion, appendix)
+        }
+        else {
+            null
         }
     }
 
@@ -139,6 +171,7 @@ class DependencyInsights {
      *
      * @param dependencies set of dependencies in the form of {@link org.gradle.api.artifacts.DependencySet} to scan
      * @param scalaVersion Scala Version to match against i.e '2.10', '2.11'
+     * @parma scalaVersions
      * @return a list containing tuple2s  of tuple3s in the form of
      *         (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
      *         For example, in case that scalaVersion = '2.10'
@@ -151,11 +184,12 @@ class DependencyInsights {
      */
     static List<Tuple2<Tuple, Set<Tuple>>> findAllNonMatchingScalaVersionDependenciesWithCounterparts(
             Collection<Dependency> dependencies,
-            String scalaVersion) {
-        def nonMatchingDeps = findAllNonMatchingScalaVersionDependencies(dependencies, scalaVersion)
+            String scalaVersion,
+            ScalaVersions scalaVersions) {
+        def nonMatchingDeps = findAllNonMatchingScalaVersionDependencies(dependencies, scalaVersion, scalaVersions)
         def dependenciesView = nonMatchingDeps.collect { nonMatchingDepTuple ->
             def matchingDepTupleSet = dependencies.collect { dep ->
-                def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(dep)
+                def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(dep, scalaVersions)
                 new Tuple(groupAndBaseName, supposedScalaVersion, dep)
             }.findAll { it[0] == nonMatchingDepTuple[0] && it[1] != null && it[1] == scalaVersion }.collect().toSet()
             new Tuple2(nonMatchingDepTuple, matchingDepTupleSet)
@@ -170,14 +204,17 @@ class DependencyInsights {
      *
      * @param dependencySet set of dependencies in the form of {@link org.gradle.api.artifacts.DependencySet} to scan
      * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
+     * @param scalaVersions
      * @return a list of tuples in the form of
      *          (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
      *          i.e. ('lib', '2.11', ...)
      */
     static List<Tuple> findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
             Set<Dependency> dependencySet,
-            String scalaVersion) {
-        findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion).findAll { tuples -> tuples[1] != '?' }
+            String scalaVersion,
+            ScalaVersions scalaVersions) {
+        findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion, scalaVersions).findAll { tuples ->
+            tuples[1] != '?' }
     }
 
     /**
@@ -192,7 +229,7 @@ class DependencyInsights {
                 .findAll { "${it.group}:${it.name}" == 'org.scala-lang:scala-library' }
                 .collect { dep ->
             def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)
-            def groupAndBaseName = parseDependencyName(dep).first
+            def groupAndBaseName = parseDependencyName(dep, scalaVersions).first
             new Tuple(groupAndBaseName, scalaVersionInsights.artifactInlinedVersion, dep) }
 
         scalaDeps
@@ -203,14 +240,16 @@ class DependencyInsights {
      *
      * @param dependencySet set of dependencies in the form of {@link org.gradle.api.artifacts.DependencySet} to scan
      * @param scalaVersion Scala Version to un-match against i.e '2.10', '2.11'
+     * @param scalaVersions
      * @return a list of tuples in the form of
      *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
      *          i.e. ('lib', '2.11', ...)
      */
     static List<Tuple> findAllNonMatchingScalaVersionDependencies(Collection<Dependency> dependencySet,
-                                                                  String scalaVersion) {
+                                                                  String scalaVersion,
+                                                                  ScalaVersions scalaVersions) {
         def nonMatchingDeps = dependencySet.collect {
-            def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it)
+            def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it, scalaVersions)
             new Tuple(groupAndBaseName, supposedScalaVersion, it) }
         .findAll { it[1] != null && it[1] != scalaVersion }
 
