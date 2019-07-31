@@ -9,6 +9,7 @@ import org.gradle.api.tasks.scala.ScalaCompile
  */
 class ScalaCompileTasks {
 
+    @SuppressWarnings(['LineLength'])
     static void tuneCrossBuildScalaCompileTask(Project project,
                                                SourceSet sourceSet) {
 
