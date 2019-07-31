@@ -145,7 +145,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
             def di = DependencyInsights.from(extension.project, sourceSet)
-            di.createAndAddNonDefaultProjectTypeDependencies1ult(sourceSet)
+            di.createAndAddNonDefaultProjectTypeDependencies(sourceSet)
         }
     }
 
@@ -160,10 +160,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
-            def di = DependencyInsights.from(extension.project, sourceSet)
-            def projectTypeDependencies = di.extractCrossBuildProjectTypeDependencies()
-
-            ScalaCompileTasks.tuneCrossBuildScalaCompileTask(extension.project, sourceSet, projectTypeDependencies)
+            ScalaCompileTasks.tuneCrossBuildScalaCompileTask(extension.project, sourceSet)
         }
     }
 }
