@@ -7,6 +7,9 @@ import groovy.transform.TupleConstructor
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Custom gradle task for cross building related reporting
+ */
 class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossBuildsReportTask {
     CrossBuildExtension extension
 
@@ -16,8 +19,9 @@ class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossB
         outputFile = project.file("${getOutputFileBasePath()}${project.name}_builds_resolved_configurations.json")
     }
 
+    @SuppressWarnings(['Println'])
     @TaskAction
-    def report() {
+    void report() {
         def items = extension.resolvedBuilds.collect { rb ->
             createReportItemAsJsonFor(rb)
         }

@@ -5,6 +5,10 @@ import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.SourceSet
 
+/**
+ * Abstraction for CrossBuildPom related tasks
+ */
+@SuppressWarnings(['AbstractClassWithoutAbstractMethod'])
 abstract class AbstractCrossBuildPomTask extends DefaultTask {
     ResolvedBuildAfterEvalLifeCycle resolvedBuild
 

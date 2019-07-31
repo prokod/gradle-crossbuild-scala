@@ -4,8 +4,12 @@ import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.OutputFile
 
+/**
+ * Abstraction for CrossBuildReport related tasks
+ */
+@SuppressWarnings(['AbstractClassWithoutAbstractMethod'])
 abstract class AbstractCrossBuildsReportTask extends DefaultTask {
-    static final BASE_TASK_NAME = CrossBuildSourceSets.SOURCESET_BASE_NAME
+    static final String BASE_TASK_NAME = CrossBuildSourceSets.SOURCESET_BASE_NAME
     static final String REPORTS_DIR = 'crossbuilding-reports'
     static final String TASK_GROUP = 'crossbuilding'
 

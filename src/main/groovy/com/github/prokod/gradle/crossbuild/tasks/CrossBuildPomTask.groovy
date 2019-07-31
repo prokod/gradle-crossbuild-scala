@@ -12,28 +12,33 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Custom gradle task for cross building related Pom files
+ */
 class CrossBuildPomTask extends AbstractCrossBuildPomTask {
 
     @TaskAction
-    def update() {
+    void update() {
         def crossBuildSourceSet = getCrossBuildSourceSet()
         def crossBuildPomAidingTuples =
-                [createAndSetCrossBuildPomAidingConfigurationForMavenScope(ScopeType.COMPILE, crossBuildSourceSet),
-                 createAndSetCrossBuildPomAidingConfigurationForMavenScope(ScopeType.RUNTIME, crossBuildSourceSet)]
+                [createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.COMPILE, crossBuildSourceSet),
+                 createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.RUNTIME, crossBuildSourceSet)]
 
         updateCrossBuildPublications(crossBuildPomAidingTuples.toSet(), crossBuildSourceSet)
     }
 
     /**
-     * Creates a Compile Scope configuration that should be used by the user for generating the dependencies
-     *  for a cross build artifact's pom file.
+     * Creates a Compile Scope configuration that is used internally for enumerating the dependencies
+     * for a cross build artifact's pom file.
      *
-     * @param scalaVersionInsights An object that holds all version permutations for a specific Scala version
-     * @return Created configuration
+     * @param scopeType Maven type scopes COMPILE/RUNTIME...
+     * @param crossBuildSourceSet The sourceSet associated with the cross build artifact's pom file.
+     * @return Tuple of  requested Scope and the created Configuration
      * @throws org.gradle.api.InvalidUserDataException if an object with the given name already exists in this
      *         container.
      */
-    Tuple2<ScopeType, Configuration> createAndSetCrossBuildPomAidingConfigurationForMavenScope(ScopeType scopeType, SourceSet crossBuildSourceSet) {
+    Tuple2<ScopeType, Configuration> createCrossBuildPomAidingConfigurationForMavenScope(ScopeType scopeType,
+                                                                                         SourceSet crossBuildSourceSet){
 
         def mavenToGradleScope = { ScopeType scope ->
             switch (scope) {
@@ -52,11 +57,12 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
                     // If this is called and there were no repositories defined, an Exception will be raised
                     // Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Cannot resolve external
                     // dependency org.scala-lang:scala-library:2.10.6 because no repositories are defined.
-                    def deps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies.collect { module ->
+                    def deps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies.collect { m ->
                         project.dependencies.create(
-                                group: module.moduleGroup,
-                                name: module.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) /*&& moduleNames.contains(module.moduleName)*/ ? module.moduleArtifacts[0].name : module.moduleName,
-                                version: module.moduleVersion)
+                                group:m.moduleGroup,
+                                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
+                                        m.moduleArtifacts[0].name : m.moduleName,
+                                version:m.moduleVersion)
                     }
                     return deps.toSet()
                 case ScopeType.RUNTIME:
@@ -72,28 +78,28 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
                         def comparableRuntimeModuleDependency = "$md.moduleGroup:$md.moduleName:$md.moduleVersion"
                         !comparableCompileModuleDependencies.contains(comparableRuntimeModuleDependency)
                     }
-                    def deps = filteredRuntimeModuleDependencies.collect { module ->
+                    def deps = filteredRuntimeModuleDependencies.collect { m ->
                         project.dependencies.create(
-                                group: module.moduleGroup,
-                                name: module.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) /*&& moduleNames.contains(module.moduleName)*/ ? module.moduleArtifacts[0].name : module.moduleName,
-                                version: module.moduleVersion)
+                                group:m.moduleGroup,
+                                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
+                                        m.moduleArtifacts[0].name : m.moduleName,
+                                version:m.moduleVersion)
                     }
                     return deps.toSet()
             }
         }
 
         // todo consider switching to detached configuration
-        def createdTargetMavenScopeConfig =
-                project.configurations.create(mavenScopeConfigurationNameFor(scopeType)) {
-                    canBeConsumed = false
-                    canBeResolved = false
-                }
+        def createdTargetMavenScopeConfig = project.configurations.create(mavenScopeConfigurationNameFor(scopeType)) {
+            canBeConsumed = false
+            canBeResolved = false
+        }
 
         project.logger.info(LoggerUtils.logTemplate(project,
-                lifecycle: 'task',
-                sourceset: crossBuildSourceSet.name,
-                configuration: mavenToGradleScope(scopeType).name,
-                msg: "Created Maven scope ${scopeType} related configuration: ${createdTargetMavenScopeConfig.name}"
+                lifecycle:'task',
+                sourceset:crossBuildSourceSet.name,
+                configuration:mavenToGradleScope(scopeType).name,
+                msg:"Created Maven scope ${scopeType} related configuration: ${createdTargetMavenScopeConfig.name}"
         ))
 
         set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType))
@@ -104,21 +110,28 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         target.dependencies.addAll(sourceDependencies)
     }
 
-    private void updateCrossBuildPublications(Set<Tuple2<ScopeType, Configuration>> crossBuildPomAidingTuples, SourceSet crossBuildSourceSet) {
+    private void updateCrossBuildPublications(Set<Tuple2<ScopeType, Configuration>> crossBuildPomAidingTuples,
+                                              SourceSet crossBuildSourceSet) {
         def publishing = project.extensions.findByType(PublishingExtension)
 
-        if (publishing == null) throw new StopExecutionException("Publishing extension ('maven-publish' plugin) was " +
-                "not found in this project.")
+        if (publishing == null) {
+            throw new StopExecutionException('Publishing extension (\'maven-publish\' plugin) was not found in this ' +
+                    'project.')
+        }
 
         def pubs = publishing.publications.withType(MavenPublication).findAll {
             probablyRelatedPublication(it, resolvedBuild, crossBuildSourceSet.name)
         }
 
-        if (pubs.size() == 0) throw new StopExecutionException("Could not find corresponding publish block for " +
-                "${crossBuildSourceSet.jarTaskName} task.")
+        if (pubs.size() == 0) {
+            throw new StopExecutionException('Could not find corresponding publish block for ' +
+                    "${crossBuildSourceSet.jarTaskName} task.")
+        }
 
-        if (pubs.size() > 1) throw new StopExecutionException("Found more than one corresponding publish blocks " +
-                "[${pubs*.name.join(', ')}] for ${crossBuildSourceSet.jarTaskName} task.")
+        if (pubs.size() > 1) {
+            throw new StopExecutionException('Found more than one corresponding publish blocks ' +
+                    "[${pubs*.name.join(', ')}] for ${crossBuildSourceSet.jarTaskName} task.")
+        }
 
         def pub = pubs.head()
 
@@ -128,26 +141,7 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         crossBuildPomAidingTuples.each { tuple ->
             def scope = tuple.first
             def configuration = tuple.second
-            pub.pom.withXml { xmlProvider ->
-                //withXmlHandler(it, configuration, scope)
-                def dependenciesNodeFunction = { XmlProvider xml ->
-                    def dependenciesNode = xml.asNode()['dependencies']?.getAt(0)
-                    if (dependenciesNode == null) {
-                        return xmlProvider.asNode().appendNode('dependencies')
-                    }
-                    dependenciesNode
-                }
-
-                def dependenciesNode = dependenciesNodeFunction(xmlProvider)
-
-                configuration.allDependencies.each { dep ->
-                    def dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', dep.group)
-                    dependencyNode.appendNode('artifactId', dep.name)
-                    dependencyNode.appendNode('version', dep.version)
-                    dependencyNode.appendNode('scope', scope.toString().toLowerCase())
-                }
-            }
+            pub.pom.withXml { withXmlHandler(it, configuration, scope) }
         }
     }
 
@@ -162,9 +156,8 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         name.contains(sourceSetId.capitalize())
     }
 
-    private static void withXmlHandler(XmlProvider xmlProvider,
-                                Configuration pomAidingConfiguration,
-                                ScopeType scopeType) {
+    Closure<Void> withXmlHandler = {
+        XmlProvider xmlProvider, Configuration pomAidingConfiguration, ScopeType scopeType ->
         def dependenciesNodeFunction = { XmlProvider xml ->
             def dependenciesNode = xml.asNode()['dependencies']?.getAt(0)
             if (dependenciesNode == null) {

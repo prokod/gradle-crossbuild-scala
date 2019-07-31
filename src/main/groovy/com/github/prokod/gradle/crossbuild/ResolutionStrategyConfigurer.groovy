@@ -45,19 +45,18 @@ class ResolutionStrategyConfigurer {
             def crossBuildConfiguration = project.configurations[crossBuildConfigurationName]
             def parentConfiguration = configTuple.second
 
-
-
-            def allDependencies = [crossBuildConfiguration.allDependencies, parentConfiguration.allDependencies]
+            def dependencySets = [crossBuildConfiguration.allDependencies, parentConfiguration.allDependencies]
+            def allDependencies = dependencySets.collectMany { it.toSet() }
             project.logger.info(LoggerUtils.logTemplate(project,
                     lifecycle:'afterEvaluate',
                     configuration:crossBuildConfigurationName,
                     parentConfiguration:parentConfiguration.name,
                     msg:"Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
-                            'configuration dependencies: ' +
-                            "[${allDependencies.collectMany { it.toSet() }.collect { "${it.group}:${it.name}" }.join(', ')}]"
+                            'configuration dependencies: [' +
+                            "${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
             ))
 
-            def diContext = new DependencyInsightsContext(project:project, dependencies:allDependencies,
+            def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySets,
                     configurations:[current:crossBuildConfiguration, parent:parentConfiguration])
             def di = new DependencyInsights(diContext)
 
@@ -65,16 +64,15 @@ class ResolutionStrategyConfigurer {
 
             def projectDependencies =
                     di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([parentConfiguration.name] as Set)
-            def allDependenciesAsDisplayNameSet =
-                    (allDependencies.collectMany { it.toSet() } + projectDependencies).collect { dep ->
-                        "${dep.group}:${dep.name}:${dep.version}"
-                    }.toSet()
+            def unionOfAllDependencies = allDependencies + projectDependencies
+            def unionOfAllDependenciesAsDisplayNameSet =
+                    unionOfAllDependencies.collect { dep -> "${dep.group}:${dep.name}:${dep.version}" }.toSet()
 
             // todo duplicate runs ? maybe to do only on classpath compile/runtime ?
             crossBuildProjects.each {
                 it.configurations.all { Configuration c ->
                     c.resolutionStrategy.eachDependency { details ->
-                        resolutionStrategyHandler(c, details, allDependenciesAsDisplayNameSet, di)
+                        resolutionStrategyHandler(c, details, unionOfAllDependenciesAsDisplayNameSet, di)
                     }
                 }
             }
@@ -127,11 +125,10 @@ class ResolutionStrategyConfigurer {
         } else {
             // A cross built dependency - explicit
             // Try correcting offending target dependency only if contains wrong scala version
-            //  and only in cross build config context.
+            // and only in cross build config context.
             if (supposedScalaVersion != scalaVersionInsights.artifactInlinedVersion) {
-                println("<<<>>> ${di.diContext.project}, ${crossBuildConfiguration}, ${di.diContext.configurations.parent}")
-                tryCorrectingTargetDependencyName(details,
-                        scalaVersionInsights.artifactInlinedVersion, crossBuildConfiguration, di.diContext.configurations.parent)
+                tryCorrectingTargetDependencyName(details, scalaVersionInsights.artifactInlinedVersion,
+                        crossBuildConfiguration, di.diContext.configurations.parent)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
                         lifecycle:'afterEvaluate',

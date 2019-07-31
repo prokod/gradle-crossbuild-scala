@@ -37,14 +37,14 @@ class CrossBuildPlugin implements Plugin<Project> {
 
         def extension = project.extensions.create('crossBuild', CrossBuildExtension, project)
 
-        project.task(type: CrossBuildsReportTask,
+        project.task(type:CrossBuildsReportTask,
                 "${AbstractCrossBuildsReportTask.BASE_TASK_NAME}ResolvedDsl") { CrossBuildsReportTask t ->
             t.resolvedBuilds = extension.resolvedBuilds
 
             t.description = 'Summary report for ross building resolved Dsl'
         }
 
-        project.task(type: CrossBuildsClasspathResolvedConfigurationReportTask,
+        project.task(type:CrossBuildsClasspathResolvedConfigurationReportTask,
                 "${AbstractCrossBuildsReportTask.BASE_TASK_NAME}ResolvedConfigs") { t ->
             t.extension = extension
 
@@ -61,7 +61,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             generateNonDefaultProjectTypeDependencies(extension)
 
             project.pluginManager.withPlugin('maven-publish') {
-                createCrossBuildPomTasks(extension)
+                generateCrossBuildPomTasks(extension)
             }
 
             alterCrossBuildCompileTasks(extension)
@@ -122,7 +122,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         sourceSet
     }
 
-    private static void createCrossBuildPomTasks(CrossBuildExtension extension) {
+    private static void generateCrossBuildPomTasks(CrossBuildExtension extension) {
         extension.resolvedBuilds.findAll { rb ->
             extension.project.tasks.withType(GenerateMavenPom).all { GenerateMavenPom pomTask ->
                 def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
@@ -145,7 +145,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
             def di = DependencyInsights.from(extension.project, sourceSet)
-            di.createAndAddNonDefaultProjectTypeDependencies(sourceSet)
+            di.generateAndWireCrossBuildProjectTypeDependencies(sourceSet)
         }
     }
 

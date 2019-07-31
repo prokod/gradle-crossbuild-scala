@@ -3,6 +3,9 @@ package com.github.prokod.gradle.crossbuild.tasks
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Custom gradle task for cross building related reporting
+ */
 class CrossBuildsReportTask extends AbstractCrossBuildsReportTask {
     Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds
 
@@ -12,9 +15,10 @@ class CrossBuildsReportTask extends AbstractCrossBuildsReportTask {
         outputFile = project.file("${getOutputFileBasePath()}${project.name}_builds.json")
     }
 
+    @SuppressWarnings(['Println'])
     @TaskAction
-    def report() {
-        def msg = this.resolvedBuilds.collect { it.toString() }.join(',\n')
+    void report() {
+        def msg = this.resolvedBuilds*.toString().join(',\n')
         if (!this.outputFile.parentFile.exists()) {
             this.outputFile.parentFile.mkdirs()
         }

@@ -88,7 +88,7 @@ class DependencyInsights {
         moduleNames
     }
 
-    void createAndAddNonDefaultProjectTypeDependencies(SourceSet sourceSet) {
+    void generateAndWireCrossBuildProjectTypeDependencies(SourceSet sourceSet) {
         def project = diContext.project
 
         def defaultConfigurations = generateDetachedDefaultConfigurationsRecursively()
@@ -96,7 +96,6 @@ class DependencyInsights {
         def consumerConfiguration = project.configurations[sourceSet.compileConfigurationName]
 
         defaultConfigurations.each { configuration ->
-            consumerConfiguration.extendsFrom(configuration)
             consumerConfiguration.dependencies.addAll(configuration.dependencies)
         }
 
@@ -109,18 +108,19 @@ class DependencyInsights {
 
             def producerConfigurationName = "${sourceSet.name}Producer"
 
-            def producerConfiguration = subProject.configurations.findByName(producerConfigurationName) ?:
-                    subProject.configurations.create(producerConfigurationName) {
-                        canBeResolved = false
-                        canBeConsumed = true
-                        attributes {
-                            def named = subProject.objects.named(Usage, "${targetTask.name}-variant")
-                            attribute(Usage.USAGE_ATTRIBUTE, named)
-                        }
-                        outgoing.artifact(targetTask)
-                    }
+            def alreadyCreatedProducerConfiguration = subProject.configurations.findByName(producerConfigurationName)
+            def producerConfiguration =
+                    alreadyCreatedProducerConfiguration ?: subProject.configurations.create(producerConfigurationName) {
+                canBeResolved = false
+                canBeConsumed = true
+                attributes {
+                    def named = subProject.objects.named(Usage, "${targetTask.name}-variant")
+                    attribute(Usage.USAGE_ATTRIBUTE, named)
+                }
+                outgoing.artifact(targetTask)
+            }
 
-            def dep = project.dependencies.project(path: subProject.path, configuration: producerConfiguration.name)
+            def dep = project.dependencies.project(path:subProject.path, configuration:producerConfiguration.name)
 
             project.dependencies.attributesSchema.with {
                 attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(CompatRule)
@@ -134,13 +134,12 @@ class DependencyInsights {
             project.dependencies.add(consumerConfiguration.name, dep)
 
             project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle: 'projectsEvaluated',
-                    configuration: sourceSet.name,
-                    msg: "Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
+                    lifecycle:'projectsEvaluated',
+                    configuration:sourceSet.name,
+                    msg:"Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
             ))
         }
     }
-
 
     /**
      * See {@link #generateDetachedDefaultConfigurationsRecursivelyFor} doc
@@ -249,15 +248,21 @@ class DependencyInsights {
 
     static class CompatRule implements AttributeCompatibilityRule<Usage> {
         void execute(CompatibilityCheckDetails<Usage> details) {
-            if (details.consumerValue.name == Usage.JAVA_API && details.producerValue.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)) {
+            def consumerUsageJavaApi = details.consumerValue.name == Usage.JAVA_API
+            def consumerUsageJavaRuntime = details.consumerValue.name == Usage.JAVA_RUNTIME
+            def producerUsageCustom = details.producerValue.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)
+
+            if (consumerUsageJavaApi && producerUsageCustom) {
                 details.compatible()
             }
-            if (details.consumerValue.name == Usage.JAVA_RUNTIME && details.producerValue.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)) {
+
+            if (consumerUsageJavaRuntime && producerUsageCustom) {
                 details.compatible()
             }
         }
     }
 
+    @SuppressWarnings(['LineLength'])
     static class DisRule implements AttributeDisambiguationRule<Usage> {
         String sourceSetName
 
@@ -441,12 +446,14 @@ class DependencyInsights {
      * @return
      */
     static List<Tuple> findScalaDependencies(Set<Dependency> dependencySet, ScalaVersions scalaVersions) {
-        def scalaDeps = dependencySet
-                .findAll { "${it.group}:${it.name}" == 'org.scala-lang:scala-library' }
-                .collect { dep ->
-                    def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)
-                    def groupAndBaseName = parseDependencyName(dep, scalaVersions).first
-                    new Tuple(groupAndBaseName, scalaVersionInsights.artifactInlinedVersion, dep) }
+        def isScalaLibDependency = { dependency ->
+            "${dependency.group}:${dependency.name}" == 'org.scala-lang:scala-library'
+        }
+        def scalaDeps = dependencySet.findAll(isScalaLibDependency).collect { dep ->
+            def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)
+            def groupAndBaseName = parseDependencyName(dep, scalaVersions).first
+            new Tuple(groupAndBaseName, scalaVersionInsights.artifactInlinedVersion, dep)
+        }
 
         scalaDeps
     }
@@ -548,10 +555,9 @@ class DependencyInsights {
 
     private static Set<Dependency> extractCrossBuildProjectTypeDependencyDependencies(ProjectDependency dependency,
                                                                                       Set<String> configurationNames) {
-        def crossBuildProjectTypeDependencyDependencySets =
-                configurationNames.collect {
-                    dependency.dependencyProject.configurations.findByName(it)?.allDependencies
-                }. findAll { it != null }
+        def crossBuildProjectTypeDependencyDependencySets = configurationNames.collect {
+            dependency.dependencyProject.configurations.findByName(it)?.allDependencies
+        }.findAll { it != null }
 
         crossBuildProjectTypeDependencyDependencySets.size() > 0 ?
                 crossBuildProjectTypeDependencyDependencySets.collectMany { it.toSet() } : [] as Set
