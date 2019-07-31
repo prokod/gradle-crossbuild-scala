@@ -16,8 +16,10 @@
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.tasks.AbstractCrossBuildsReportTask
+import com.github.prokod.gradle.crossbuild.tasks.CrossBuildPomAidingConfigurationTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsClasspathResolvedConfigurationReportTask
+import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 import static com.github.prokod.gradle.crossbuild.PomAidingConfigurations.*
 
@@ -72,19 +74,23 @@ class CrossBuildPlugin implements Plugin<Project> {
 
 //            applyCrossBuildTasksDependencies(extension)
 
-//            project.pluginManager.withPlugin('maven-publish') {
+            project.pluginManager.withPlugin('maven-publish') {
 //                updateCrossBuildPublications(extension)
-//            }
+
+                generatePomAidingConfigurations1(extension)
+            }
 
             alterCrossBuildCompileTasks(extension)
+
+
         }
 
         project.gradle.taskGraph.whenReady {
-            project.pluginManager.withPlugin('maven-publish') {
-                generatePomAidingConfigurations(extension)
-
-                updateCrossBuildPublications(extension)
-            }
+//            project.pluginManager.withPlugin('maven-publish') {
+//                generatePomAidingConfigurations(extension)
+//
+//                updateCrossBuildPublications(extension)
+//            }
 //            showResolvingOutcome(extension)
         }
     }
@@ -156,6 +162,24 @@ class CrossBuildPlugin implements Plugin<Project> {
             pomAidingConfigurations.createAndSetForMavenScope(ScopeType.RUNTIME)
 
 //            pomAidingConfigurations.createAndSetForMavenScope(ScopeType.PROVIDED)
+        }
+    }
+
+    private static void generatePomAidingConfigurations1(CrossBuildExtension extension) {
+        extension.resolvedBuilds.findAll { rb ->
+            extension.project.tasks.withType(GenerateMavenPom).all { GenerateMavenPom pomTask ->
+                def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
+
+                def foundRelated =
+                        CrossBuildPomAidingConfigurationTask.probablyRelatedPublication(pomTask.name, sourceSetId)
+                if (foundRelated) {
+                    def taskName = sourceSet.getTaskName('update', 'pom')
+                    def task = extension.project.tasks.create(taskName, CrossBuildPomAidingConfigurationTask) {
+                        resolvedBuild = rb
+                    }
+                    pomTask.dependsOn(task)
+                }
+            }
         }
     }
 
