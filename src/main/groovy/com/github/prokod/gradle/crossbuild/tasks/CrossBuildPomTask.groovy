@@ -12,15 +12,16 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskAction
 
-class CrossBuildPomAidingConfigurationTask extends AbstractCrossBuildPomTask {
+class CrossBuildPomTask extends AbstractCrossBuildPomTask {
 
     @TaskAction
     def update() {
         def crossBuildSourceSet = getCrossBuildSourceSet()
-        def crossBuildPomAidingTuples = [createAndSetForMavenScope(ScopeType.COMPILE, crossBuildSourceSet),
-        createAndSetForMavenScope(ScopeType.RUNTIME, crossBuildSourceSet)] as Set
+        def crossBuildPomAidingTuples =
+                [createAndSetCrossBuildPomAidingConfigurationForMavenScope(ScopeType.COMPILE, crossBuildSourceSet),
+                 createAndSetCrossBuildPomAidingConfigurationForMavenScope(ScopeType.RUNTIME, crossBuildSourceSet)]
 
-        updateCrossBuildPublications(crossBuildPomAidingTuples, crossBuildSourceSet)
+        updateCrossBuildPublications(crossBuildPomAidingTuples.toSet(), crossBuildSourceSet)
     }
 
     /**
@@ -32,7 +33,7 @@ class CrossBuildPomAidingConfigurationTask extends AbstractCrossBuildPomTask {
      * @throws org.gradle.api.InvalidUserDataException if an object with the given name already exists in this
      *         container.
      */
-    Tuple2<ScopeType, Configuration> createAndSetForMavenScope(ScopeType scopeType, SourceSet crossBuildSourceSet) {
+    Tuple2<ScopeType, Configuration> createAndSetCrossBuildPomAidingConfigurationForMavenScope(ScopeType scopeType, SourceSet crossBuildSourceSet) {
 
         def mavenToGradleScope = { ScopeType scope ->
             switch (scope) {

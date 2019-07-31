@@ -14,7 +14,7 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
 
     protected SourceSet getCrossBuildSourceSet() {
         def extension = project.extensions.findByType(CrossBuildExtension)
-        assert extension != null : "Cannot add task ${this.name} of type CrossBuildPomAidingConfigurationTask to " +
+        assert extension != null : "Cannot add task ${this.name} of type AbstractCrossBuildPomTask to " +
                 "project ${project.name}. Reason: Tasks of that type can be added only to a cross build applied project"
         extension.crossBuildSourceSets.findByName(resolvedBuild.name).second
     }
