@@ -24,20 +24,21 @@ class LoggerUtils {
     static String logTemplate(Map conf, Project project) {
         def msg = conf.msg
 
-        "${generateMessageOrientation(project, conf)} | ${msg}".toString()
+        "${generateMessageOrientation(project, conf)} ${msg}".toString()
     }
 
     private static String generateMessageOrientation(Project project, Map conf) {
         def lifecycle = conf.lifecycle
-        def sourceset = conf.sourceset
         def configuration = conf.configuration
         def parentConfiguration = conf.parentConfiguration
+        def sourceset = conf.sourceset
 
-        def pname = "${project.name}"
-        def lc = lifecycle ?: 'n/a'
-        def sset = sourceset
+        def ppath = "${project.path}"
+        def lc = lifecycle ?: 'unspecified'
         def c = configuration ?: parentConfiguration
+        def sset = sourceset
+        def cset = "${c ?: ''}${sset != null ? "($sset)" : ''}"
 
-        [pname, lc, sset, c].findAll { it != null }.join(' > ')
+        "[$ppath($lc)${cset != '' ? "|$cset" : ''}]"
     }
 }

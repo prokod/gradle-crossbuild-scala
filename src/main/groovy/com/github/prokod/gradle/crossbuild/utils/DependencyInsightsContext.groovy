@@ -12,7 +12,7 @@ import org.gradle.api.artifacts.DependencySet
  * project - Gradle project as a context (Usually to retrieve rootProject ({@link Project}) from).
  */
 class DependencyInsightsContext {
-    DependencySet dependencies
+    Set<DependencySet> dependencies
     Configurations configurations
     Project project
 

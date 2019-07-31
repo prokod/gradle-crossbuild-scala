@@ -1,13 +1,21 @@
 package com.github.prokod.gradle.crossbuild.utils
 
 import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
+import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.attributes.AttributeCompatibilityRule
+import org.gradle.api.attributes.AttributeDisambiguationRule
+import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.attributes.MultipleCandidatesDetails
+import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
 
+import javax.inject.Inject
 import java.util.regex.Pattern
 
 /**
@@ -16,7 +24,7 @@ import java.util.regex.Pattern
  */
 class DependencyInsights {
 
-    private final DependencyInsightsContext diContext
+    final DependencyInsightsContext diContext
 
     DependencyInsights(DependencyInsightsContext diContext) {
         this.diContext = diContext
@@ -26,7 +34,7 @@ class DependencyInsights {
         def crossBuildConfiguration = project.configurations.findByName(sourceSet.compileConfigurationName)
 
         def diContext = new DependencyInsightsContext(project:project,
-                dependencies:crossBuildConfiguration.allDependencies,
+                dependencies:[crossBuildConfiguration.allDependencies, project.configurations.compile.allDependencies],
                 configurations:[current:crossBuildConfiguration, parent:project.configurations.compile])
 
         new DependencyInsights(diContext)
@@ -42,17 +50,24 @@ class DependencyInsights {
      * @param configurationName - configuration to have the dependencies extracted from
      * @return List of {@link Dependency} from relevant projects that are themselves defined as dependencies and share
      *          the same dependency graph with the ones originated from within initialDependencySet
+     *
+     * todo tuple configuration names should be part of diContext ...
      */
-    Set<Dependency> findAllCrossBuildProjectTypeDependenciesDependenciesFor(String configurationName) {
+    Set<Dependency> findAllCrossBuildProjectTypeDependenciesDependenciesFor(Set<String> configurationNames) {
         def projectTypeDependencies = extractCrossBuildProjectTypeDependencies()
 
         def dependenciesOfProjectDependencies = projectTypeDependencies.collectMany { prjDep ->
-            extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
+            extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationNames)
         }
 
         dependenciesOfProjectDependencies.toSet()
     }
 
+    /**
+     * Not being used
+     * todo remove
+     * @return
+     */
     Set<Dependency> findAllCrossBuildProjectTypeDependenciesDependenciesForCurrentConfiguration() {
         def configuration = diContext.configurations.current
         findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
@@ -86,6 +101,576 @@ class DependencyInsights {
                 parentConfiguration:parentConfiguration?.name,
                 msg:"Found the following crossbuild modules ${moduleNames.join(', ')}."))
         moduleNames
+    }
+
+    void createAndAddNonDefaultProjectTypeDependencies0rig(SourceSet sourceSet) {
+        def project = diContext.project
+
+        def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
+//        def projectLibDependencies = diContext.dependencies.withType(ProjectDependency)
+
+        projectLibDependencies.each { dependency ->
+            def subProject = dependency.dependencyProject
+            def producerConfiguration = subProject.configurations[sourceSet.compileConfigurationName]
+            def targetTask = subProject.tasks[sourceSet.jarTaskName]
+
+            // Wire artifact on sub-project level
+            subProject.artifacts.add(producerConfiguration.name, targetTask)
+
+//            println("<<<>>> prj: $project.name, sub-prj: $subProject.name -> ${dependency.dependenc} | ${dependency.buildDependencies} | ${targetConfiguration.outgoing.artifacts.files*.name.join(', ')}")
+
+            // Add to project new project lib dependency
+            def dep = project.dependencies.project(path:subProject.path, configuration:producerConfiguration.name)
+
+//            def consumerConfiguration = project.configurations.maybeCreate("${sourceSet.name}Consumer")
+//            consumerConfiguration.with  {
+//                canBeResolved = true
+//                canBeConsumed = false
+//            }
+
+            project.dependencies.add(sourceSet.compileConfigurationName, dep)
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle:'projectsEvaluated',
+                    configuration:sourceSet.name,
+                    msg:"Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
+            ))
+        }
+    }
+
+    void createAndAddNonDefaultProjectTypeDependencies0(SourceSet sourceSet) {
+        def project = diContext.project
+
+        def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
+//        def projectLibDependencies = diContext.dependencies.withType(ProjectDependency)
+
+        projectLibDependencies.each { dependency ->
+            def subProject = dependency.dependencyProject
+            def producerConfiguration = subProject.configurations.maybeCreate("${sourceSet.name}Producer")
+            producerConfiguration.with {
+                canBeResolved = false
+                canBeConsumed = true
+            }
+            def targetTask = subProject.tasks[sourceSet.jarTaskName]
+
+            // Wire artifact on sub-project level
+            subProject.artifacts.add(producerConfiguration.name, targetTask)
+
+//            println("<<<>>> prj: $project.name, sub-prj: $subProject.name -> ${dependency.dependenc} | ${dependency.buildDependencies} | ${targetConfiguration.outgoing.artifacts.files*.name.join(', ')}")
+
+            // Add to project new project lib dependency
+            def dep = project.dependencies.project(path:subProject.path, configuration:producerConfiguration.name)
+
+//            def consumerConfiguration = project.configurations.maybeCreate("${sourceSet.name}Consumer")
+//            consumerConfiguration.with  {
+//                canBeResolved = true
+//                canBeConsumed = false
+//            }
+
+            project.dependencies.add(sourceSet.compileConfigurationName, dep)
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle:'projectsEvaluated',
+                    configuration:sourceSet.name,
+                    msg:"Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
+            ))
+        }
+    }
+
+    void createAndAddNonDefaultProjectTypeDependencies(SourceSet sourceSet) {
+        def project = diContext.project
+
+        def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
+//        def projectLibDependencies = diContext.dependencies.withType(ProjectDependency)
+
+        projectLibDependencies.each { dependency ->
+            def subProject = dependency.dependencyProject
+            def producerConfiguration = subProject.configurations.maybeCreate("${sourceSet.name}Producer")
+            producerConfiguration.with {
+                canBeResolved = false
+                canBeConsumed = true
+            }
+            def targetTask = subProject.tasks[sourceSet.jarTaskName]
+
+            // Wire artifact on sub-project level
+            subProject.artifacts.add(producerConfiguration.name, targetTask)
+
+//            println("<<<>>> prj: $project.name, sub-prj: $subProject.name -> ${dependency.dependenc} | ${dependency.buildDependencies} | ${targetConfiguration.outgoing.artifacts.files*.name.join(', ')}")
+
+            // Add to project new project lib dependency
+            def dep = project.dependencies.project(path:subProject.path, configuration:producerConfiguration.name)
+
+            def consumerConfiguration = project.configurations.maybeCreate("${sourceSet.name}Consumer")
+            consumerConfiguration.with  {
+                canBeResolved = true
+                canBeConsumed = false
+            }
+
+            project.dependencies.add(consumerConfiguration.name, dep)
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle:'projectsEvaluated',
+                    configuration:sourceSet.name,
+                    msg:"Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
+            ))
+        }
+    }
+
+    void createAndAddNonDefaultProjectTypeDependencies1ult(SourceSet sourceSet) {
+        def project = diContext.project
+
+//        def allProjectLibDependencies = extractCrossBuildProjectTypeDependencies()
+
+//        def defaultConfigurationCopy = project.configurations['default']
+
+        def defaultConfigurations = generateDetachedDefaultConfigurationsRecursively()
+        println("<<<BOO1>>> $project.name: ${defaultConfigurations.collect { it.name + ':' + it.dependencies.join(', ') }.join(' | ')}")
+
+        def consumerConfiguration = project.configurations[sourceSet.compileConfigurationName]
+
+        defaultConfigurations.each { configuration ->
+//            configuration.with {
+//                canBeResolved = false
+//                canBeConsumed = true
+//                attributes {
+//                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${consumerConfiguration.name}-default-variant"))
+//                }
+//            }
+            println("<<<default0>>> transitive: ${consumerConfiguration.isTransitive()}")
+            def usage = configuration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+            println("<<<default1>>> attribute: $usage")
+            def usage1 = consumerConfiguration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+            println("<<<default2>>> attribute: $usage1")
+            consumerConfiguration.extendsFrom(configuration)
+            consumerConfiguration.dependencies.addAll(configuration.dependencies)
+        }
+        println("<<<BOO2>>> $project.name | $consumerConfiguration <- ${consumerConfiguration.extendsFrom.join(', ')}")
+        println("<<<BOO2.1>>> $project.name | $consumerConfiguration <- ${consumerConfiguration.extendsFrom.collect { "$it: ${it.dependencies.join(', ')}"  }}")
+        println("<<<BOO3>>> $project.name | ${sourceSet.compileClasspathConfigurationName} <- ${project.configurations[sourceSet.compileClasspathConfigurationName].extendsFrom.join(', ')}")
+        println("<<<BOO4>>> $project.name | ${sourceSet.implementationConfigurationName} <- ${project.configurations[sourceSet.implementationConfigurationName].extendsFrom.join(', ')}")
+
+//        def defaultProjectLibDependencies = allProjectLibDependencies.intersect(defaultConfigurationCopy)
+//
+//        def defaultExternalDependencies = defaultConfigurationCopy - defaultProjectLibDependencies
+
+//        defaultProjectLibDependencies.each { ProjectDependency dependency ->
+//            def subProject = subProjectDependency.dependencyProject
+//        }
+
+//        defaultConfigurationCopy.each { dependency ->
+//            if (isProjectDependency(dependency)) {
+//                def subProjectDependency = dependency as ProjectDependency
+//                def subProject = subProjectDependency.dependencyProject
+//                def subTask = subProject.tasks[sourceSet.jarTaskName]
+//                def producerConfiguration = subProject.configurations.findByName(sourceSet.name) ?: subProject.configurations.create(sourceSet.name) {
+//                    canBeResolved = false
+//                    canBeConsumed = true
+//                    attributes {
+//                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${subTask.name}-variant"))
+//                    }
+//                    outgoing.artifact(subTask)
+//                }
+//            } else {
+//
+//            }
+//        }
+
+//        project.evaluationDependsOnChildren()
+
+        def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
+//        def projectLibDependencies = diContext.dependencies.withType(ProjectDependency)
+
+        println("<<<>>> prj: $project.name, sub-prjs: ${projectLibDependencies*.name.join(', ')}")
+
+        projectLibDependencies.each { dependency ->
+            def subProject = dependency.dependencyProject
+
+            def targetTask = subProject.tasks[sourceSet.jarTaskName]
+
+            def producerConfigurationName = "${sourceSet.name}Producer"
+
+            def producerConfiguration = subProject.configurations.findByName(producerConfigurationName) ?: subProject.configurations.create(producerConfigurationName) {
+                canBeResolved = false
+                canBeConsumed = true
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, subProject.objects.named(Usage, "${targetTask.name}-variant"))
+                }
+                outgoing.artifact(targetTask)
+            }
+
+            def usage = producerConfiguration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+            println("<<<p>>> attribute: $usage")
+            println("<<<d1>>> $subProject, ${subProject.configurations['default'].allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}")
+            println("<<<d2>>> $project, ${project.configurations['default'].allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}")
+
+//            def defaultConfigurationCopy = subProject.configurations['default'].copyRecursive()
+//            defaultConfigurationCopy.each { dep ->
+//                if (isProjectDependency(dep)) {
+//                    def transitiveProjectDependency = dep as ProjectDependency
+//                    def transitiveProject = transitiveProjectDependency.dependencyProject
+//                    def transitiveTask = transitiveProject.tasks[sourceSet.jarTaskName]
+//                    def producerConfiguration1 = transitiveProject.configurations.findByName(sourceSet.name) ?: transitiveProject.configurations.create(sourceSet.name) {
+//                        canBeResolved = false
+//                        canBeConsumed = true
+//                        attributes {
+//                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${transitiveTask.name}-variant"))
+//                        }
+//                        outgoing.artifact(transitiveTask)
+//                    }
+//                }
+//                else {
+//
+//                }
+//            }
+
+            def dep = project.dependencies.project(path: subProject.path, configuration: producerConfiguration.name)
+
+//            def subConsumerConfigurationName = "${sourceSet.name}Consumer"
+//
+//            def subConsumerConfiguration = project.configurations.findByName(subConsumerConfigurationName) ?: project.configurations.create(subConsumerConfigurationName) {
+//                canBeResolved = false
+//                canBeConsumed = true
+//                attributes {
+//                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${targetTask.name}-variant"))
+//                }
+//            }
+
+            // Add to project new project lib dependency
+//            def consumerConfiguration = project.configurations[sourceSet.compileClasspathConfigurationName]
+//            def usage1 = consumerConfiguration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+//            if (usage1.name != "${targetTask.name}-variant") {
+//                consumerConfiguration.attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${targetTask.name}-variant"))
+//            }
+//            println("<<<c>>> attribute: $usage1")
+//            subProject.dependencies.attributesSchema.with {
+//                attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules.add(DisRule) {
+//                    it.params(sourceSet.name)
+//                }
+//                attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(CompatRule)
+//            }
+
+            project.dependencies.attributesSchema.with {
+                attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(CompatRule)
+
+                // Added to support correct Dependency resolution for Gradle 4.X
+                attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules.add(DisRule) {
+                    it.params(sourceSet.name)
+                }
+            }
+
+            project.dependencies.add(consumerConfiguration.name, dep)
+
+//            consumerConfiguration.extendsFrom(subConsumerConfiguration)
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle: 'projectsEvaluated',
+                    configuration: sourceSet.name,
+                    msg: "Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
+            ))
+        }
+    }
+
+
+    /**
+     * See {@link #generateDetachedDefaultConfigurationsRecursivelyFor} doc
+     *
+     * @return A set of detached {@link Configuration}s that are derived from all relevant 'default' configurations
+     *         encountered in the dependency graph originated from the initial
+     *         'default' configuration dependency set for the initial project in context.
+     */
+    Set<Configuration> generateDetachedDefaultConfigurationsRecursively() {
+        def modules = findAllCrossBuildPluginAppliedProjects()
+
+        def initialDefaultConfiguration = diContext.project.configurations['default']
+        def configurations = generateDetachedDefaultConfigurationsRecursivelyFor(diContext.project, modules)
+
+        configurations
+    }
+
+    /**
+     * Valid Project type dependencies to descend the dependency graph for in this method are those with
+     * targetConfiguration as 'default' only.
+     * Bound by the visibility to the modules that the cross build plugin is applied to.
+     * In a lazy applied plugin type of build.gradle, the full set of modules is visible in {code projectsEvaluated{}}
+     * and later.
+     *
+     * @param modules Set of modules cross build plugin was applied to.
+     *                see {@link #extractCrossBuildProjectTypeDependencies}
+     * @param inputDependencySet
+     * @param defaultConfiguration
+     * @return
+     */
+    private Set<Configuration> extractCopiedDefaultConfigurationsRecursivelyInternal(
+            Set<Project> modules,
+            Configuration defaultConfiguration) {
+
+        Set<Configuration> accum = []
+
+        // todo maybe dependencies is enough ? (stead of allDependencies)
+        def inputDependencySet = defaultConfiguration.allDependencies
+
+        def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
+                .collect { it as ProjectDependency }
+        def currentProjectTypDepsForDefault = currentProjectTypDeps.findAll { it.targetConfiguration == null }
+        // todo copy is sufficient ? (stead of copyRecursive)
+        def copiedAndFiltered = defaultConfiguration.copyRecursive { Dependency dependency ->
+            !modules*.name.contains(dependency.name)
+        }
+        accum.add(copiedAndFiltered)
+        if (currentProjectTypDepsForDefault.size() > 0) {
+            currentProjectTypDepsForDefault.each { ProjectDependency dependency ->
+                def nextDefaultConfiguration = dependency.dependencyProject.configurations['default']
+                accum.addAll(extractCopiedDefaultConfigurationsRecursivelyInternal(modules, nextDefaultConfiguration))
+            }
+        }
+
+        accum
+    }
+
+    /**
+     * Valid (= projects that cross build gradle plugin was applies to) Projects 'default' dependency set
+     * is being searched for other project type dependencies by searching the dependency tree.
+     * All the 'default' configurations for the found {@link ProjectDependency#getDependencyProject} are being
+     * accumulated recursively and returned.
+     *
+     * NOTEs:
+     * 1. Only those {@link ProjectDependency} with targetConfiguration as 'default' are being considered.
+     * 2. This method is bound by the visibility to the modules that the cross build plugin is applied to.
+     *    See modules parameter.
+     *    In a lazy applied plugin type of build.gradle, the full set of modules is visible in
+     *    {@code projectsEvaluated{}} and later.
+     *
+     * @param dependencyProject The project for which we collect it's processed 'default' configuration
+     * @param modules Set of modules cross build plugin was applied to.
+     *                see {@link #extractCrossBuildProjectTypeDependencies}
+     * @return a set of detached configurations derived from the 'default' configuration found in the dependency tree
+     */
+    private Set<Configuration> generateDetachedDefaultConfigurationsRecursivelyFor(Project dependencyProject,
+                                                                                   Set<Project> modules) {
+        Set<Configuration> accum = []
+
+        // todo maybe dependencies is enough ? (stead of allDependencies)
+        def defaultConfiguration = dependencyProject.configurations['default']
+        def inputDependencySet = defaultConfiguration.allDependencies
+
+        def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
+                .collect { it as ProjectDependency }
+        def currentProjectTypDepsForDefault = currentProjectTypDeps.findAll { it.targetConfiguration == null }
+        // todo copy is sufficient ? (stead of copyRecursive)
+
+        def filteredDefaultDependencies = defaultConfiguration.allDependencies.findAll { Dependency dependency ->
+            !modules*.name.contains(dependency.name)
+        }
+        def filteredDefaultDependneciesArray =
+                filteredDefaultDependencies.toArray(new Dependency[filteredDefaultDependencies.size()]) as Dependency[]
+        def detachedDefaultConfiguration =
+                dependencyProject.configurations.detachedConfiguration(filteredDefaultDependneciesArray)
+
+//        def copiedAndFiltered = defaultConfiguration.copyRecursive { Dependency dependency ->
+//            !modules*.name.contains(dependency.name)
+//        }
+        accum.add(detachedDefaultConfiguration)
+        if (currentProjectTypDepsForDefault.size() > 0) {
+            currentProjectTypDepsForDefault.each { ProjectDependency dependency ->
+                def nextDependencyProject = dependency.dependencyProject
+                accum.addAll(generateDetachedDefaultConfigurationsRecursivelyFor(nextDependencyProject, modules))
+            }
+        }
+
+        accum
+    }
+
+    void createAndAddNonDefaultProjectTypeDependencies1(SourceSet sourceSet) {
+        def project = diContext.project
+
+        def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
+
+//        def projectLibDependencies = diContext.dependencies.withType(ProjectDependency)
+
+        println("<<<>>> prj: $project.name, sub-prjs: ${projectLibDependencies*.name.join(', ')}")
+
+        projectLibDependencies.each { dependency ->
+            def subProject = dependency.dependencyProject
+
+            def targetTask = subProject.tasks[sourceSet.jarTaskName]
+
+            def producerConfiguration = subProject.configurations.findByName(sourceSet.name) ?: subProject.configurations.create(sourceSet.name) {
+                canBeResolved = false
+                canBeConsumed = true
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${targetTask.name}-variant"))
+                }
+                outgoing.artifact(targetTask)
+            }
+
+            def usage = producerConfiguration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+            println("<<<p>>> attribute: $usage")
+            println("<<<d1>>> $subProject, ${subProject.configurations['default'].allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}")
+            println("<<<d2>>> $project, ${project.configurations['default'].allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}")
+
+//            def consumerConfiguration = project.configurations.maybeCreate(sourceSet.name)
+//            consumerConfiguration.with  {
+//                canBeResolved = true
+//                canBeConsumed = false
+//                attributes {
+//                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${targetTask.name}-variant"))
+//                }
+//            }
+
+            // Add to project new project lib dependency
+            def dep = project.dependencies.project(path: subProject.path, configuration: producerConfiguration.name)
+            def consumerConfiguration = project.configurations[sourceSet.compileClasspathConfigurationName]
+            def usage1 = consumerConfiguration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+            if (usage1.name != "${targetTask.name}-variant") {
+                consumerConfiguration.attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${targetTask.name}-variant"))
+            }
+            println("<<<c>>> attribute: $usage1")
+            project.dependencies.attributesSchema.with {
+                attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules.add(DisRule) {
+                    it.params(sourceSet.name)
+                }
+                attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(CompatRule)
+            }
+            project.dependencies.add(consumerConfiguration.name, dep)
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle: 'projectsEvaluated',
+                    configuration: sourceSet.name,
+                    msg: "Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
+            ))
+        }
+    }
+
+
+
+    static class CompatRule implements AttributeCompatibilityRule<Usage> {
+        void execute(CompatibilityCheckDetails<Usage> details) {
+            println("<<<cmp1>>> $details.consumerValue")
+            println("<<<cmp2>>> ${details.producerValue}")
+            if (details.consumerValue.name == Usage.JAVA_API && details.producerValue.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)) {
+                details.compatible()
+            }
+            if (details.consumerValue.name == Usage.JAVA_RUNTIME && details.producerValue.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)) {
+                details.compatible()
+            }
+//            if (details.consumerValue.name.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) && details.producerValue.name == Usage.JAVA_RUNTIME_JARS) {
+//                details.compatible()
+//            }
+//            else if (details.consumerValue.name.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) && details.producerValue.name == Usage.JAVA_API) {
+//                details.compatible()
+//            }
+        }
+    }
+
+    static class DisRule implements AttributeDisambiguationRule<Usage> {
+        String sourceSetName
+
+        @Inject
+        DisRule(String sourceSetName) {
+            this.sourceSetName = sourceSetName
+        }
+
+        void execute(MultipleCandidatesDetails<Usage> details) {
+            println("<<<dis1>>> $details.consumerValue")
+            println("<<<dis2>>> ${details.candidateValues*.name.join(', ')}")
+            println("<<<dis3>>>${details.candidateValues.size()} - ${details.candidateValues.findAll{it != null}.size()}")
+//            if (details.consumerValue == null) {
+//                for (Usage t: details.candidateValues) {
+//                    if (!t.name.contains(sourceSetName)) {
+//                        details.closestMatch(t)
+//                        return
+//                    }
+//                }
+//            }
+            // Needed by Gradle 4.X, otherwise Dependency resolution fails for non crossbuild configurations with
+            // something like:
+            // * Exception is:
+            // org.gradle.api.internal.tasks.TaskDependencyResolveException: Could not determine the dependencies of task ':app:test'.
+            // Caused by: org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration$ArtifactResolveException: Could not resolve all task dependencies for configuration ':app:testRuntimeClasspath'.
+            //    ... 85 more
+            // Caused by: org.gradle.internal.resolve.ModuleVersionResolveException: Could not resolve project :lib2.
+            // Required by:
+            //    project :app
+            //    ... 90 more
+            // Caused by: org.gradle.internal.component.AmbiguousConfigurationSelectionException: Cannot choose between the following variants of project :lib2:
+            //   - crossBuildSpark160_210Producer
+            //   - crossBuildSpark240_211Producer
+            //   - runtimeElements
+            // All of them match the consumer attributes:
+            //   - Variant 'crossBuildSpark160_210Producer': Required org.gradle.usage 'java-runtime' and found compatible value 'crossBuildSpark160_210Jar-variant'.
+            //   - Variant 'crossBuildSpark240_211Producer': Required org.gradle.usage 'java-runtime' and found compatible value 'crossBuildSpark240_211Jar-variant'.
+            //   - Variant 'runtimeElements': Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime-jars'.
+            if (!details.consumerValue.name.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME)) {
+                for (Usage t: details.candidateValues) {
+                    if (!t.name.contains(sourceSetName)) {
+                        println("<<<>>> Chose ${t.name} as closest match.")
+                        details.closestMatch(t)
+                        return
+                    }
+                }
+            }
+//            else {
+//                for (Usage t: details.candidateValues) {
+//                    if (t.name.contains(sourceSetName)) {
+//                        println("<<<>>> Chose ${t.name} as closest match.")
+//                        details.closestMatch(t)
+//                        return
+//                    }
+//                }
+//            }
+        }
+    }
+
+    void createAndAddNonDefaultProjectTypeDependencies2(SourceSet sourceSet) {
+        def project = diContext.project
+
+        def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
+
+        projectLibDependencies.each { dependency ->
+            def subProject = dependency.dependencyProject
+
+            def targetTask = subProject.tasks[sourceSet.jarTaskName]
+
+            def producerConfiguration = subProject.configurations.maybeCreate("${sourceSet.name}Producer")
+            producerConfiguration.with {
+                canBeResolved = false
+                canBeConsumed = true
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${targetTask.name}-variant"))
+                }
+                outgoing.artifact(targetTask)
+            }
+
+            // Wire artifact on sub-project level
+//            subProject.artifacts.add(producerConfiguration.name, targetTask)
+
+//            println("<<<>>> prj: $project.name, sub-prj: $subProject.name -> ${dependency.dependenc} | ${dependency.buildDependencies} | ${producerConfiguration.outgoing.artifacts.files*.name.join(', ')}")
+
+
+            def consumerConfiguration = project.configurations.maybeCreate("${sourceSet.name}Consumer")
+            consumerConfiguration.with  {
+                canBeResolved = true
+                canBeConsumed = false
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "${targetTask.name}-variant"))
+                }
+            }
+//
+//            dependencies {
+//                taskOutputs(project(":projectB"))
+//            }
+
+
+            // Add to project new project lib dependency
+            def dep = project.dependencies.project(path:subProject.path, configuration:producerConfiguration.name)
+            project.dependencies.add(consumerConfiguration.name, dep)
+
+            project.logger.info(LoggerUtils.logTemplate(project,
+                    lifecycle:'projectsEvaluated',
+                    configuration:sourceSet.name,
+                    msg:"Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
+            ))
+        }
     }
 
     /**
@@ -228,9 +813,9 @@ class DependencyInsights {
         def scalaDeps = dependencySet
                 .findAll { "${it.group}:${it.name}" == 'org.scala-lang:scala-library' }
                 .collect { dep ->
-            def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)
-            def groupAndBaseName = parseDependencyName(dep, scalaVersions).first
-            new Tuple(groupAndBaseName, scalaVersionInsights.artifactInlinedVersion, dep) }
+                    def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)
+                    def groupAndBaseName = parseDependencyName(dep, scalaVersions).first
+                    new Tuple(groupAndBaseName, scalaVersionInsights.artifactInlinedVersion, dep) }
 
         scalaDeps
     }
@@ -251,7 +836,7 @@ class DependencyInsights {
         def nonMatchingDeps = dependencySet.collect {
             def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it, scalaVersions)
             new Tuple(groupAndBaseName, supposedScalaVersion, it) }
-        .findAll { it[1] != null && it[1] != scalaVersion }
+                .findAll { it[1] != null && it[1] != scalaVersion }
 
         nonMatchingDeps
     }
@@ -267,7 +852,7 @@ class DependencyInsights {
      *
      * NOTE: The outcome is dependent on the lifecycle stage this method is called in. It is complete and stable
      * after {@code gradle.projectsEvaluated} and gives a limited visibility (of one level only)
-     * in {@code project.afterEvaluated}
+     * in {@code project.afterEvaluated} see {@link #findAllCrossBuildPluginAppliedProjects}
      *
      * @return A set of {@link ProjectDependency} that belong to the dependency graph originated from the initial
      *         project type dependencies found in the initial dependency set
@@ -275,39 +860,48 @@ class DependencyInsights {
     Set<ProjectDependency> extractCrossBuildProjectTypeDependencies() {
         def modules = findAllCrossBuildPluginAppliedProjects()
 
-        def initialDependencySet = diContext.dependencies
+        def initialDependencySet = diContext.dependencies.collectMany { it.toSet() }
         def configuration = diContext.configurations.current
+        def parentConfiguration = diContext.configurations.parent
+        def configurationSet = [configuration.name, parentConfiguration?.name].findAll { it != null } as Set
         def dependencies = extractCrossBuildProjectTypeDependenciesRecursively(modules, initialDependencySet.toSet(),
-                configuration.name)
+                configurationSet)
 
         dependencies
     }
 
     /**
-     * Valid Project type dependencies for this method are those with targetConfiguration as 'default' only
+     * Valid Project type dependencies to descend the dependency graph for in this method are those with
+     * targetConfiguration as 'default' only.
+     * Bound by the visibility to the modules that the cross build plugin is applied to.
+     * In a lazy applied plugin type of build.gradle, the full set of modules is visible in {code projectsEvaluated{}}
+     * and later.
      *
-     * @param modules
+     * @param modules Set of modules cross build plugin was applied to.
+     *                see {@link #extractCrossBuildProjectTypeDependencies}
      * @param inputDependencySet
-     * @param configurationName
-     * @return
+     * @param configurationNames
+     * @return Set of {@link ProjectDependency} that are either part of the inputDependencySet or directly linked or
+     *         transitively linked as dependency according to
+     *         {@link #extractCrossBuildProjectTypeDependencyDependencies}
      */
     private Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(
             Set<Project> modules,
             Set<Dependency> inputDependencySet,
-            String configurationName) {
+            Set<String> configurationNames) {
 
         Set<ProjectDependency> accum = []
 
         def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
-                .findAll { isNotAccumulated(it, accum) }.collect { (ProjectDependency) it }
+                .findAll { isNotAccumulated(it, accum) }.collect { it as ProjectDependency }
         def currentProjectTypDepsForDefault = currentProjectTypDeps.findAll { it.targetConfiguration == null }
         if (currentProjectTypDepsForDefault.size() > 0) {
             accum.addAll(currentProjectTypDepsForDefault)
             def currentProjectTypeDependenciesDependencies = currentProjectTypDepsForDefault.collectMany { prjDep ->
-                extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationName)
+                extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationNames)
             }
             accum.addAll(extractCrossBuildProjectTypeDependenciesRecursively(modules,
-                    currentProjectTypeDependenciesDependencies.toSet(), configurationName))
+                    currentProjectTypeDependenciesDependencies.toSet(), configurationNames))
         }
 
         accum
@@ -322,10 +916,10 @@ class DependencyInsights {
     }
 
     private static Set<Dependency> extractCrossBuildProjectTypeDependencyDependencies(ProjectDependency dependency,
-                                                                                      String configurationName) {
-        def crossBuildProjectTypeDependencyDeps =
-                dependency.dependencyProject.configurations.findByName(configurationName)?.allDependencies
+                                                                                      Set<String> configurationNames) {
+        def crossBuildProjectTypeDependencyDependencySets = configurationNames.collect { dependency.dependencyProject.configurations.findByName(it)?.allDependencies }. findAll { it != null }
 
-        crossBuildProjectTypeDependencyDeps != null ? crossBuildProjectTypeDependencyDeps.toSet() : [] as Set
+        crossBuildProjectTypeDependencyDependencySets.size() > 0 ? crossBuildProjectTypeDependencyDependencySets.collectMany { it.toSet() } : [] as Set
     }
 }
+

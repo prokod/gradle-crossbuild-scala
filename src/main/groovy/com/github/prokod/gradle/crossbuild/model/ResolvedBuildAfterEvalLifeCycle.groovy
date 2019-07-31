@@ -17,7 +17,9 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
     }
 
     String toString() {
-        JsonOutput.toJson([name:name,
+//        new JsonBuilder(archive).toPrettyString()
+
+        JsonOutput.prettyPrint(JsonOutput.toJson([name:name,
                            scalaVersion:scalaVersion,
                            archive:[appendixPattern:archive.appendixPattern,
                                      appendix:archive.appendix],
@@ -30,6 +32,6 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
                                                   underscoredCompilerVersion:scalaVersionInsights.
                                                           underscoredCompilerVersion,
                                                   underscoredArtifactInlinedVersion:scalaVersionInsights.
-                                                          underscoredArtifactInlinedVersion]])
+                                                          underscoredArtifactInlinedVersion]]))
     }
 }

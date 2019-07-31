@@ -13,8 +13,8 @@ class ScalaCompileTasks {
 
     static void tuneCrossBuildScalaCompileTask(Project project,
                                                SourceSet sourceSet,
-                                               Set<ProjectDependency> projectDependencies,
-                                               Set<Dependency> allDependencies) {
+                                               Set<ProjectDependency> projectDependencies//,
+                                               /*Set<Dependency> allDependencies*/) {
         project.tasks.withType(ScalaCompile) { ScalaCompile t ->
             if (t.name == sourceSet.getCompileTaskName('scala')) {
                 def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
@@ -24,43 +24,35 @@ class ScalaCompileTasks {
                                     "${sourceSet.name}/${project.name}.analysis")
                 }
                 t.doFirst {
-                    project.logger.debug(LoggerUtils.logTemplate(project,
-                            lifecycle:'projectsEvaluated',
+                    project.logger.info(LoggerUtils.logTemplate(project,
+                            lifecycle:'taskGraphReady',
                             sourceset:sourceSet.name,
-                            msg:'Modified cross build scala compile task classpath:\n' +
-                                    "${t.classpath*.toString().join('\n')}"
+                            msg:'Cross build scala compile task classpath ' +
+                                    t.classpath.collect { "${it.name}" }.join(':')
                     ))
                 }
-                t.doFirst {
-                    def tuples = projectDependencies.collect {
-                        def projectName = it.dependencyProject.name
-                        def crossBuildJarTaskName = it.dependencyProject.tasks.findByName(sourceSet.getJarTaskName())
-                        new Tuple2(projectName, crossBuildJarTaskName)
-                    }
-                    def fileCollections = tuples*.second.collect { it.outputs.files }
-                    def crossBuildClasspath = fileCollections.inject(project.files()) { result, c -> result + c }
-
-                    def deps = allDependencies - projectDependencies
-
-                    def origClasspathFiltered = t.classpath.filter { classpathFilterPredicate(it, tuples*.first, deps) }
-
-                    t.classpath = crossBuildClasspath + origClasspathFiltered
-                }
+//                t.doFirst {
+//                    def tuples = projectDependencies.collect {
+//                        def projectName = it.dependencyProject.name
+//                        def crossBuildJarTaskName = it.dependencyProject.tasks.findByName(sourceSet.getJarTaskName())
+//                        new Tuple2(projectName, crossBuildJarTaskName)
+//                    }
+//
+//                    tuples*.first.each { pname ->
+//                        t.classpath = t.classpath.filter { file ->
+//                            file.name != "${pname}-${project.getVersion()}.jar"
+//                        }
+//                    }
+//                }
+//                t.doFirst {
+//                    project.logger.info(LoggerUtils.logTemplate(project,
+//                            lifecycle:'projectsEvaluated',
+//                            sourceset:sourceSet.name,
+//                            msg:'NON Modified cross build scala compile task classpath ' +
+//                                    t.classpath.collect { "${it.name}" }.join(':')
+//                    ))
+//                }
             }
         }
-    }
-
-    static boolean classpathFilterPredicate(File candidate,
-                                            List<String> projectNames, Set<Dependency> allDependencies) {
-        def fileIsCandidateForRemoval = projectNames.findAll { projectName ->
-            def pattern = ~/^$projectName[-|\.].*$/
-            candidate.name ==~ pattern
-        }.size() > 0
-
-        def fileIsActuallyA3rdPartyDependency = allDependencies.collect { "$it.name-$it.version" }.findAll {
-            candidate.name.startsWith(it)
-        }.size() > 0
-
-        !fileIsCandidateForRemoval || fileIsActuallyA3rdPartyDependency
     }
 }
