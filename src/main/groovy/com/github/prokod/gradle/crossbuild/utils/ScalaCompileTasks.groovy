@@ -25,7 +25,7 @@ class ScalaCompileTasks {
                 }
                 t.doFirst {
                     project.logger.info(LoggerUtils.logTemplate(project,
-                            lifecycle:'taskGraphReady',
+                            lifecycle:'task',
                             sourceset:sourceSet.name,
                             msg:'Cross build scala compile task classpath ' +
                                     t.classpath.collect { "${it.name}" }.join(':')
