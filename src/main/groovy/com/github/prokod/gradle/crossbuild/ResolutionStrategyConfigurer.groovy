@@ -5,7 +5,6 @@ import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.DependencySet
 
@@ -63,26 +62,13 @@ class ResolutionStrategyConfigurer {
             def di = new DependencyInsights(diContext)
 
             def crossBuildProjects = di.findAllCrossBuildPluginAppliedProjects()
-            def crossBuildSubProjects = crossBuildProjects - [project] as Set
 
-            // Link crossbuild configuration to the given parent configuration
-//            if (!crossBuildConfiguration.name.endsWith('Classpath')) {
-//                crossBuildConfiguration.extendsFrom(parentConfiguration.copyRecursive { Dependency dependency ->
-//                    println("<<<FOCUS>>> $dependency: ${!crossBuildSubProjects*.name.contains(dependency.name)}")
-//                    !crossBuildSubProjects*.name.contains(dependency.name)
-//                })
-////                crossBuildConfiguration.extendsFrom(parentConfiguration)
-//                println("<<<>>> ${crossBuildConfiguration.name} ExtendsFrom: ${crossBuildConfiguration.extendsFrom*.name.join(', ')}")
-//            } else {
-//                println("<<<>>> Skipping")
-//                println("<<<>>> ${crossBuildConfiguration.name} ExtendsFrom: ${crossBuildConfiguration.extendsFrom*.name.join(', ')}")
-//
-//            }
-
-            def projectDependencies = di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([parentConfiguration.name] as Set)
-            def allDependenciesAsDisplayNameSet = (allDependencies.collectMany { it.toSet() } + projectDependencies).collect { dep ->
-                "${dep.group}:${dep.name}:${dep.version}"
-            }.toSet()
+            def projectDependencies =
+                    di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([parentConfiguration.name] as Set)
+            def allDependenciesAsDisplayNameSet =
+                    (allDependencies.collectMany { it.toSet() } + projectDependencies).collect { dep ->
+                        "${dep.group}:${dep.name}:${dep.version}"
+                    }.toSet()
 
             // todo duplicate runs ? maybe to do only on classpath compile/runtime ?
             crossBuildProjects.each {
@@ -122,17 +108,10 @@ class ResolutionStrategyConfigurer {
         def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
 
-        def modules = di.findAllCrossBuildPluginAppliedProjects()
-
         // Not a cross built dependency
         if (supposedScalaVersion == null) {
             if (requested.group == 'org.scala-lang') {
                 details.useVersion(scalaVersionInsights.compilerVersion)
-            }
-            else if (requested.group == project.group && modules*.name.contains(requested.name)) {
-//                crossBuildConfiguration.hierarchy
-//                crossBuildConfiguration.exclude(module: requested.name)
-//                println("<<<>>> prj: $project, h: ${crossBuildConfiguration.hierarchy*.toString().join(' -> ')}")
             }
         }
         // A cross built dependency - globbed (implicit)
@@ -236,9 +215,7 @@ class ResolutionStrategyConfigurer {
      * @param details {@link org.gradle.api.artifacts.DependencyResolveDetails} from resolution strategy
      * @param scalaVersionInsights Holds all version permutations for a specific Scala version
      */
-    private static void resolveQMarkDep(
-            DependencyResolveDetails details,
-            String replacementScalaVersion) {
+    private static void resolveQMarkDep(DependencyResolveDetails details, String replacementScalaVersion) {
         def requested = details.requested
         def resolvedName = requested.name.replace('_?', "_$replacementScalaVersion")
         details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
@@ -309,8 +286,9 @@ class ResolutionStrategyConfigurer {
                 configurations:[current:configuration, parent:parentConfiguration])
         def di = new DependencyInsights(diContext)
 
+        def configurationNames = [configuration.name, parentConfiguration.name] as Set
         def crossBuildProjectDependencySet =
-                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([configuration.name, parentConfiguration.name] as Set)
+                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configurationNames)
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
 
