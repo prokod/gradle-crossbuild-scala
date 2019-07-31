@@ -1,5 +1,6 @@
 package com.github.prokod.gradle.crossbuild
 
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -80,5 +81,22 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
         def tokens = gradleVersion.tokenize('.').toList()
         def major = tokens.head().toInteger()
         major <= 4
+    }
+
+    protected String loadResourceAsText(Map tokens, String path) {
+        def resource = this.getClass().getResource(path)
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream()))
+
+        def replaceTokens = new ReplaceTokens(reader)
+        def tokenObjects = tokens.collect { entry ->
+            def tkn = new ReplaceTokens.Token()
+            tkn.key = entry.key
+            tkn.value = entry.value
+            tkn
+        }
+        tokenObjects.each { tkn -> replaceTokens.addConfiguredToken(tkn) }
+
+        replaceTokens.text
     }
 }

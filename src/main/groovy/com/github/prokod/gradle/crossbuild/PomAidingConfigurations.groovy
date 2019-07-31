@@ -14,6 +14,7 @@ import org.gradle.api.tasks.SourceSet
  * {@link org.gradle.api.artifacts.ConfigurationContainer} manipulation class to set Pom aiding Configuration
  *  that aids in pom creation while using publish-maven plugin
  *
+ * todo rely on cross build classpath (compile/runtime) to simplify code ?
  */
 class PomAidingConfigurations {
     private final Project project
@@ -68,12 +69,28 @@ class PomAidingConfigurations {
      *         container.
      */
     Configuration createAndSetForMavenScope(ScopeType scopeType) {
+//        def diContext = new DependencyInsightsContext(project:project)
+//        def di = new DependencyInsights(diContext)
+//
+//        def moduleNames = di.findAllCrossBuildPluginAppliedProjects()*.name
+
         def mavenToGradleScope = { ScopeType scope ->
             switch (scope) {
                 case ScopeType.COMPILE:
                     return project.configurations[sourceSet.compileConfigurationName]
                 case ScopeType.PROVIDED:
                     return project.configurations[sourceSet.compileOnlyConfigurationName]
+            }
+        }
+
+        def mavenToGradleScope1 = { ScopeType scope ->
+            switch (scope) {
+                case ScopeType.COMPILE:
+                    return project.configurations[sourceSet.compileClasspathConfigurationName]
+                case ScopeType.RUNTIME:
+                    return project.configurations[sourceSet.runtimeClasspathConfigurationName]
+//                case ScopeType.PROVIDED:
+//                    return project.configurations[sourceSet.compileOnlyConfigurationName]
             }
         }
 
@@ -85,21 +102,65 @@ class PomAidingConfigurations {
                 case ScopeType.PROVIDED:
                     def compileOnlySet = configuration.allDependencies
                     def compileSet = project.configurations[sourceSet.compileConfigurationName].allDependencies
+                    // TODO: Is it necessary ?
                     return (compileOnlySet - compileSet)
             }
         }
 
+        def dependencySetFunction1 = { ScopeType scope ->
+            switch (scope) {
+                case ScopeType.COMPILE:
+                    def compileConfiguration = mavenToGradleScope1(scope)
+
+                    def deps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies.collect{ module ->
+                        project.dependencies.create(
+                                group:module.moduleGroup,
+                                name:module.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) /*&& moduleNames.contains(module.moduleName)*/ ? module.moduleArtifacts[0].name : module.moduleName,
+                                version:module.moduleVersion)
+                    }
+                    return deps.toSet()
+                case ScopeType.RUNTIME:
+                    def runtimeConfiguration = mavenToGradleScope1(scope)
+                    def compileConfiguration = mavenToGradleScope1(ScopeType.COMPILE)
+
+                    def runtimeModuleDeps = runtimeConfiguration.resolvedConfiguration.firstLevelModuleDependencies
+                    def compileModuleDeps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies
+
+                    def comparableCompileModuleDependencies =
+                            compileModuleDeps.collect { "$it.moduleGroup:$it.moduleName:$it.moduleVersion" }
+                    def filteredRuntimeModuleDependencies = runtimeModuleDeps.findAll { md ->
+                        def comparableRuntimeModuleDependency = "$md.moduleGroup:$md.moduleName:$md.moduleVersion"
+                        !comparableCompileModuleDependencies.contains(comparableRuntimeModuleDependency)
+                    }
+                    def deps = filteredRuntimeModuleDependencies.collect{ module ->
+                        project.dependencies.create(
+                                group:module.moduleGroup,
+                                name:module.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) /*&& moduleNames.contains(module.moduleName)*/ ? module.moduleArtifacts[0].name : module.moduleName,
+                                version:module.moduleVersion)
+                    }
+                    return deps.toSet()
+//                case ScopeType.PROVIDED:
+//                    def compileOnlySet = configuration.allDependencies
+//                    def compileSet = project.configurations[sourceSet.compileConfigurationName].allDependencies
+//                    // TODO: Is it necessary ?
+//                    return (compileOnlySet - compileSet)
+            }
+        }
+
         def createdTargetMavenScopeConfig =
-                project.configurations.create(mavenScopeConfigurationNameFor(scopeType))
+                project.configurations.create(mavenScopeConfigurationNameFor(scopeType)) {
+                    canBeConsumed = false
+                    canBeResolved = false
+                }
 
         project.logger.info(LoggerUtils.logTemplate(project,
-                lifecycle:'afterEvaluate',
+                lifecycle:'projectsEvaluated',
                 sourceset:sourceSet.name,
-                configuration:mavenToGradleScope(scopeType).name,
+                configuration:mavenToGradleScope1(scopeType).name,
                 msg:"Created Maven scope ${scopeType} related configuration: ${createdTargetMavenScopeConfig.name}"
         ))
 
-        set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType))
+        set(createdTargetMavenScopeConfig, dependencySetFunction1(scopeType))
         createdTargetMavenScopeConfig
     }
 
@@ -256,6 +317,7 @@ class PomAidingConfigurations {
 
     static enum ScopeType {
         COMPILE,
+        RUNTIME,
         PROVIDED
     }
 }
