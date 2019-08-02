@@ -9,6 +9,10 @@ import org.gradle.api.tasks.TaskAction
 
 /**
  * Custom gradle task for cross building related reporting
+ *
+ * todo add compileOnly, runtimeOnly
+ * todo group under sourceset all configs
+ * todo depict extendsFrom
  */
 class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossBuildsReportTask {
     CrossBuildExtension extension
@@ -42,30 +46,44 @@ class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossB
             sourceSet.compileConfigurationName
         }
         def subItem2 = createReportSubItemFor(sourceSet) { SourceSet input ->
-            sourceSet.compileClasspathConfigurationName
+            sourceSet.implementationConfigurationName
         }
         def subItem3 = createReportSubItemFor(sourceSet) { SourceSet input ->
+            sourceSet.compileClasspathConfigurationName
+        }
+        def subItem4 = createReportSubItemFor(sourceSet) { SourceSet input ->
             sourceSet.runtimeClasspathConfigurationName
         }
 
-        def subItems = [subItem1, subItem2, subItem3]
+        def subItems = [subItem1, subItem2, subItem3, subItem4]
         '[' + subItems.collect { toJson(it) }.join(',\n') + ']'
     }
 
     ReportSubItem createReportSubItemFor(SourceSet sourceSet, Closure<String> reqConfigurationNameFunc) {
         def reqConfigurationName = reqConfigurationNameFunc(sourceSet)
         def reqConfiguration = extension.project.configurations.findByName(reqConfigurationName)
-        def reqResolvedConfiguration = reqConfiguration.resolvedConfiguration
+        def canBeResolved = reqConfiguration.isCanBeResolved()
 
         def configurationItem =
                 new ReportSubItem.ConfigurationItem(reqConfiguration.name, reqConfiguration.allDependencies*.toString())
-        def resolvedConfigurationItem =
-                new ReportSubItem.ResolvedConfigurationItem(
-                        reqResolvedConfiguration.firstLevelModuleDependencies*.toString(),
-                        reqResolvedConfiguration.resolvedArtifacts*.toString(),
-                        reqResolvedConfiguration.files*.name,
-                        reqResolvedConfiguration.hasError())
-        def subItem = new ReportSubItem(sourceSet.name, configurationItem, resolvedConfigurationItem)
+
+        def reqResolvedConfigurationFunc = { boolean resolve ->
+            if (resolve) {
+                def reqResolvedConfiguration = reqConfiguration.resolvedConfiguration
+                def resolvedConfigurationItem =
+                        new ReportSubItem.ResolvedConfigurationItem(
+                                reqResolvedConfiguration.firstLevelModuleDependencies*.toString(),
+                                reqResolvedConfiguration.resolvedArtifacts*.toString(),
+                                reqResolvedConfiguration.files*.name,
+                                reqResolvedConfiguration.hasError())
+                resolvedConfigurationItem
+            }
+            else {
+                new ReportSubItem.ResolvedConfigurationItem()
+            }
+        }
+
+        def subItem = new ReportSubItem(sourceSet.name, configurationItem, reqResolvedConfigurationFunc(canBeResolved))
         subItem
     }
 

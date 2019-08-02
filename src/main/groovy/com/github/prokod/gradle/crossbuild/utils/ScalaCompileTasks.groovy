@@ -10,9 +10,7 @@ import org.gradle.api.tasks.scala.ScalaCompile
 class ScalaCompileTasks {
 
     @SuppressWarnings(['LineLength'])
-    static void tuneCrossBuildScalaCompileTask(Project project,
-                                               SourceSet sourceSet) {
-
+    static void tuneCrossBuildScalaCompileTask(Project project, SourceSet sourceSet) {
         // Classpath debugging by collecting classpath property and printing out may cause ana exception similar to:
         // org.gradle.api.UncheckedIOException: Failed to capture fingerprint of input files for task ':app:compileScala' property 'scalaClasspath' during up-to-date check.
         // So this should be avoided ...
