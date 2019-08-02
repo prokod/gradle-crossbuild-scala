@@ -1,7 +1,6 @@
 package com.github.prokod.gradle.crossbuild.tasks
 
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
-import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
@@ -120,7 +119,7 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         }
 
         def pubs = publishing.publications.withType(MavenPublication).findAll {
-            probablyRelatedPublication(it, resolvedBuild, crossBuildSourceSet.name)
+            probablyRelatedPublication(it, crossBuildSourceSet.name)
         }
 
         if (pubs.size() == 0) {
@@ -145,14 +144,11 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         }
     }
 
-    static boolean probablyRelatedPublication(MavenPublication pub,
-                                              ResolvedBuildAfterEvalLifeCycle targetVersion,
-                                              String sourceSetId) {
-        pub.artifactId.endsWith(targetVersion.archive.appendix) || pub.name.contains(sourceSetId)
+    static boolean probablyRelatedPublication(MavenPublication pub, String sourceSetId) {
+        pub.name.contains(sourceSetId)
     }
 
-    static boolean probablyRelatedPublication(String name,
-                                              String sourceSetId) {
+    static boolean probablyRelatedPublicationTask(String name, String sourceSetId) {
         name.contains(sourceSetId.capitalize())
     }
 
