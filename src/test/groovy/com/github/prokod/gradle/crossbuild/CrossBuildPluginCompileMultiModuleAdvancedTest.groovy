@@ -261,10 +261,10 @@ dependencies {
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
                 '/app_builds_resolved_configurations-00.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
-        def actualJsonAsText = appResolvedConfigurationReportFile.text
 
         then:
         appResolvedConfigurationReportFile != null
+        def actualJsonAsText = appResolvedConfigurationReportFile.text
         JSONAssert.assertEquals(expectedJsonAsText, actualJsonAsText, false)
 
         when:
@@ -1338,7 +1338,7 @@ dependencies {
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withDebug(true)
-                .withArguments('lib:crossBuildV210Jar', 'app:crossBuildSpark230_211Jar', 'app:crossBuildResolvedConfigs', '--debug', '--stacktrace')
+                .withArguments('lib:crossBuildV210Jar', 'app:crossBuildSpark230_211Jar', 'app:crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
         then:
@@ -1363,10 +1363,10 @@ dependencies {
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
                 '/app_builds_resolved_configurations-01.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
-        def actualJsonAsText = appResolvedConfigurationReportFile.text
 
         then:
         appResolvedConfigurationReportFile != null
+        def actualJsonAsText = appResolvedConfigurationReportFile.text
         JSONAssert.assertEquals(expectedJsonAsText, actualJsonAsText, false)
 
         where:
@@ -1377,7 +1377,7 @@ dependencies {
     }
 
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and inlined individual appendixPattern with publishing dsl should produce expected: jars, pom files; and pom files content should be correct1"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and inlined individual appendixPattern with publishing dsl and possibly unaligned default scala-lang dependency should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
         // root project settings.gradle
         settingsFile << """
@@ -1411,6 +1411,7 @@ subprojects {
                     spark242_212
                     spark243 {
                         scalaVersions = ['2.11', '2.12']
+                        archive.appendixPattern = '-2-4-3_?'
                     }
                 }
             }
@@ -1568,11 +1569,8 @@ dependencies {
     crossBuildSpark243_211CompileOnly 'org.scalaz:scalaz-core_2.11:7.2.28'
     crossBuildSpark243_212CompileOnly 'org.scalaz:scalaz-core_2.12:7.2.28'
     
+    // Plugin forgives on this scala-lang unaligned default-variant dependency and fixes it in dependency resolution
     compile 'org.scala-lang:scala-reflect:2.12.8'
-    crossBuildSpark233_211Compile 'org.scala-lang:scala-reflect:2.11.12'
-    crossBuildSpark242_212Compile 'org.scala-lang:scala-reflect:2.12.8'
-    crossBuildSpark243_211Compile 'org.scala-lang:scala-reflect:2.11.12'
-    crossBuildSpark243_212Compile 'org.scala-lang:scala-reflect:2.12.8'
 }
 """
 
@@ -1628,10 +1626,6 @@ sourceSets {
 dependencies {
     compile project(':lib')
     compile 'org.scala-lang:scala-reflect:2.12.8'
-    crossBuildSpark233_211Compile 'org.scala-lang:scala-reflect:2.11.12'
-    crossBuildSpark242_212Compile 'org.scala-lang:scala-reflect:2.12.8'
-    crossBuildSpark243_211Compile 'org.scala-lang:scala-reflect:2.11.12'
-    crossBuildSpark243_212Compile 'org.scala-lang:scala-reflect:2.12.8'
 }
 """
 
@@ -1693,24 +1687,64 @@ dependencies {
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withDebug(true)
-                .withArguments('lib:crossBuildV210Jar', 'app:crossBuildSpark233_211Jar', '--info', '--stacktrace')
+                .withArguments('build', 'lib:crossBuildV210Jar', 'lib2:crossBuildResolvedConfigs', 'lib3:crossBuildResolvedConfigs', 'app:crossBuildSpark233_211Jar', '--info', '--stacktrace')
                 .build()
 
         then:
+        result.task(":lib:build").outcome == SUCCESS
+        result.task(":lib2:build").outcome == SUCCESS
+        result.task(":lib3:build").outcome == SUCCESS
+        result.task(":app:build").outcome == SUCCESS
+        result.task(":lib2:crossBuildResolvedConfigs").outcome == SUCCESS
+        result.task(":lib3:crossBuildResolvedConfigs").outcome == SUCCESS
         result.task(":lib:crossBuildV210Jar").outcome == SUCCESS
         result.task(":lib:crossBuildSpark233_211Jar").outcome == SUCCESS
         result.task(":app:crossBuildSpark233_211Jar").outcome == SUCCESS
 
-//        def pattern = ~/(?ms)^.*\[:app[a-zA-Z()|]*crossBuildSpark233_211\)] Modified cross build scala compile task classpath lib2_2.11-1.0-SNAPSHOT.jar:lib_2.11-1.0-SNAPSHOT.jar:scala-reflect-2.11.12.jar:scalaz-core_2.11-7.2.28.jar:scala-library-2.11.12.jar:crossBuildSpark233_211.+$/
-//        result.output ==~ pattern
+        // 'build' task should:
+        fileExists("$dir.root.absolutePath/lib/build/libs/lib-1.0-SNAPSHOT.jar")
+        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2-1.0-SNAPSHOT.jar")
+        fileExists("$dir.root.absolutePath/lib3/build/libs/lib3-1.0-SNAPSHOT.jar")
+        fileExists("$dir.root.absolutePath/app/build/libs/app-1.0-SNAPSHOT.jar")
 
+        // 'lib:crossBuildV210Jar', 'app:crossBuildSpark233_211Jar' tasks should:
         fileExists("$dir.root.absolutePath/lib/build/libs/lib-legacy_2.10*.jar")
         fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
         !fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.12*.jar")
-//        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.11*.jar")
-//        !fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.12*.jar")
+        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.11*.jar")
+        !fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.12*.jar")
         fileExists("$dir.root.absolutePath/app/build/libs/app-all_2.11*.jar")
         !fileExists("$dir.root.absolutePath/app/build/libs/app-all_2.12*.jar")
+
+        when:
+        // Gradle 4 'java' plugin Configuration model is less precise ans so firstLevelModuleDependencies are under
+        // 'default' configuration, Gradle 5 already has a more precise model and so 'default' configuration is replaced
+        // by either 'runtime' or 'compile' see https://gradle.org/whats-new/gradle-5/#fine-grained-transitive-dependency-management
+        def expectedLib2JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
+                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
+                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                '/app_builds_resolved_configurations-02.json')
+        def lib2ResolvedConfigurationReportFile = findFile("*/lib2_builds_resolved_configurations.json")
+
+        then:
+        lib2ResolvedConfigurationReportFile != null
+        def actualLib2JsonAsText = lib2ResolvedConfigurationReportFile.text
+        JSONAssert.assertEquals(expectedLib2JsonAsText, actualLib2JsonAsText, false)
+
+        when:
+        // Gradle 4 'java' plugin Configuration model is less precise ans so firstLevelModuleDependencies are under
+        // 'default' configuration, Gradle 5 already has a more precise model and so 'default' configuration is replaced
+        // by either 'runtime' or 'compile' see https://gradle.org/whats-new/gradle-5/#fine-grained-transitive-dependency-management
+        def expectedLib3JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
+                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
+                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                '/app_builds_resolved_configurations-03.json')
+        def lib3ResolvedConfigurationReportFile = findFile("*/lib3_builds_resolved_configurations.json")
+
+        then:
+        lib3ResolvedConfigurationReportFile != null
+        def actualLib3JsonAsText = lib3ResolvedConfigurationReportFile.text
+        JSONAssert.assertEquals(expectedLib3JsonAsText, actualLib3JsonAsText, false)
 
         where:
         gradleVersion   | defaultScalaVersion

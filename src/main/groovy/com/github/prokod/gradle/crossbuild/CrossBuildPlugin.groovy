@@ -140,12 +140,26 @@ class CrossBuildPlugin implements Plugin<Project> {
         }
     }
 
+    /**
+     * Both 'compile' and 'compileOnly' contribute to 'compileClasspath'. Because they are not in extendsFrom relations
+     * between themselves, Both should be treated.
+     *
+     * @param extension
+     */
     private static void generateNonDefaultProjectTypeDependencies(CrossBuildExtension extension) {
+        def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
-            def di = DependencyInsights.from(extension.project, sourceSet)
-            di.generateAndWireCrossBuildProjectTypeDependencies(sourceSet)
+            // todo replace in due time with implementation configuration
+            def diCompile = DependencyInsights.from(extension.project, sourceSet)
+
+            // for 'compileOnly' configuration
+            diCompile.addCompileOnlyConfigurationToCrossBuildCounterPart(sourceSet, sv)
+
+            // for 'compile' configuration
+            diCompile.addDefaultConfigurationsToCrossBuildConfigurationRecursive(sourceSet)
+            diCompile.generateAndWireCrossBuildProjectTypeDependencies(sourceSet)
         }
     }
 

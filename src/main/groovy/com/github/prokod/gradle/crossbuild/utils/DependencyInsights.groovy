@@ -8,9 +8,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
-import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
@@ -30,6 +28,15 @@ class DependencyInsights {
         this.diContext = diContext
     }
 
+    /**
+     * todo refactor as this is only holds true accurately for specific methods in this class:
+     * {@link #addDefaultConfigurationsToCrossBuildConfigurationRecursive}
+     * {@link #generateAndWireCrossBuildProjectTypeDependencies}
+     *
+     * @param project
+     * @param sourceSet
+     * @return
+     */
     static DependencyInsights from(Project project, SourceSet sourceSet) {
         def crossBuildConfiguration = project.configurations.findByName(sourceSet.compileConfigurationName)
 
@@ -88,7 +95,34 @@ class DependencyInsights {
         moduleNames
     }
 
-    void generateAndWireCrossBuildProjectTypeDependencies(SourceSet sourceSet) {
+    void addCompileOnlyConfigurationToCrossBuildCounterPart(SourceSet sourceSet, ScalaVersions scalaVersions) {
+        def project = diContext.project
+
+        def consumerConfiguration = project.configurations[sourceSet.compileOnlyConfigurationName]
+
+        def modules = findAllCrossBuildPluginAppliedProjects()
+
+        def nonCrossBuildModules = { Dependency dependency -> !modules*.name.contains(dependency.name) }
+
+        def consumerConfigurationDependenciesGroupName = consumerConfiguration.allDependencies.collect { dependency ->
+            parseDependencyName(dependency, scalaVersions).first
+        }.toSet()
+
+        def nonSameExternalDependencies = { Dependency dependency ->
+            def parsedGroupBaseName = parseDependencyName(dependency, scalaVersions).first
+            !isProjectDependency(dependency) &&
+            !consumerConfigurationDependenciesGroupName.contains(parsedGroupBaseName)
+        }
+
+        def producerConfigurationDependencies = project.configurations.compileOnly.allDependencies
+
+        def producerConfigurationFilteredDependencies = producerConfigurationDependencies
+                .findAll(nonCrossBuildModules).findAll(nonSameExternalDependencies)
+
+        consumerConfiguration.dependencies.addAll(producerConfigurationFilteredDependencies)
+    }
+
+    void addDefaultConfigurationsToCrossBuildConfigurationRecursive(SourceSet sourceSet) {
         def project = diContext.project
 
         def defaultConfigurations = generateDetachedDefaultConfigurationsRecursively()
@@ -98,6 +132,17 @@ class DependencyInsights {
         defaultConfigurations.each { configuration ->
             consumerConfiguration.dependencies.addAll(configuration.dependencies)
         }
+    }
+
+    /**
+     * todo together with {@link #from} indicates that this class should be refactored. sourceSet as an input -redundant
+     *
+     * @param sourceSet
+     */
+    void generateAndWireCrossBuildProjectTypeDependencies(SourceSet sourceSet) {
+        def project = diContext.project
+
+        def consumerConfiguration = project.configurations[sourceSet.implementationConfigurationName]
 
         def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
 
@@ -113,18 +158,13 @@ class DependencyInsights {
                     alreadyCreatedProducerConfiguration ?: subProject.configurations.create(producerConfigurationName) {
                 canBeResolved = false
                 canBeConsumed = true
-                attributes {
-                    def named = subProject.objects.named(Usage, "${targetTask.name}-variant")
-                    attribute(Usage.USAGE_ATTRIBUTE, named)
-                }
+
                 outgoing.artifact(targetTask)
             }
 
             def dep = project.dependencies.project(path:subProject.path, configuration:producerConfiguration.name)
 
             project.dependencies.attributesSchema.with {
-                attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(CompatRule)
-
                 // Added to support correct Dependency resolution for Gradle 4.X
                 attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules.add(DisRule) {
                     it.params(sourceSet.name)
@@ -230,10 +270,10 @@ class DependencyInsights {
         def filteredDefaultDependencies = defaultConfiguration.allDependencies.findAll { Dependency dependency ->
             !modules*.name.contains(dependency.name)
         }
-        def filteredDefaultDependneciesArray =
+        def filteredDefaultDependenciesArray =
                 filteredDefaultDependencies.toArray(new Dependency[filteredDefaultDependencies.size()]) as Dependency[]
         def detachedDefaultConfiguration =
-                dependencyProject.configurations.detachedConfiguration(filteredDefaultDependneciesArray)
+                dependencyProject.configurations.detachedConfiguration(filteredDefaultDependenciesArray)
 
         accum.add(detachedDefaultConfiguration)
         if (currentProjectTypDepsForDefault.size() > 0) {
@@ -244,22 +284,6 @@ class DependencyInsights {
         }
 
         accum
-    }
-
-    static class CompatRule implements AttributeCompatibilityRule<Usage> {
-        void execute(CompatibilityCheckDetails<Usage> details) {
-            def consumerUsageJavaApi = details.consumerValue.name == Usage.JAVA_API
-            def consumerUsageJavaRuntime = details.consumerValue.name == Usage.JAVA_RUNTIME
-            def producerUsageCustom = details.producerValue.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)
-
-            if (consumerUsageJavaApi && producerUsageCustom) {
-                details.compatible()
-            }
-
-            if (consumerUsageJavaRuntime && producerUsageCustom) {
-                details.compatible()
-            }
-        }
     }
 
     @SuppressWarnings(['LineLength'])
@@ -324,7 +348,6 @@ class DependencyInsights {
 
     /**
      * Parses given dependency to its groupName:baseName part and its scala version part.
-     * Throws Assertion Exception if dependency name does not contain separating char '_'
      *
      * @param dependency to parse
      * @return tuple in the form of (groupName:baseName, scalaVersion) i.e. ('group:lib', '2.11')
