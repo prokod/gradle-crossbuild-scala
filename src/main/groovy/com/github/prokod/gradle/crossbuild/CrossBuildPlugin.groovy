@@ -128,7 +128,7 @@ class CrossBuildPlugin implements Plugin<Project> {
                 def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
                 def foundRelated =
-                        CrossBuildPomTask.probablyRelatedPublication(pomTask.name, sourceSetId)
+                        CrossBuildPomTask.probablyRelatedPublicationTask(pomTask.name, sourceSetId)
                 if (foundRelated) {
                     def taskName = sourceSet.getTaskName('update', 'pom')
                     def task = extension.project.tasks.create(taskName, CrossBuildPomTask) {
