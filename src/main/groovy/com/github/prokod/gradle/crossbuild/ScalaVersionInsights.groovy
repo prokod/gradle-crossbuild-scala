@@ -15,9 +15,14 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+import groovy.transform.ToString
+import groovy.transform.TupleConstructor
+
 /**
  * Scala versioning semantics class
  */
+@ToString(includes = 'baseVersion, underscoredBaseVersion, compilerVersion')
+@TupleConstructor
 class ScalaVersionInsights {
     String baseVersion
     String underscoredBaseVersion

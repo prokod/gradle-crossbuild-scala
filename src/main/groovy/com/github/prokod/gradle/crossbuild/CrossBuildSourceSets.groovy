@@ -46,7 +46,7 @@ class CrossBuildSourceSets {
     List<String> fromBuilds(Collection<ResolvedBuildConfigLifecycle> builds) {
         assert builds != null : 'builds should not be null'
         def sourceSetIds = builds.collect { build ->
-            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(build.name).first
+            def (sourceSetId, SourceSet sourceSet) = getOrCreateCrossBuildScalaSourceSet(build.name)
             project.logger.info(LoggerUtils.logTemplate(project,
                     lifecycle:'config',
                     msg:"Creating source set (User request): [${sourceSetId}]"))

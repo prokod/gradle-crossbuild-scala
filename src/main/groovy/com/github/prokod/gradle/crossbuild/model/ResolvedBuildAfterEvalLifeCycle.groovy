@@ -1,6 +1,5 @@
 package com.github.prokod.gradle.crossbuild.model
 
-import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import groovy.json.JsonOutput
 
 /**
@@ -12,19 +11,15 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
 
     final ResolvedArchiveNaming archive
 
-    ResolvedBuildAfterEvalLifeCycle(Build build, ScalaVersionInsights scalaVersionInsights,
-                                    ResolvedArchiveNaming archive) {
-        super(build, scalaVersionInsights)
-        this.archive = archive
-    }
-
     ResolvedBuildAfterEvalLifeCycle(ResolvedBuildConfigLifecycle resolvedBuild, ResolvedArchiveNaming archive) {
         super(resolvedBuild)
         this.archive = archive
     }
 
     String toString() {
-        JsonOutput.toJson([name:name,
+//        new JsonBuilder(archive).toPrettyString()
+
+        JsonOutput.prettyPrint(JsonOutput.toJson([name:name,
                            scalaVersion:scalaVersion,
                            archive:[appendixPattern:archive.appendixPattern,
                                      appendix:archive.appendix],
@@ -37,6 +32,6 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
                                                   underscoredCompilerVersion:scalaVersionInsights.
                                                           underscoredCompilerVersion,
                                                   underscoredArtifactInlinedVersion:scalaVersionInsights.
-                                                          underscoredArtifactInlinedVersion]])
+                                                          underscoredArtifactInlinedVersion]]))
     }
 }

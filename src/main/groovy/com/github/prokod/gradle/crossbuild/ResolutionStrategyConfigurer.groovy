@@ -27,7 +27,7 @@ class ResolutionStrategyConfigurer {
     ResolutionStrategyConfigurer(Project project,
                                  Map<String, String> catalog,
                                  ScalaVersionInsights scalaVersionInsights) {
-        this(project, ScalaVersions.DEFAULT_SCALA_VERSIONS + new ScalaVersions(catalog), scalaVersionInsights)
+        this(project, ScalaVersions.withDefaultsAsFallback(catalog), scalaVersionInsights)
     }
 
     /**
@@ -44,68 +44,36 @@ class ResolutionStrategyConfigurer {
             def crossBuildConfigurationName = configTuple.first
             def crossBuildConfiguration = project.configurations[crossBuildConfigurationName]
             def parentConfiguration = configTuple.second
-            // Link crossbuild configuration to the given parent configuration
-            crossBuildConfiguration.extendsFrom(parentConfiguration)
 
-            def allDependencies = crossBuildConfiguration.allDependencies
+            def dependencySets = [crossBuildConfiguration.allDependencies, parentConfiguration.allDependencies]
+            def allDependencies = dependencySets.collectMany { it.toSet() }
             project.logger.info(LoggerUtils.logTemplate(project,
                     lifecycle:'afterEvaluate',
                     configuration:crossBuildConfigurationName,
                     parentConfiguration:parentConfiguration.name,
                     msg:"Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
-                            'configuration dependencies: ' +
-                            "[${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
+                            'configuration dependencies: [' +
+                            "${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
             ))
 
-            def diContext = new DependencyInsightsContext(project:project, dependencies:allDependencies,
+            def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySets,
                     configurations:[current:crossBuildConfiguration, parent:parentConfiguration])
-
             def di = new DependencyInsights(diContext)
-            def crossBuildSubProjects = di.findAllCrossBuildPluginAppliedProjects()
-            def targetProjects = crossBuildSubProjects + project
+
+            def crossBuildProjects = di.findAllCrossBuildPluginAppliedProjects()
 
             def projectDependencies =
-                    di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(parentConfiguration.name)
-            def allDependenciesAsDisplayNameSet = (allDependencies + projectDependencies).collect { dep ->
-                "${dep.group}:${dep.name}:${dep.version}"
-            }.toSet()
+                    di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([parentConfiguration.name] as Set)
+            def unionOfAllDependencies = allDependencies + projectDependencies
+            def unionOfAllDependenciesAsDisplayNameSet =
+                    unionOfAllDependencies.collect { dep -> "${dep.group}:${dep.name}:${dep.version}" }.toSet()
 
-            targetProjects.each {
+            // todo duplicate runs ? maybe to do only on classpath compile/runtime ?
+            crossBuildProjects.each {
                 it.configurations.all { Configuration c ->
                     c.resolutionStrategy.eachDependency { details ->
-                        resolutionStrategyHandler(c, details, allDependenciesAsDisplayNameSet,
-                                crossBuildConfiguration, parentConfiguration)
+                        resolutionStrategyHandler(c, details, unionOfAllDependenciesAsDisplayNameSet, di)
                     }
-                }
-            }
-        }
-    }
-
-    // TODO: evaluate if alternate project dependency with crossbuild configuration helps with something ...
-    void generateNonDefaultProjectTypeDependnecies(List<Tuple2<String, String>> configurations) {
-        configurations.findAll { configTuple ->
-            def crossBuildConfigurationName = configTuple.first
-            def crossBuildConfiguration = project.configurations[crossBuildConfigurationName]
-
-            def allDependencies = crossBuildConfiguration.allDependencies
-            project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle:'afterEvaluate',
-                    configuration:crossBuildConfigurationName,
-                    msg:"Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
-                            'configuration dependencies: ' +
-                            "[${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
-            ))
-
-            def diContext = new DependencyInsightsContext(project:project, dependencies:allDependencies,
-                    configurations:[current:crossBuildConfiguration])
-
-            def di = new DependencyInsights(diContext)
-
-            def a = di.extractCrossBuildProjectTypeDependencies()
-            a.each { dep ->
-                project.dependencies {
-                    "${crossBuildConfiguration.name}" project(path:dep.dependencyProject.path,
-                            configuration:configTuple.second)
                 }
             }
         }
@@ -114,31 +82,33 @@ class ResolutionStrategyConfigurer {
     void resolutionStrategyHandler(Configuration targetConfiguration,
                                    DependencyResolveDetails details,
                                    Set<String> allDependenciesAsDisplayNameSet,
-                                   Configuration crossBuildConfiguration,
-                                   Configuration parentConfiguration) {
+                                   DependencyInsights di) {
+        def crossBuildConfiguration = di.diContext.configurations.current
+        def parentConfiguration = di.diContext.configurations.parent
+
         def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
         if (allDependenciesAsDisplayNameSet
                 .contains("${requested.group}:${requested.name}:${requested.version}")) {
-            String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
+            String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name, scalaVersions)[1]
             if (targetConfiguration.name == crossBuildConfigurationName) {
-                strategyForCrossBuildConfiguration(
-                        crossBuildConfiguration, supposedScalaVersion, details)
+                strategyForCrossBuildConfiguration(details, supposedScalaVersion, di)
             } else if (targetConfiguration.name == parentConfiguration.name) {
-                strategyForNonCrossBuildConfiguration(parentConfiguration, supposedScalaVersion, details)
+                strategyForNonCrossBuildConfiguration(details, supposedScalaVersion, di)
             }
         }
     }
 
-    private void strategyForCrossBuildConfiguration(Configuration crossBuildConfiguration,
+    private void strategyForCrossBuildConfiguration(DependencyResolveDetails details,
                                                     String supposedScalaVersion,
-                                                    DependencyResolveDetails details) {
+                                                    DependencyInsights di) {
+        def crossBuildConfiguration = di.diContext.configurations.current
         def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
 
         // Not a cross built dependency
         if (supposedScalaVersion == null) {
-            if (requested.group == 'org.scala-lang' && requested.name == 'scala-library') {
+            if (requested.group == 'org.scala-lang') {
                 details.useVersion(scalaVersionInsights.compilerVersion)
             }
         }
@@ -155,10 +125,10 @@ class ResolutionStrategyConfigurer {
         } else {
             // A cross built dependency - explicit
             // Try correcting offending target dependency only if contains wrong scala version
-            //  and only in cross build config context.
+            // and only in cross build config context.
             if (supposedScalaVersion != scalaVersionInsights.artifactInlinedVersion) {
-                tryCorrectingTargetDependencyName(details,
-                        scalaVersionInsights.artifactInlinedVersion, crossBuildConfiguration)
+                tryCorrectingTargetDependencyName(details, scalaVersionInsights.artifactInlinedVersion,
+                        crossBuildConfiguration, di.diContext.configurations.parent)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
                         lifecycle:'afterEvaluate',
@@ -171,9 +141,10 @@ class ResolutionStrategyConfigurer {
         }
     }
 
-    private void strategyForNonCrossBuildConfiguration(Configuration parentConfiguration,
+    private void strategyForNonCrossBuildConfiguration(DependencyResolveDetails details,
                                                        String supposedScalaVersion,
-                                                       DependencyResolveDetails details) {
+                                                       DependencyInsights di) {
+        def parentConfiguration = di.diContext.configurations.parent
         def requested = details.requested
 
         // Replace 3d party scala dependency which ends with '_?' in parent configuration scope
@@ -209,16 +180,19 @@ class ResolutionStrategyConfigurer {
      * @param scalaVersions Scala version catalog
      */
     void applyFor(Set<Configuration> configurations) {
-        project.configurations.all { c ->
+        project.configurations.all { Configuration c ->
             if (configurations.contains(c)) {
                 c.resolutionStrategy.eachDependency { details ->
+                    def diContext = new DependencyInsightsContext(project:project, configurations:[parent:c])
+                    def di = new DependencyInsights(diContext)
+
                     def requested = details.requested
                     // Replace 3d party scala dependency which contains '_?'
-                    def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name)[1]
+                    def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name, scalaVersions)[1]
                     if (probableScalaVersion == '?') {
                         // We do not have plugin generated cross build configurations specifically dependent on test
                         // configurations like `testCompile`, `testCompileOnly`, `testImplementation` ...
-                        strategyForNonCrossBuildConfiguration(c, probableScalaVersion, details)
+                        strategyForNonCrossBuildConfiguration(details, probableScalaVersion, di)
                         project.logger.info(LoggerUtils.logTemplate(project,
                                 lifecycle:'afterEvaluate',
                                 configuration:c.name,
@@ -238,9 +212,7 @@ class ResolutionStrategyConfigurer {
      * @param details {@link org.gradle.api.artifacts.DependencyResolveDetails} from resolution strategy
      * @param scalaVersionInsights Holds all version permutations for a specific Scala version
      */
-    private static void resolveQMarkDep(
-            DependencyResolveDetails details,
-            String replacementScalaVersion) {
+    private static void resolveQMarkDep(DependencyResolveDetails details, String replacementScalaVersion) {
         def requested = details.requested
         def resolvedName = requested.name.replace('_?', "_$replacementScalaVersion")
         details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
@@ -258,16 +230,16 @@ class ResolutionStrategyConfigurer {
     private boolean tryResolvingQMarkInTargetDependencyName(DependencyResolveDetails details,
                                                             Configuration configuration,
                                                             ScalaVersions scalaVersions) {
-        def dependencySet = configuration.allDependencies
+        def dependencySet = [configuration.allDependencies]
 
         def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySet,
                 configurations:[current:configuration])
         def di = new DependencyInsights(diContext)
 
         def crossBuildProjectDependencySet =
-                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
+                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([configuration.name] as Set)
 
-        def allDependencySet = (crossBuildProjectDependencySet + dependencySet)
+        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
 
         def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
 
@@ -304,20 +276,21 @@ class ResolutionStrategyConfigurer {
      */
     private void tryCorrectingTargetDependencyName(DependencyResolveDetails offenderDetails,
                                                    String targetScalaVersion,
-                                                   Configuration configuration) {
-        def dependencySet = configuration.allDependencies
+                                                   Configuration configuration, Configuration parentConfiguration) {
+        def dependencySet = [configuration.allDependencies, parentConfiguration.allDependencies]
 
         def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySet,
-                configurations:[current:configuration])
+                configurations:[current:configuration, parent:parentConfiguration])
         def di = new DependencyInsights(diContext)
 
+        def configurationNames = [configuration.name, parentConfiguration.name] as Set
         def crossBuildProjectDependencySet =
-                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
+                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configurationNames)
 
-        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
+        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
 
         def libGrid = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
-                allDependencySet, targetScalaVersion)
+                allDependencySet, targetScalaVersion, scalaVersions)
 
         // dependencyMap key is name of dependency and value contains suggested correct dependency/ies
         def dependencyMap = libGrid.collectEntries { tuple ->
@@ -328,9 +301,9 @@ class ResolutionStrategyConfigurer {
 
         def correctDependencies = dependencyMap[requested.name]
 
-        assert correctDependencies.size() == 1 : 'More than one candidate to replace offending dependency ' +
+        assert correctDependencies.size() == 1 : 'There should be one candidate to replace offending dependency ' +
                 "'$requested.group:$requested.name' for target scala version $targetScalaVersion : " +
-                "[${correctDependencies.collect { it[2] }.name.join(', ')}]"
+                "[${correctDependencies.collect { it[2] }.collect { "$it.name:$it.version" }.join(', ')}]"
 
         def correctDependencyTuple = correctDependencies.head()
         def correctDependency = correctDependencyTuple[2]
@@ -354,21 +327,21 @@ class ResolutionStrategyConfigurer {
             DependencyResolveDetails details,
             Configuration configuration,
             ScalaVersions scalaVersions) {
-        def dependencySet = configuration.allDependencies
+        def dependencySet = [configuration.allDependencies]
 
         def diContext = new DependencyInsightsContext(project:project, dependencies:dependencySet,
                 configurations:[current:configuration])
         def di = new DependencyInsights(diContext)
 
         def crossBuildProjectDependencySet =
-                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configuration.name)
+                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([configuration.name] as Set)
 
-        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collect())
+        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
 
         def probableScalaVersionRaw = scalaVersions.catalog*.key.collect { String scalaVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, scalaVersions)
             def deps = DependencyInsights.findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
-                    allDependencySet, scalaVersionInsights.artifactInlinedVersion)
+                    allDependencySet, scalaVersionInsights.artifactInlinedVersion, scalaVersions)
             new Tuple2(scalaVersionInsights.artifactInlinedVersion, deps.size())
         }.findAll { tuple ->
             // Means this is a sane state where the dependency to be resolved does not have any other alternatives in
