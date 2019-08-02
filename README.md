@@ -1,12 +1,25 @@
 # gradle crossbuild scala plugin
 [![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)[![Automated Release Notes by gren](https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg)](https://github-tools.github.io/github-release-notes/)
 
+## Features
+-----------
+- **Multi-module projects support** Supports both simple projects and multi-module projects, In multi-module projects support mixed cases where only some of the modules needs cross compiling.
+- **Powerful DSL** Plugin DSL can be written once for all sub projects using `subprojects {}` block. Extra DSL definition can be afterwards added to individual sub projects. It supports shorthands to avoid repetitions. Operates in both eager and lazy (wrapped in `pluginManager.withPlugin {}` block) `apply` modes.
+- **Integrates with maven-publish plugin** When used, can be leveraged to publish cross building artifacts.
+- **Implicit/Explicit scala lib dependency declaration** Supports declaring both simple case implicit `compile 3rd-party-scala-lib_?` type of dependencies and also more complex explicit `crossBuild212Compile 3rd-party-platform-scala-lib-x-y-z_2.12` platform type of dependencies.
+- **Applied easily on existing projects** As the plugin maintains a strict separation between `main` source set configurations and `crossBuildXXX` ones, a simple non cross build project can be easily and gradually transformed to a cross build one.
+- **Testing support**  As mentioned above strict separation of source sets, keeps `main` source set test configurations intact.
+
+## Shortcomings
+---------------
+- *Cross building for test/check tasks* are not supported.
+
 ## Getting the plugin
 ----------------------
 #### Using the plugin DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version "0.7.1"
+    id "com.github.prokod.gradle-crossbuild" version "0.8.0"
 }
 ```  
     
@@ -14,7 +27,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.7.1")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.8.0")
     }
 }
 ```
@@ -189,8 +202,6 @@ crossBuild {
                                             // If different from upper level config, it will override it.
         }
     }
-
-    configurations = [configurations.someUserConfiguration]
 }
 ```
 
@@ -233,34 +244,7 @@ dependencies {
   The other dependency specified for Scala versions **2.10**, **2.11** respectively (`crossBuild210Compile/Only`, `crossBuild211Compile/Only`), will be used only for `crossBuild210Jar`, `crossBuild211Jar`, and other corresponding task variants (`publishCrossBuild210PublicationToMavenLocal`, `publishCrossBuild211PublicationToMavenLocal` ...)
 - The plugin provides pre defined configurations (sourceSets) being used by the matching pre generated Jar tasks:<br>
   crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
-- `configurations = [...]` provides users with the option to tie their own Configuration (SourceSet) with the cross build plugin workings. Needed for instance when specifying dependency within that Configuration on a cross build sub project.
-  For instance:
-  ```groovy
-  apply plugin: 'com.github.prokod.gradle-crossbuild'
 
-  crossBuild {
-    ...
-    configurations = [
-        configurations.integrationTestCompileClasspath,
-        configurations.integrationTestRuntimeClasspath
-    ]
-  }
-  ...
-  sourceSets {
-    integrationTest {
-        ...
-    }
-  }
-
-  configurations {
-    integrationTestCompile.extendsFrom testCompile
-    ...
-  }
-
-  dependencies {
-    ...
-  }
-  ```
 ### <a name="build_scenarios"></a>`builds {}` -> Gradle SourceSets, Configurations and Tasks
 The following table shows some commonly build scenarios expressed through the plugin DSL and how they are actually resolved
 
@@ -274,13 +258,11 @@ The following table shows some commonly build scenarios expressed through the pl
 ### multi-module project
 To apply cross building to a multi-module project use one of the following suggested layouts:
 
-#### layout 1
+#### layout 1 (a.k.a lazy apply)
 - In the root project build.gradle:
 ```groovy
-buildscript {
-    dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.5.0")
-    }
+plugins {
+    id "com.github.prokod.gradle-crossbuild" version '0.8.0' apply false
 }
 
 allprojects {
@@ -292,7 +274,7 @@ allprojects {
         mavenCentral()
     }
 
-    project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
+    pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         crossBuild {
 
             scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
@@ -304,14 +286,14 @@ allprojects {
         }
     }
 
-    project.pluginManager.withPlugin('maven-publish') {
+    pluginManager.withPlugin('maven-publish') {
         publishing {
             publications {
-                crossBuild211(MavenPublication) {
-                    artifact crossBuild211Jar
+                crossBuildSpark240_211(MavenPublication) {
+                    artifact crossBuildSpark240_211Jar
                 }
-                crossBuild212(MavenPublication) {
-                    artifact crossBuild212Jar
+                crossBuildSpark243_212(MavenPublication) {
+                    artifact crossBuildSpark243_212Jar
                 }
             }
         }
@@ -324,13 +306,11 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 ...
 ```
 
-#### layout 2
+#### layout 2 (a.k.a eager apply)
 - In the root project build.gradle:
 ```groovy
-buildscript {
-    dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.5.0")
-    }
+plugins {
+    id "com.github.prokod.gradle-crossbuild" version '0.8.0' apply false
 }
 
 allprojects {
@@ -351,18 +331,26 @@ subprojects {
         scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
 
         builds {
-            spark240_211
-            spark243_212
+            spark233_211 {
+                archive.appendixPattern = '-2-3-3_?'
+            }
+            spark243 {
+                scalaVersions = ['2.11', '2,12']
+                archive.appendixPattern = '-2-4-3_?'
+            }
         }
     }
 
     publishing {
         publications {
-            crossBuild211(MavenPublication) {
-                artifact crossBuild211Jar
+            crossBuildSpark233_211(MavenPublication) {
+                artifact crossBuildSpark233_211Jar
             }
-            crossBuild212(MavenPublication) {
-                artifact crossBuild212Jar
+            crossBuildSpark243_211(MavenPublication) {
+                artifact crossBuildSpark243_211Jar
+            }
+            crossBuildSpark243_212(MavenPublication) {
+                artifact crossBuildSpark243_212Jar
             }
         }
     }
@@ -372,10 +360,5 @@ subprojects {
 ### Supported Gradle versions
 |plugin version | Tested Gradle versions |
 |---------------|------------------------|
-|0.8.x          | 4.2\*, 4.10.3\*, 5.4.1     |
-
-- \* See [caveats](#caveats)
-
-## <a name="caveats"></a>Caveats
------------
-- In a multi-module project, defining both cross build modules and non cross build modules (modules that the plugin is not applied to) and creating project dependencies between them is only supported in Gradle 5.x
+|0.8.x          | 4.2, 4.10.3, 5.4.1     |
+|0.4.x          | 2.14, 3.0, 4.1         |
