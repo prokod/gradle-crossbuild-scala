@@ -2,7 +2,6 @@
 [![Build Status](https://travis-ci.org/prokod/gradle-crossbuild-scala.svg?branch=master)](https://travis-ci.org/prokod/gradle-crossbuild-scala)[![Automated Release Notes by gren](https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg)](https://github-tools.github.io/github-release-notes/)
 
 ## Features
------------
 - **Multi-module projects support** Supports both simple projects and multi-module projects, In multi-module projects support mixed cases where only some of the modules needs cross compiling.
 - **Powerful DSL** Plugin DSL can be written once for all sub projects using `subprojects {}` block. Extra DSL definition can be afterwards added to individual sub projects. It supports shorthands to avoid repetitions. Operates in both eager and lazy (wrapped in `pluginManager.withPlugin {}` block) `apply` modes.
 - **Integrates with maven-publish plugin** When used, can be leveraged to publish cross building artifacts.
@@ -11,15 +10,13 @@
 - **Testing support**  As mentioned above strict separation of source sets, keeps `main` source set test configurations intact.
 
 ## Shortcomings
----------------
 - *Cross building for test/check tasks* are not supported.
 
 ## Getting the plugin
-----------------------
 #### Using the plugin DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version "0.8.0"
+    id "com.github.prokod.gradle-crossbuild" version "0.8.1"
 }
 ```  
     
@@ -27,13 +24,12 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.8.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.8.1")
     }
 }
 ```
 
 ## Quick start
----------------
 ### cross building
 - Applying the plugin and using its DSL
 
@@ -262,7 +258,7 @@ To apply cross building to a multi-module project use one of the following sugge
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version '0.8.0' apply false
+    id "com.github.prokod.gradle-crossbuild" version '0.8.1' apply false
 }
 
 allprojects {
@@ -310,7 +306,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version '0.8.0' apply false
+    id "com.github.prokod.gradle-crossbuild" version '0.8.1' apply false
 }
 
 allprojects {
