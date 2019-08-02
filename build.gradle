@@ -8,10 +8,8 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'codenarc'
 
-targetCompatibility = '1.6'
-
 group = 'com.github.prokod'
-version = '0.7.1-SNAPSHOT'
+version = '0.8.0-SNAPSHOT'
 
 repositories {
     jcenter()
@@ -50,6 +48,7 @@ dependencies {
     testCompile ('org.spockframework:spock-core:1.2-groovy-2.4') {
         exclude module: 'groovy-all'
     }
+    testCompile 'org.skyscreamer:jsonassert:1.5.0'
 }
 
 gradlePlugin {

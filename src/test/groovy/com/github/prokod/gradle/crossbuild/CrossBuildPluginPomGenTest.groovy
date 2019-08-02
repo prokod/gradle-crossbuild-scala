@@ -58,6 +58,13 @@ crossBuild {
 
 publishing {
     publications {
+        maven(MavenPublication) {
+            groupId = 'org.gradle.sample'
+            artifactId = 'project1-sample'
+            version = '1.1'
+
+            from components.java
+        }
         crossBuildV210(MavenPublication) {
             ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
                 artifact crossBuildV210Jar
@@ -98,54 +105,61 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', '--info', '--stacktrace')
+                .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', 'crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":publishToMavenLocal").outcome == SUCCESS
+
         def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
 
+        fileExists"*/.m2/*test_2.10*jar"
+        fileExists"*/.m2/*test_2.11*jar"
+
+        when:
         def project210 = new XmlSlurper().parseText(pom210)
+
+        then:
         project210.dependencies.dependency.size() == 4
         project210.dependencies.dependency[0].groupId == 'org.scala-lang'
         project210.dependencies.dependency[0].artifactId == 'scala-library'
         project210.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
         project210.dependencies.dependency[0].scope == 'compile'
-        project210.dependencies.dependency[1].groupId == 'com.google.guava'
-        project210.dependencies.dependency[1].artifactId == 'guava'
-        project210.dependencies.dependency[1].version == '18.0'
+        project210.dependencies.dependency[1].groupId == 'org.apache.spark'
+        project210.dependencies.dependency[1].artifactId == 'spark-sql_2.10'
+        project210.dependencies.dependency[1].version == '1.6.3'
         project210.dependencies.dependency[1].scope == 'compile'
-        project210.dependencies.dependency[2].groupId == 'org.scalatest'
-        project210.dependencies.dependency[2].artifactId == 'scalatest_2.10'
-        project210.dependencies.dependency[2].version == '3.0.1'
+        project210.dependencies.dependency[2].groupId == 'com.google.guava'
+        project210.dependencies.dependency[2].artifactId == 'guava'
+        project210.dependencies.dependency[2].version == '18.0'
         project210.dependencies.dependency[2].scope == 'compile'
-        project210.dependencies.dependency[3].groupId == 'org.apache.spark'
-        project210.dependencies.dependency[3].artifactId == 'spark-sql_2.10'
-        project210.dependencies.dependency[3].version == '1.6.3'
-        project210.dependencies.dependency[3].scope == 'provided'
+        project210.dependencies.dependency[3].groupId == 'org.scalatest'
+        project210.dependencies.dependency[3].artifactId == 'scalatest_2.10'
+        project210.dependencies.dependency[3].version == '3.0.1'
+        project210.dependencies.dependency[3].scope == 'compile'
 
+        when:
         def project211 = new XmlSlurper().parseText(pom211)
-        project211.dependencies.dependency.size() == 4
-        project211.dependencies.dependency[0].groupId == 'org.scala-lang'
-        project211.dependencies.dependency[0].artifactId == 'scala-library'
-        project211.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
-        project211.dependencies.dependency[0].scope == 'compile'
-        project211.dependencies.dependency[1].groupId == 'com.google.guava'
-        project211.dependencies.dependency[1].artifactId == 'guava'
-        project211.dependencies.dependency[1].version == '18.0'
-        project211.dependencies.dependency[1].scope == 'compile'
-        project211.dependencies.dependency[2].groupId == 'org.scalatest'
-        project211.dependencies.dependency[2].artifactId == 'scalatest_2.11'
-        project211.dependencies.dependency[2].version == '3.0.1'
-        project211.dependencies.dependency[2].scope == 'compile'
-        project211.dependencies.dependency[3].groupId == 'org.apache.spark'
-        project211.dependencies.dependency[3].artifactId == 'spark-sql_2.11'
-        project211.dependencies.dependency[3].version == '2.2.1'
-        project211.dependencies.dependency[3].scope == 'provided'
 
-        fileExists"*/.m2/*test_2.10*jar"
-        fileExists"*/.m2/*test_2.11*jar"
+        then:
+        project211.dependencies.dependency.size() == 4
+        project211.dependencies.dependency[0].groupId == 'org.scalatest'
+        project211.dependencies.dependency[0].artifactId == 'scalatest_2.11'
+        project211.dependencies.dependency[0].version == '3.0.1'
+        project211.dependencies.dependency[0].scope == 'compile'
+        project211.dependencies.dependency[1].groupId == 'org.apache.spark'
+        project211.dependencies.dependency[1].artifactId == 'spark-sql_2.11'
+        project211.dependencies.dependency[1].version == '2.2.1'
+        project211.dependencies.dependency[1].scope == 'compile'
+        project211.dependencies.dependency[2].groupId == 'org.scala-lang'
+        project211.dependencies.dependency[2].artifactId == 'scala-library'
+        project211.dependencies.dependency[2].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
+        project211.dependencies.dependency[2].scope == 'compile'
+        project211.dependencies.dependency[3].groupId == 'com.google.guava'
+        project211.dependencies.dependency[3].artifactId == 'guava'
+        project211.dependencies.dependency[3].version == '18.0'
+        project211.dependencies.dependency[3].scope == 'compile'
 
         where:
         gradleVersion   | defaultScalaVersion

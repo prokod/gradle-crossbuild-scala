@@ -1,5 +1,6 @@
 package com.github.prokod.gradle.crossbuild.utils
 
+import com.github.prokod.gradle.crossbuild.ScalaVersions
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
@@ -12,7 +13,7 @@ class DependencyInsightsTest extends Specification {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.3')
         when:
-            def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep)
+            def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
             baseName == 'some.group:somescalalib'
             scalaVersion == '2.11'
@@ -22,7 +23,7 @@ class DependencyInsightsTest extends Specification {
         given:
         def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_suffix', '1.2.3')
         when:
-        def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep)
+        def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
         baseName == 'some.group:somescalalib'
         scalaVersion == '2.11'
@@ -32,7 +33,7 @@ class DependencyInsightsTest extends Specification {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_2.2.1', '1.2.3')
         when:
-            def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep)
+            def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
             baseName == 'some.group:somescalalib'
             scalaVersion == '2.11'
@@ -42,7 +43,7 @@ class DependencyInsightsTest extends Specification {
         given:
         def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib-v2-2.2.1_2.11', '1.2.3')
         when:
-        def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep)
+        def (baseName, scalaVersion) = DependencyInsights.parseDependencyName(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
         baseName == 'some.group:somescalalib-v2-2.2.1'
         scalaVersion == '2.11'
@@ -60,7 +61,7 @@ class DependencyInsightsTest extends Specification {
                     null,
                     new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep4)))
         when:
-            def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet.collect(), '2.10')
+            def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
             tupleList.size() == 3
             tupleList[0][0] == 'some.group:somescalalib'
@@ -89,7 +90,7 @@ class DependencyInsightsTest extends Specification {
                     null,
                     new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep31, dep4, dep5, dep51, dep6)))
         when:
-            def tuplesList = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(dependencySet.collect(), '2.10')
+            def tuplesList = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
             tuplesList.size() == 5
             tuplesList[0].first[0] == 'some.group:somescalalib'

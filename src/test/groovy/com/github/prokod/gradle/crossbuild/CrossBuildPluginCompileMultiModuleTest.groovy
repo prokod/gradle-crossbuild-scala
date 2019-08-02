@@ -15,7 +15,6 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.internal.impldep.org.junit.Assume
@@ -143,6 +142,32 @@ dependencies {
 }
 """
 
+        def project = ProjectBuilder.builder().build()
+        // Before instantiating CrossBuildExtension, project should contain sourceSets otherwise, CrossBuildSourceSets
+        // instantiation will fail.
+        project.pluginManager.apply(JavaBasePlugin)
+
+        def build1 = new Build('spark160', new CrossBuildExtension(project)).with { b ->
+            scalaVersions = ['2.10']
+            archive.appendixPattern = eap1
+            b
+        }
+        def build2 = new Build('spark240', new CrossBuildExtension(project)).with { b ->
+            scalaVersions = ['2.11']
+            archive.appendixPattern = eap2
+            b
+        }
+        def build3 = new Build('spark241', new CrossBuildExtension(project)).with { b ->
+            scalaVersions = ['2.12']
+            archive.appendixPattern = eap3
+            b
+        }
+        def rb1 = BuildResolver.resolve(build1, ScalaVersions.withDefaultsAsFallback('2.11':'2.11.12'))
+        def rb2 = BuildResolver.resolve(build2, ScalaVersions.withDefaultsAsFallback('2.11':'2.11.12'))
+        def rb3 = BuildResolver.resolve(build3, ScalaVersions.withDefaultsAsFallback('2.11':'2.11.12'))
+
+        def expectedReport = '[' + (rb1 + rb2 + rb3).collect {it.toString()}.join(',\n') + ']'
+
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
@@ -150,44 +175,27 @@ dependencies {
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
                 .withDebug(true)
-                .withArguments('builds', '--info', '--stacktrace')
+                .withArguments('crossBuildResolvedDsl', '--info', '--stacktrace')
                 .build()
 
         then:
-        result.task(":builds").outcome == SUCCESS
-        result.task(":lib:builds").outcome == SUCCESS
-        result.task(":lib2:builds").outcome == SUCCESS
-        result.task(":app:builds").outcome == SUCCESS
+        result.task(":crossBuildResolvedDsl").outcome == SUCCESS
+        result.task(":lib:crossBuildResolvedDsl").outcome == SUCCESS
+        result.task(":lib2:crossBuildResolvedDsl").outcome == SUCCESS
+        result.task(":app:crossBuildResolvedDsl").outcome == SUCCESS
 
-        expect:
-        def project = ProjectBuilder.builder().build()
-        // Before instantiating CrossBuildExtension, project should contain sourceSets otherwise, CrossBuildSourceSets
-        // instantiation will fail.
-        project.pluginManager.apply(JavaBasePlugin)
-        def build1 = new Build('spark160', new CrossBuildExtension(project)).with { b ->
-            scalaVersions = ['2.10']
-            archive = new ArchiveNaming(eap1)
-            b
-        }
-        def build2 = new Build('spark240', new CrossBuildExtension(project)).with { b ->
-            scalaVersions = ['2.11']
-            archive = new ArchiveNaming(eap2)
-            b
-        }
-        def build3 = new Build('spark241', new CrossBuildExtension(project)).with { b ->
-            scalaVersions = ['2.12']
-            archive = new ArchiveNaming(eap3)
-            b
-        }
-        def expected = [build1, build2, build3].collect {it.toString()}.join('\n')
-        result.output.contains(expected)
+        when:
+        def appBuildsReportFile = findFile("*/app_builds.json")
+
+        then:
+        appBuildsReportFile != null
+        appBuildsReportFile.text == expectedReport
 
         where:
-        gradleVersion   | defaultScalaVersion | ap   | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
-                '4.2'   | '2.10'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
-                '4.10.3'| '2.11'              | '_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-                '5.4.1' | '2.12'              | '_?' | null       | null       | null       | '_?'       | '_?'       | '_?'
-
+        gradleVersion   | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
+                '4.2'   | '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
+                '4.10.3'| '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+                '5.4.1' | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
     }
 
     /**
@@ -690,9 +698,11 @@ dependencies {
         fileExists("$dir.root.absolutePath/app/build/libs/app_2.10*.jar")
         fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
 
+        when:
         def pom210 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def pom211 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml").text
 
+        then:
         !pom210.contains('2.11.')
         pom210.contains('2.10.6')
         pom210.contains('18.0')
@@ -703,9 +713,11 @@ dependencies {
         pom211.contains('18.0')
         pom211.contains('3.0.1')
 
+        when:
         def lib2pom210 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def lib2pom211 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.11.xml").text
 
+        then:
         !lib2pom210.contains('2.11.')
         lib2pom210.contains('2.10.6')
         lib2pom210.contains('1.0-SNAPSHOT')
@@ -713,6 +725,7 @@ dependencies {
         !lib2pom211.contains('2.10.')
         lib2pom211.contains('2.11.11')
         lib2pom211.contains('1.0-SNAPSHOT')
+
         where:
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'

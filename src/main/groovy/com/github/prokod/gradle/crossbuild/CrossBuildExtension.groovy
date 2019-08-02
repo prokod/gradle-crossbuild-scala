@@ -2,7 +2,10 @@ package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
+import com.github.prokod.gradle.crossbuild.model.BuildUpdateEventStore
+import com.github.prokod.gradle.crossbuild.model.EventType
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
+import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
@@ -34,15 +37,12 @@ class CrossBuildExtension {
     CrossBuildExtension(Project project) {
         this.project = project
 
-        this.archive = project.objects.newInstance(ArchiveNaming, '_?')
+        this.archive = project.objects.newInstance(ArchiveNaming,
+                'DefaultArchiveNaming', '_?', new BuildUpdateEventStore(project))
 
         this.crossBuildSourceSets = new CrossBuildSourceSets(project)
 
         this.builds = project.container(Build, buildFactory)
-
-        builds.all { Build build ->
-            updateBuild(build)
-        }
     }
 
     private final Closure buildFactory = { name -> new Build(name, this) }
@@ -50,8 +50,12 @@ class CrossBuildExtension {
     @SuppressWarnings(['ConfusingMethodName'])
     void archive(Action<? super ArchiveNaming> action) {
         action.execute(archive)
+
+        def alreadyResolved = resolvedBuilds*.delegate
         builds.all { Build build ->
-            applyArchiveDefaults(build)
+            if (!alreadyResolved.contains(build)) {
+                applyArchiveDefaults(build)
+            }
         }
     }
 
@@ -59,13 +63,12 @@ class CrossBuildExtension {
     void builds(Action<? super NamedDomainObjectContainer<Build>> action) {
         action.execute(builds)
 
+        def alreadyResolved = resolvedBuilds*.delegate
         builds.all { Build build ->
-            updateExtension(build)
+            if (!alreadyResolved.contains(build)) {
+                updateExtension(build)
+            }
         }
-    }
-
-    void updateBuild(Build build) {
-        build.archive = project.objects.newInstance(ArchiveNaming, '_?')
     }
 
     void applyArchiveDefaults(Build build) {
@@ -81,23 +84,29 @@ class CrossBuildExtension {
         def project = build.extension.project
         def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
 
-        build.onScalaVersionsUpdate { event ->
+        build.eventStore.onEvent { event ->
             // TODO: Unify both resolve methods to one
             def resolvedBuilds = BuildResolver.resolve(build, sv)
-            // Create cross build source sets
-            project.logger.debug(LoggerUtils.logTemplate(project,
-                    lifecycle:'config',
-                    msg:'`onScalaVersionsUpdate` callback triggered. Going to create source-sets accordingly.\n' +
-                            'Event source (build):\n-----------------\n' +
-                            "${event.source.toString()}\n" +
-                            "Current build:\n------------\n${build.toString()}\n" +
-                            "Resolved builds:\n------------\n${resolvedBuilds*.toString().join('\n')}"
-            ))
-            crossBuildSourceSets.fromBuilds(resolvedBuilds)
 
-            this.resolvedBuilds.addAll(resolvedBuilds)
+            if (event.eventType == EventType.SCALA_VERSIONS_UPDATE) {
+                // Create cross build source sets
+                project.logger.debug(LoggerUtils.logTemplate(project,
+                        lifecycle:'config',
+                        msg:'`onEvent` callback triggered. Going to create source-sets accordingly.\n' +
+                                'Event source (build):\n-----------------\n' +
+                                "${event.source.toString()}\n" +
+                                "Current build:\n------------\n${build.toString()}\n" +
+                                "Resolved builds:\n------------\n${resolvedBuilds*.toString().join('\n')}"
+                ))
+                crossBuildSourceSets.fromBuilds(resolvedBuilds)
 
-            realizeCrossBuildTasks(resolvedBuilds)
+                this.resolvedBuilds.addAll(resolvedBuilds)
+
+                realizeCrossBuildTasks(resolvedBuilds)
+            }
+            else {
+                updateCrossBuildTasks(resolvedBuilds)
+            }
         }
     }
 
@@ -120,6 +129,29 @@ class CrossBuildExtension {
                     lifecycle:'config',
                     msg:"Created crossbuild Jar task for sourceSet ${sourceSetId}." +
                             " [Resolved Jar baseName (w/ appendix): ${task.baseName}]"))
+        }
+    }
+
+    void updateCrossBuildTasks(Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+        def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
+        resolvedBuilds.findAll { rb ->
+            def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByName(rb.name)
+
+            // Guard against sourceSet being null or task by name not found.
+            // TODO: Eliminate the use of this null guarding by limiting the calls to this code to valid cases only
+            def task = sourceSet?.getJarTaskName() != null ? project.tasks.findByName(sourceSet.getJarTaskName()) : null
+
+            if (task != null) {
+                def origBaseName = DependencyInsights.parseDependencyName(task.baseName, sv)[0]
+                task.configure {
+                    baseName = origBaseName + rb.archive.appendix
+                }
+
+                project.logger.info(LoggerUtils.logTemplate(project,
+                        lifecycle:'config',
+                        msg:"Updated crossbuild Jar task for sourceSet ${sourceSetId}." +
+                                " [Resolved Jar baseName (w/ appendix): ${task.baseName}]"))
+            }
         }
     }
 }

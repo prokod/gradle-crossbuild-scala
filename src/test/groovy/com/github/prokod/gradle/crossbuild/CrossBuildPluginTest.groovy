@@ -453,6 +453,10 @@ plugins {
 
 group = 'test'
 
+repositories {
+    mavenCentral()
+}
+
 crossBuild {
     builds {
         v210
