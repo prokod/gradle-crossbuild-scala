@@ -1,5 +1,6 @@
 package com.github.prokod.gradle.crossbuild
 
+import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsightsContext
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
@@ -90,7 +91,8 @@ class ResolutionStrategyConfigurer {
         def requested = details.requested
         if (allDependenciesAsDisplayNameSet
                 .contains("${requested.group}:${requested.name}:${requested.version}")) {
-            String supposedScalaVersion = DependencyInsights.parseDependencyName(requested.name, scalaVersions)[1]
+            def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(requested.name, scalaVersions)
+            def supposedScalaVersion = dependencyInsight.supposedScalaVersion
             if (targetConfiguration.name == crossBuildConfigurationName) {
                 strategyForCrossBuildConfiguration(details, supposedScalaVersion, di)
             } else if (targetConfiguration.name == parentConfiguration.name) {
@@ -188,7 +190,9 @@ class ResolutionStrategyConfigurer {
 
                     def requested = details.requested
                     // Replace 3d party scala dependency which contains '_?'
-                    def probableScalaVersion = DependencyInsights.parseDependencyName(requested.name, scalaVersions)[1]
+                    def dependencyInsight =
+                            DependencyLimitedInsight.parseByDependencyName(requested.name, scalaVersions)
+                    def probableScalaVersion = dependencyInsight.supposedScalaVersion
                     if (probableScalaVersion == '?') {
                         // We do not have plugin generated cross build configurations specifically dependent on test
                         // configurations like `testCompile`, `testCompileOnly`, `testImplementation` ...
@@ -243,7 +247,7 @@ class ResolutionStrategyConfigurer {
 
         def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
 
-        def versions = scalaDeps.collect { it[1].toString() }.toSet()
+        def versions = scalaDeps*.supposedScalaVersion.toSet()
         if (versions.size() == 1) {
             def scalaVersion = versions.head()
 
@@ -294,7 +298,7 @@ class ResolutionStrategyConfigurer {
 
         // dependencyMap key is name of dependency and value contains suggested correct dependency/ies
         def dependencyMap = libGrid.collectEntries { tuple ->
-            new AbstractMap.SimpleEntry(tuple.first[2].name, tuple.second)
+            new AbstractMap.SimpleEntry(tuple.first.dependency.name, tuple.second)
         }
 
         def requested = offenderDetails.requested
@@ -303,10 +307,10 @@ class ResolutionStrategyConfigurer {
 
         assert correctDependencies.size() == 1 : 'There should be one candidate to replace offending dependency ' +
                 "'$requested.group:$requested.name' for target scala version $targetScalaVersion : " +
-                "[${correctDependencies.collect { it[2] }.collect { "$it.name:$it.version" }.join(', ')}]"
+                "[${correctDependencies*.dependency.collect { "$it.name:$it.version" }.join(', ')}]"
 
-        def correctDependencyTuple = correctDependencies.head()
-        def correctDependency = correctDependencyTuple[2]
+        def correctDependencyInsight = correctDependencies.head()
+        def correctDependency = correctDependencyInsight.dependency
 
         // Assuming group is staying the same ...
         offenderDetails.useTarget requested.group + ':' + correctDependency.name + ':' + correctDependency.version
