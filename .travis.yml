@@ -17,6 +17,6 @@ before_install:
   - chmod +x gradlew
 script:
   - ./gradlew clean check --no-daemon
-  - ./gradlew codeCoverageReport
+  - ./gradlew jacocoTestReport
 after_success:
   - bash <(curl -s https://codecov.io/bash)
