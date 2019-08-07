@@ -1,5 +1,6 @@
 plugins {
     id "com.gradle.plugin-publish" version "0.10.1"
+    id 'jacoco'
 }
 
 apply plugin: 'groovy'
@@ -8,8 +9,9 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'codenarc'
 
+
 group = 'com.github.prokod'
-version = '0.8.1'
+version = '0.8.2-SNAPSHOT'
 
 repositories {
     jcenter()
@@ -162,5 +164,17 @@ tasks.withType(Test) {
                 println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
             }
         }
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.4"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
     }
 }

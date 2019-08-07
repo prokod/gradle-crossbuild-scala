@@ -4,6 +4,7 @@ import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
+import com.github.prokod.gradle.crossbuild.model.DependencyInsight
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -14,7 +15,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
 
 import javax.inject.Inject
-import java.util.regex.Pattern
 
 /**
  * A collection of Dependency related methods
@@ -29,7 +29,7 @@ class DependencyInsights {
     }
 
     /**
-     * todo refactor as this is only holds true accurately for specific methods in this class:
+     * todo refactor as this holds true accurately for specific methods in this class only:
      * {@link #addDefaultConfigurationsToCrossBuildConfigurationRecursive}
      * {@link #generateAndWireCrossBuildProjectTypeDependencies}
      *
@@ -105,11 +105,11 @@ class DependencyInsights {
         def nonCrossBuildModules = { Dependency dependency -> !modules*.name.contains(dependency.name) }
 
         def consumerConfigurationDependenciesGroupName = consumerConfiguration.allDependencies.collect { dependency ->
-            parseDependencyName(dependency, scalaVersions).first
+            DependencyInsight.parse(dependency, scalaVersions).groupAndBaseName
         }.toSet()
 
         def nonSameExternalDependencies = { Dependency dependency ->
-            def parsedGroupBaseName = parseDependencyName(dependency, scalaVersions).first
+            def parsedGroupBaseName = DependencyInsight.parse(dependency, scalaVersions).groupAndBaseName
             !isProjectDependency(dependency) &&
             !consumerConfigurationDependenciesGroupName.contains(parsedGroupBaseName)
         }
@@ -296,14 +296,6 @@ class DependencyInsights {
         }
 
         void execute(MultipleCandidatesDetails<Usage> details) {
-//            if (details.consumerValue == null) {
-//                for (Usage t: details.candidateValues) {
-//                    if (!t.name.contains(sourceSetName)) {
-//                        details.closestMatch(t)
-//                        return
-//                    }
-//                }
-//            }
             // Needed by Gradle 4.X, otherwise Dependency resolution fails for non crossbuild configurations with
             // something like:
             // * Exception is:
@@ -342,71 +334,8 @@ class DependencyInsights {
      * @return {@code true} if the dependency is named in scala lib convention, {@code false} otherwise
      */
     static boolean isScalaLib(Dependency dep, ScalaVersions scalaVersions) {
-        def supposedlyScalaVersion = parseDependencyName(dep, scalaVersions).second
+        def supposedlyScalaVersion = DependencyInsight.parse(dep, scalaVersions).supposedScalaVersion
         supposedlyScalaVersion != null
-    }
-
-    /**
-     * Parses given dependency to its groupName:baseName part and its scala version part.
-     *
-     * @param dependency to parse
-     * @return tuple in the form of (groupName:baseName, scalaVersion) i.e. ('group:lib', '2.11')
-     */
-    static Tuple2<String, String> parseDependencyName(Dependency dep, ScalaVersions scalaVersions) {
-        def (baseName, supposedScalaVersion, nameSuffix) = parseDependencyName(dep.name, scalaVersions)
-        new Tuple2("${dep.group}:$baseName", supposedScalaVersion)
-    }
-
-    /**
-     * Parses given dependency name to its baseName part and its scala version part.
-     * returns the dependency name unparsed if dependency name does not contain separating char '_'
-     *
-     * @param depName dependency name to parse
-     * @parma scalaVersions
-     * @return tuple in the form of (baseName, scalaVersion, appendix) i.e. ('lib', '2.11', '2.2.0')
-     *         returns (name, {@code null}, {@code null}) otherwise.
-     */
-    static Tuple parseDependencyName(String name, ScalaVersions scalaVersions) {
-        def refTargetVersions = scalaVersions.mkRefTargetVersions()
-        def qMarkDelimiter = Pattern.quote('_?')
-        def qMarkSplitPattern = "(?=(?!^)$qMarkDelimiter)|(?<=$qMarkDelimiter)"
-        def qMarkTokens = name.split(qMarkSplitPattern)
-        def qMarkParsedTuple =  parseTokens(qMarkTokens)
-
-        def parsedTuples = refTargetVersions.collect { version ->
-            def delimiter = Pattern.quote('_' + version)
-            def splitPattern = "(?=(?!^)$delimiter)|(?<=$delimiter)"
-            def tokens = name.split(splitPattern)
-            parseTokens(tokens)
-        }
-        def allParsedTuples = parsedTuples + [qMarkParsedTuple]
-        def filtered = allParsedTuples.findAll { it != null }
-        if (filtered.size() == 1) {
-            filtered.head()
-        }
-        else {
-            new Tuple(name, null, null)
-        }
-    }
-
-    private static Tuple parseTokens(String[] tokens) {
-        if (tokens.size() < 2) {
-            null
-        }
-        else if (tokens.size() == 2) {
-            def baseName = tokens[0]
-            def supposedScalaVersion = tokens[1].substring(1)
-            new Tuple(baseName, supposedScalaVersion, null)
-        }
-        else if (tokens.size() == 3) {
-            def baseName = tokens[0]
-            def supposedScalaVersion = tokens[1].substring(1)
-            def appendix = tokens[2]
-            new Tuple(baseName, supposedScalaVersion, appendix)
-        }
-        else {
-            null
-        }
     }
 
     /**
@@ -426,17 +355,23 @@ class DependencyInsights {
      *     ...
      *    ]
      */
-    static List<Tuple2<Tuple, Set<Tuple>>> findAllNonMatchingScalaVersionDependenciesWithCounterparts(
+    static
+    List<Tuple2<DependencyInsight, Set<DependencyInsight>>> findAllNonMatchingScalaVersionDependenciesWithCounterparts(
             Collection<Dependency> dependencies,
             String scalaVersion,
             ScalaVersions scalaVersions) {
-        def nonMatchingDeps = findAllNonMatchingScalaVersionDependencies(dependencies, scalaVersion, scalaVersions)
-        def dependenciesView = nonMatchingDeps.collect { nonMatchingDepTuple ->
+        def nonMatchingDependencyInsights =
+                findAllNonMatchingScalaVersionDependencies(dependencies, scalaVersion, scalaVersions)
+        def dependencyInsightPredicate = { DependencyInsight current,
+                                           DependencyInsight nonMatching,
+                                           String versionRef ->
+            current.groupAndBaseName == nonMatching.groupAndBaseName && versionRef == current?.supposedScalaVersion
+        }
+        def dependenciesView = nonMatchingDependencyInsights.collect { nonMatchingDependencyInsight ->
             def matchingDepTupleSet = dependencies.collect { dep ->
-                def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(dep, scalaVersions)
-                new Tuple(groupAndBaseName, supposedScalaVersion, dep)
-            }.findAll { it[0] == nonMatchingDepTuple[0] && it[1] != null && it[1] == scalaVersion }.collect().toSet()
-            new Tuple2(nonMatchingDepTuple, matchingDepTupleSet)
+                DependencyInsight.parse(dep, scalaVersions)
+            }.findAll { dependencyInsightPredicate(it, nonMatchingDependencyInsight, scalaVersion) }.collect().toSet()
+            new Tuple2(nonMatchingDependencyInsight, matchingDepTupleSet)
         }
 
         dependenciesView
@@ -453,12 +388,12 @@ class DependencyInsights {
      *          (groupName:baseArchiveName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
      *          i.e. ('lib', '2.11', ...)
      */
-    static List<Tuple> findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
+    static List<DependencyInsight> findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
             Set<Dependency> dependencySet,
             String scalaVersion,
             ScalaVersions scalaVersions) {
-        findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion, scalaVersions).findAll { tuples ->
-            tuples[1] != '?' }
+        findAllNonMatchingScalaVersionDependencies(dependencySet, scalaVersion, scalaVersions).findAll {
+            it.supposedScalaVersion != '?' }
     }
 
     /**
@@ -468,14 +403,19 @@ class DependencyInsights {
      * @param scalaVersions
      * @return
      */
-    static List<Tuple> findScalaDependencies(Set<Dependency> dependencySet, ScalaVersions scalaVersions) {
+    static List<DependencyInsight> findScalaDependencies(Set<Dependency> dependencySet, ScalaVersions scalaVersions) {
         def isScalaLibDependency = { dependency ->
             "${dependency.group}:${dependency.name}" == 'org.scala-lang:scala-library'
         }
         def scalaDeps = dependencySet.findAll(isScalaLibDependency).collect { dep ->
             def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)
-            def groupAndBaseName = parseDependencyName(dep, scalaVersions).first
-            new Tuple(groupAndBaseName, scalaVersionInsights.artifactInlinedVersion, dep)
+            def dependencyInsight = DependencyInsight.parse(dep, scalaVersions)
+            new DependencyInsight(baseName:dependencyInsight.baseName,
+                    supposedScalaVersion:scalaVersionInsights.artifactInlinedVersion,
+                    appendix:dependencyInsight.appendix,
+                    group:dependencyInsight.group,
+                    version:dependencyInsight.version,
+                    dependency:dependencyInsight.dependency)
         }
 
         scalaDeps
@@ -491,13 +431,12 @@ class DependencyInsights {
      *          (baseName, scalaVersion, {@link org.gradle.api.artifacts.Dependency})
      *          i.e. ('lib', '2.11', ...)
      */
-    static List<Tuple> findAllNonMatchingScalaVersionDependencies(Collection<Dependency> dependencySet,
-                                                                  String scalaVersion,
-                                                                  ScalaVersions scalaVersions) {
-        def nonMatchingDeps = dependencySet.collect {
-            def (groupAndBaseName, supposedScalaVersion) = parseDependencyName(it, scalaVersions)
-            new Tuple(groupAndBaseName, supposedScalaVersion, it) }
-                .findAll { it[1] != null && it[1] != scalaVersion }
+    static List<DependencyInsight> findAllNonMatchingScalaVersionDependencies(Collection<Dependency> dependencySet,
+                                                                              String scalaVersion,
+                                                                              ScalaVersions scalaVersions) {
+        def nonMatchingDeps = dependencySet.collect { dependency ->
+            DependencyInsight.parse(dependency, scalaVersions)
+        }.findAll { it.supposedScalaVersion != null }.findAll { it.supposedScalaVersion != scalaVersion }
 
         nonMatchingDeps
     }

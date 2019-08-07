@@ -16,4 +16,7 @@ branches:
 before_install:
   - chmod +x gradlew
 script:
-  - ./gradlew clean check --no-daemon --info
+  - ./gradlew clean check --no-daemon
+  - ./gradlew codeCoverageReport
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
