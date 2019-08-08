@@ -3,9 +3,9 @@ package com.github.prokod.gradle.crossbuild
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
 import com.github.prokod.gradle.crossbuild.model.BuildUpdateEventStore
+import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.model.EventType
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
@@ -142,7 +142,7 @@ class CrossBuildExtension {
             def task = sourceSet?.getJarTaskName() != null ? project.tasks.findByName(sourceSet.getJarTaskName()) : null
 
             if (task != null) {
-                def origBaseName = DependencyInsights.parseDependencyName(task.baseName, sv)[0]
+                def origBaseName = DependencyLimitedInsight.parseByDependencyName(task.baseName, sv).baseName
                 task.configure {
                     baseName = origBaseName + rb.archive.appendix
                 }
