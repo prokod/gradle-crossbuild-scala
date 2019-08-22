@@ -1,0 +1,97 @@
+[[{
+    "configuration": {
+        "allDependencies": [
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
+        ],
+        "name": "crossBuildSpark230_211Compile"
+    },
+    "sourceSet": "crossBuildSpark230_211",
+    "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+            "scala-library.jar (org.scala-lang:scala-library:2.11.12)"
+        ],
+        "files": [
+            "scala-library-2.11.12.jar"
+        ],
+        "firstLevelModuleDependencies": [
+            "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@"
+        ]
+    }
+},
+  {
+    "configuration": {
+      "allDependencies": [
+        "DefaultProjectDependency{dependencyProject='project ':lib2'', configuration='crossBuildSpark230_211Producer'}",
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark230_211Producer'}",
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
+      ],
+      "name": "crossBuildSpark230_211Implementation"
+    },
+    "sourceSet": "crossBuildSpark230_211",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": null,
+      "files": null,
+      "firstLevelModuleDependencies": null
+    }
+  },
+  {
+    "configuration": {
+      "allDependencies": [
+        "DefaultProjectDependency{dependencyProject='project ':lib2'', configuration='crossBuildSpark230_211Producer'}",
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark230_211Producer'}",
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
+      ],
+      "name": "crossBuildSpark230_211CompileClasspath"
+    },
+    "sourceSet": "crossBuildSpark230_211",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+        "lib2_2.11.jar (project :lib2)",
+        "lib_2.11.jar (project :lib)"
+      ],
+      "files": [
+        "scala-library-2.11.12.jar",
+        "lib2_2.11-1.0-SNAPSHOT.jar",
+        "lib_2.11-1.0-SNAPSHOT.jar"
+      ],
+      "firstLevelModuleDependencies": [
+            "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
+        "com.github.prokod.it:lib2:1.0-SNAPSHOT;crossBuildSpark230_211Producer",
+        "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark230_211Producer"
+      ]
+    }
+  },
+  {
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+        "DefaultProjectDependency{dependencyProject='project ':lib2'', configuration='crossBuildSpark230_211Producer'}",
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark230_211Producer'}"
+      ],
+      "name": "crossBuildSpark230_211RuntimeClasspath"
+    },
+    "sourceSet": "crossBuildSpark230_211",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+        "lib2_2.11.jar (project :lib2)",
+        "lib_2.11.jar (project :lib)"
+      ],
+      "files": [
+        "scala-library-2.11.12.jar",
+        "lib2_2.11-1.0-SNAPSHOT.jar",
+        "lib_2.11-1.0-SNAPSHOT.jar"
+      ],
+      "firstLevelModuleDependencies": [
+            "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+        "com.github.prokod.it:lib2:1.0-SNAPSHOT;crossBuildSpark230_211Producer",
+        "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark230_211Producer"
+      ]
+    }
+  }
+]]
