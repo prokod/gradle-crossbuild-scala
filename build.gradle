@@ -1,5 +1,6 @@
 plugins {
     id "com.gradle.plugin-publish" version "0.10.1"
+    id 'jacoco'
 }
 
 apply plugin: 'groovy'
@@ -8,8 +9,9 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'codenarc'
 
+
 group = 'com.github.prokod'
-version = '0.8.1-SNAPSHOT'
+version = '0.9.0'
 
 repositories {
     jcenter()
@@ -49,6 +51,8 @@ dependencies {
         exclude module: 'groovy-all'
     }
     testCompile 'org.skyscreamer:jsonassert:1.5.0'
+    testCompile 'org.xmlunit:xmlunit-core:2.6.3'
+    testCompile 'org.xmlunit:xmlunit-matchers:2.6.3'
 }
 
 gradlePlugin {
@@ -162,5 +166,17 @@ tasks.withType(Test) {
                 println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
             }
         }
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.4"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
     }
 }
