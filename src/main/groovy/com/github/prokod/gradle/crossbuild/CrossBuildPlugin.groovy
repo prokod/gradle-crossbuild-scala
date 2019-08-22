@@ -19,10 +19,12 @@ import com.github.prokod.gradle.crossbuild.tasks.AbstractCrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildPomTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsClasspathResolvedConfigurationReportTask
+import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
+import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
+import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights.ViewType
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 import com.github.prokod.gradle.crossbuild.utils.ScalaCompileTasks
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -74,6 +76,7 @@ class CrossBuildPlugin implements Plugin<Project> {
 
             def sourceSet = getAndUpdateSourceSetFor(rb, extension.crossBuildSourceSets)
 
+            //todo maybe not needed anymore (might not be as helpful as expected)
             // Mainly here to help with creation of the correct dependencies for pom creation
             // see ResolutionStrategyConfigurer::assemble3rdPartyDependencies
             extension.project.dependencies.add(sourceSet.compileConfigurationName,
@@ -82,20 +85,24 @@ class CrossBuildPlugin implements Plugin<Project> {
     }
 
     private static void assignCrossBuildDependencyResolutionStrategy(CrossBuildExtension extension) {
+        def main = extension.crossBuildSourceSets.container.findByName('main')
+
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
+            def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
             def configurer =
-                    new ResolutionStrategyConfigurer(extension.project, extension.scalaVersionsCatalog,
+                    new ResolutionStrategyConfigurer(sourceSetInsights, extension.scalaVersionsCatalog,
                             rb.scalaVersionInsights)
-            configurer.applyForLinkWith([
-                    (sourceSet.compileConfigurationName):extension.project.configurations.compile,
-                    (sourceSet.implementationConfigurationName):extension.project.configurations.implementation,
-                    (sourceSet.compileClasspathConfigurationName):extension.project.configurations.compileClasspath,
-                    (sourceSet.runtimeClasspathConfigurationName):extension.project.configurations.runtimeClasspath,
-                    (sourceSet.compileOnlyConfigurationName):extension.project.configurations.compileOnly,
-                    (sourceSet.runtimeConfigurationName):extension.project.configurations.runtime,
-                    (sourceSet.runtimeOnlyConfigurationName):extension.project.configurations.runtimeOnly])
+
+            configurer.applyForLinkWith(
+                    ViewType.COMPILE,
+                    ViewType.IMPLEMENTATION,
+                    ViewType.COMPILE_CLASSPATH,
+                    ViewType.RUNTIME_CLASSPATH,
+                    ViewType.COMPILE_ONLY,
+                    ViewType.RUNTIME,
+                    ViewType.RUNTIME_ONLY)
 
             //TODO: add tests to cover adding external configurations scenarios
             def configs = extension.project.configurations.findAll { it.name.startsWith('test') } +
@@ -147,19 +154,24 @@ class CrossBuildPlugin implements Plugin<Project> {
      * @param extension
      */
     private static void generateNonDefaultProjectTypeDependencies(CrossBuildExtension extension) {
+        def main = extension.crossBuildSourceSets.container.findByName('main')
         def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
-            // todo replace in due time with implementation configuration
-            def diCompile = DependencyInsights.from(extension.project, sourceSet)
+            def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
+            def di = new DependencyInsights(sourceSetInsights)
 
+            //todo add other needed configuration types (except COMPILE)
+            // for 'implementation' configuration
+            di.addMainConfigurationToCrossBuildCounterPart(ViewType.IMPLEMENTATION, sv)
             // for 'compileOnly' configuration
-            diCompile.addCompileOnlyConfigurationToCrossBuildCounterPart(sourceSet, sv)
+            di.addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_ONLY, sv)
 
             // for 'compile' configuration
-            diCompile.addDefaultConfigurationsToCrossBuildConfigurationRecursive(sourceSet)
-            diCompile.generateAndWireCrossBuildProjectTypeDependencies(sourceSet)
+            di.addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE)
+            di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.COMPILE, ViewType.IMPLEMENTATION)
+            di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.IMPLEMENTATION, ViewType.IMPLEMENTATION)
         }
     }
 

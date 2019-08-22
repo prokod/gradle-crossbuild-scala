@@ -226,7 +226,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withArguments('crossBuildV211Jar', 'crossBuildV212Jar', 'check', '--info', '--stacktrace')
+                .withArguments('crossBuildResolvedConfigs', 'crossBuildV211Jar', 'crossBuildV212Jar', 'check', '--info', '--stacktrace')
                 .build()
 
         then:

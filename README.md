@@ -14,6 +14,7 @@
 
 ## Shortcomings
 - *Cross building for test/check tasks* are not supported.
+- *No support for java-library plugin* java-library `api`, `apiComponents` and `runtimeComponents` configurations are not supported yet.
 
 ## Getting the plugin
 #### Using the plugin DSL:
@@ -99,6 +100,21 @@ buildscript {
 
     > ls ./build/libs
     lib_2.11.jar  lib_2.12.jar
+    ```
+    
+- Another variant would be
+    ```groovy
+    archivesBaseName = 'lib'
+
+    apply plugin: 'com.github.prokod.gradle-crossbuild'
+
+    crossBuild {
+        builds {
+            scala {
+                scalaVersions = ['2.11', '2.12']
+            }
+        }
+    }
     ```
     
 #### Notes
@@ -253,6 +269,11 @@ The following table shows some commonly build scenarios expressed through the pl
 |<pre>`v211 {`<br/>`    scalaVersions = ['2.11', '2.12']`<br/>`}`</pre> | crossBuild*V211_211*, crossBuild*V211_212* | <ul><li>crossBuild*V211_211*Compile<br/>...</li><li>crossBuild*V211_212*Compile<br/>...</li></ul> | <ul><li>JavaPlugin -> crossBuild*V211_211*Java, crossBuild*V211_212*Java</li><li>ScalaPlugin -> crossBuild*V211_211*Scala, crossBuild*V211_212*Scala</li><li>crossBuild*V211_211*Jar, crossBuild*V211_212*Jar</li></ul> |
 |<pre>`v213 {`<br/>`    scalaVersions = ['2.13']`<br/>`}`</pre> | crossBuild*V213* | <ul><li>crossBuild*V213*Compile<br/>...</li></ul> | <ul><li>JavaPlugin -> crossBuild*V213*Java</li><li>ScalaPlugin -> crossBuild*V213*Scala</li><li>crossBuild*V213*Jar</li></ul> |
 |<pre>`spark24 {`<br/>`    scalaVersions = ['2.11', '2.12']`<br/>`}`</pre> |  crossBuild*Spark24_211*, crossBuild*Spark24_212* | <ul><li>crossBuild*Spark24_211*Compile<br/>...</li><li>crossBuild*Spark24_212*Compile<br/>...</li></ul> | <ul><li>JavaPlugin -> crossBuild*Spark24_211*Java, crossBuild*Spark24_212*Java</li><li>ScalaPlugin -> crossBuild*Spark24_211*Scala, crossBuild*Spark24_212*Scala</li><li>crossBuild*Spark24_211*Jar, crossBuild*Spark24_212*Jar</li></ul> |
+
+### `implementation` configuration and `java-library` plugin
+`implementation` java plugin based configuration is supported by the plugin and cross build variants will be added to the cross build projects. <br/> 
+When using `implementation` configuration in a multi module project together with cross build plugin applied a suggestion is to read [java-library plugin doc](https://docs.gradle.org/current/userguide/java_library_plugin.html) before hand, especially for new comers from Maven, `compile`/`runtime` users. <br/>
+As the cross building plugin is not supporting yet `java-library` plugin there is no counter part to `implementation` by the form of `api` configuration and to emulate that one should use `compile` configuration instead
 
 ### multi-module project
 To apply cross building to a multi-module project use one of the following suggested layouts:
