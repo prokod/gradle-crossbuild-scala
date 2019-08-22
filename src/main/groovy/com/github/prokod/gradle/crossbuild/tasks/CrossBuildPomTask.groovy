@@ -88,7 +88,6 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
             }
         }
 
-        // todo consider switching to detached configuration
         def createdTargetMavenScopeConfig = project.configurations.create(mavenScopeConfigurationNameFor(scopeType)) {
             canBeConsumed = false
             canBeResolved = false

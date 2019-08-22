@@ -1,10 +1,11 @@
 package com.github.prokod.gradle.crossbuild.utils
 
-import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import com.github.prokod.gradle.crossbuild.model.DependencyInsight
+import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView.DependencySetType
+import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights.ViewType
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -12,7 +13,6 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
-import org.gradle.api.tasks.SourceSet
 
 import javax.inject.Inject
 
@@ -22,29 +22,10 @@ import javax.inject.Inject
  */
 class DependencyInsights {
 
-    final DependencyInsightsContext diContext
+    final SourceSetInsights sourceSetInsights
 
-    DependencyInsights(DependencyInsightsContext diContext) {
-        this.diContext = diContext
-    }
-
-    /**
-     * todo refactor as this holds true accurately for specific methods in this class only:
-     * {@link #addDefaultConfigurationsToCrossBuildConfigurationRecursive}
-     * {@link #generateAndWireCrossBuildProjectTypeDependencies}
-     *
-     * @param project
-     * @param sourceSet
-     * @return
-     */
-    static DependencyInsights from(Project project, SourceSet sourceSet) {
-        def crossBuildConfiguration = project.configurations.findByName(sourceSet.compileConfigurationName)
-
-        def diContext = new DependencyInsightsContext(project:project,
-                dependencies:[crossBuildConfiguration.allDependencies, project.configurations.compile.allDependencies],
-                configurations:[current:crossBuildConfiguration, parent:project.configurations.compile])
-
-        new DependencyInsights(diContext)
+    DependencyInsights(SourceSetInsights sourceSetInsights) {
+        this.sourceSetInsights = sourceSetInsights
     }
 
     /**
@@ -54,14 +35,16 @@ class DependencyInsights {
      * After being found, all the related (direct) dependencies for the specified configuration within those projects
      * are being returned.
      *
-     * @param configurationName - configuration to have the dependencies extracted from
+     * @param configurationNames Configurations to have the dependencies extracted from
+     * @param referenceView Configuration type as context for this method to operate from.
      * @return List of {@link Dependency} from relevant projects that are themselves defined as dependencies and share
-     *          the same dependency graph with the ones originated from within initialDependencySet
+     *         the same dependency graph with the ones originated from within initialDependencySet
      *
-     * todo tuple configuration names should be part of diContext ...
      */
-    Set<Dependency> findAllCrossBuildProjectTypeDependenciesDependenciesFor(Set<String> configurationNames) {
-        def projectTypeDependencies = extractCrossBuildProjectTypeDependencies()
+    // todo remove referenceView, needed because of CrossBuildPluginUtils.findAllCrossBuildPluginAppliedProjects
+    Set<Dependency> findAllCrossBuildProjectTypeDependenciesDependenciesFor(Set<String> configurationNames,
+                                                                            ViewType referenceView) {
+        def projectTypeDependencies = extractCrossBuildProjectTypeDependencies(referenceView)
 
         def dependenciesOfProjectDependencies = projectTypeDependencies.collectMany { prjDep ->
             extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationNames)
@@ -71,87 +54,79 @@ class DependencyInsights {
     }
 
     /**
-     * This method returns stable result (No matter how the user decides to use the plugin DSL in build.gradle)
-     * when executed from within {@code Gradle.projectsEvaluated {}} block.
+     * This method acts as a more granular replacement to {@link Configuration#extendsFrom} where
+     * {@code crossBuildConfiguration.extendsFrom(configuration)} and both {@code crossBuildConfiguration},
+     * {@code configuration} are {@link SourceSetInsightsView#getConfigurations} {@code crossBuild}, {@code main}
+     * respectively.
      *
-     * NOTE: In certain cases of build.gradle composition together with this method being used from within
-     * {@code project.afterEvaluate {}} block the result will be the same.
+     * Granular 'extendsFrom' comes down to:
+     * 1. Leaving out module dependencies (of type {@link ProjectDependency}) which crossbuild plugin is applied to
+     * 2. Leaving out colliding external dependencies (Colliding means same group:name but different version)
      *
-     * @return Set of {@link Project}s with {@link CrossBuildPlugin} applied.
+     * NOTE: To overcome the absence of the dynamic nature {@code extendsFrom} has where the collection is always live,
+     * This method should be used as late as possible in the build lifecycle
      *
-     * TODO: Find a way to achieve the same result in a stable way from {@code project.afterEvaluate {}} block
+     * @param view
+     * @param scalaVersions
      */
-    Set<Project> findAllCrossBuildPluginAppliedProjects() {
-        def project = diContext.project
-        def configuration = diContext.configurations?.current
-        def parentConfiguration = diContext.configurations?.parent
-        def moduleNames = project.gradle.rootProject.allprojects.findAll { it.plugins.hasPlugin(CrossBuildPlugin) }
+    void addMainConfigurationToCrossBuildCounterPart(ViewType view, ScalaVersions scalaVersions) {
+        def insightsView = new SourceSetInsightsView(sourceSetInsights, view)
 
-        project.logger.debug(LoggerUtils.logTemplate(project,
-                lifecycle:'afterEvaluate',
-                configuration:configuration?.name,
-                parentConfiguration:parentConfiguration?.name,
-                msg:"Found the following crossbuild modules ${moduleNames.join(', ')}."))
-        moduleNames
-    }
+        def consumerConfiguration = insightsView.configurations.crossBuild
 
-    void addCompileOnlyConfigurationToCrossBuildCounterPart(SourceSet sourceSet, ScalaVersions scalaVersions) {
-        def project = diContext.project
+        def modules = CrossBuildPluginUtils.findAllCrossBuildPluginAppliedProjects(insightsView)
 
-        def consumerConfiguration = project.configurations[sourceSet.compileOnlyConfigurationName]
-
-        def modules = findAllCrossBuildPluginAppliedProjects()
-
-        def nonCrossBuildModules = { Dependency dependency -> !modules*.name.contains(dependency.name) }
+        def nonCrossBuildModulesPredicate = { Dependency dependency -> !modules*.name.contains(dependency.name) }
 
         def consumerConfigurationDependenciesGroupName = consumerConfiguration.allDependencies.collect { dependency ->
             DependencyInsight.parse(dependency, scalaVersions).groupAndBaseName
         }.toSet()
 
-        def nonSameExternalDependencies = { Dependency dependency ->
+        def nonSameExternalDependenciesPredicate = { Dependency dependency ->
             def parsedGroupBaseName = DependencyInsight.parse(dependency, scalaVersions).groupAndBaseName
-            !isProjectDependency(dependency) &&
             !consumerConfigurationDependenciesGroupName.contains(parsedGroupBaseName)
         }
 
-        def producerConfigurationDependencies = project.configurations.compileOnly.allDependencies
+        def producerConfigurationDependencies = insightsView.dependencySets.main
 
         def producerConfigurationFilteredDependencies = producerConfigurationDependencies
-                .findAll(nonCrossBuildModules).findAll(nonSameExternalDependencies)
+                .findAll(nonCrossBuildModulesPredicate).findAll(nonSameExternalDependenciesPredicate)
 
         consumerConfiguration.dependencies.addAll(producerConfigurationFilteredDependencies)
     }
 
-    void addDefaultConfigurationsToCrossBuildConfigurationRecursive(SourceSet sourceSet) {
-        def project = diContext.project
+    void addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType view) {
+        def insightsView = new SourceSetInsightsView(sourceSetInsights, view)
 
-        def defaultConfigurations = generateDetachedDefaultConfigurationsRecursively()
+        def consumerConfiguration = insightsView.configurations.crossBuild
 
-        def consumerConfiguration = project.configurations[sourceSet.compileConfigurationName]
+        def defaultConfigurations = generateDetachedDefaultConfigurationsRecursively(view)
 
         defaultConfigurations.each { configuration ->
-            consumerConfiguration.dependencies.addAll(configuration.dependencies)
+            def dependencies = configuration.dependencies
+            consumerConfiguration.dependencies.addAll(dependencies)
         }
     }
 
     /**
-     * todo together with {@link #from} indicates that this class should be refactored. sourceSet as an input -redundant
      *
-     * @param sourceSet
+     * @param producerView
+     * @param consumerView
      */
-    void generateAndWireCrossBuildProjectTypeDependencies(SourceSet sourceSet) {
-        def project = diContext.project
+    void generateAndWireCrossBuildProjectTypeDependencies(ViewType producerView, ViewType consumerView) {
+        def project = sourceSetInsights.project
 
-        def consumerConfiguration = project.configurations[sourceSet.implementationConfigurationName]
+        def consumerInsightsView = new SourceSetInsightsView(sourceSetInsights, consumerView)
+        def consumerConfiguration = consumerInsightsView.configurations.crossBuild
 
-        def projectLibDependencies = extractCrossBuildProjectTypeDependencies()
+        def projectLibDependencies = extractCrossBuildProjectTypeDependencies(producerView)
 
         projectLibDependencies.each { dependency ->
             def subProject = dependency.dependencyProject
 
-            def targetTask = subProject.tasks[sourceSet.jarTaskName]
+            def targetTask = subProject.tasks[sourceSetInsights.crossBuild.jarTaskName]
 
-            def producerConfigurationName = "${sourceSet.name}Producer"
+            def producerConfigurationName = "${sourceSetInsights.crossBuild.name}Producer"
 
             def alreadyCreatedProducerConfiguration = subProject.configurations.findByName(producerConfigurationName)
             def producerConfiguration =
@@ -167,7 +142,7 @@ class DependencyInsights {
             project.dependencies.attributesSchema.with {
                 // Added to support correct Dependency resolution for Gradle 4.X
                 attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules.add(DisRule) {
-                    it.params(sourceSet.name)
+                    it.params(sourceSetInsights.crossBuild.name)
                 }
             }
 
@@ -175,7 +150,7 @@ class DependencyInsights {
 
             project.logger.info(LoggerUtils.logTemplate(project,
                     lifecycle:'projectsEvaluated',
-                    configuration:sourceSet.name,
+                    configuration:producerConfigurationName,
                     msg:"Created Custom project lib dependency: [$dep] linked to jar Task: [$targetTask]"
             ))
         }
@@ -184,56 +159,22 @@ class DependencyInsights {
     /**
      * See {@link #generateDetachedDefaultConfigurationsRecursivelyFor} doc
      *
+     * @param referenceView Configuration type as context for this method to operate from.
      * @return A set of detached {@link Configuration}s that are derived from all relevant 'default' configurations
      *         encountered in the dependency graph originated from the initial
      *         'default' configuration dependency set for the initial project in context.
      */
-    Set<Configuration> generateDetachedDefaultConfigurationsRecursively() {
-        def modules = findAllCrossBuildPluginAppliedProjects()
+    Set<Configuration> generateDetachedDefaultConfigurationsRecursively(ViewType referenceView) {
+        def insightsView = new SourceSetInsightsView(sourceSetInsights, referenceView)
 
-        def configurations = generateDetachedDefaultConfigurationsRecursivelyFor(diContext.project, modules)
+        def crossBuildModules = CrossBuildPluginUtils.findAllCrossBuildPluginAppliedProjects(insightsView)
+
+        def entryProject = sourceSetInsights.project
+
+        def configurations =
+                generateDetachedDefaultConfigurationsRecursivelyFor(entryProject, crossBuildModules, insightsView)
 
         configurations
-    }
-
-    /**
-     * Valid Project type dependencies to descend the dependency graph for in this method are those with
-     * targetConfiguration as 'default' only.
-     * Bound by the visibility to the modules that the cross build plugin is applied to.
-     * In a lazy applied plugin type of build.gradle, the full set of modules is visible in {code projectsEvaluated{}}
-     * and later.
-     *
-     * @param modules Set of modules cross build plugin was applied to.
-     *                see {@link #extractCrossBuildProjectTypeDependencies}
-     * @param inputDependencySet
-     * @param defaultConfiguration
-     * @return
-     */
-    private Set<Configuration> extractCopiedDefaultConfigurationsRecursivelyInternal(
-            Set<Project> modules,
-            Configuration defaultConfiguration) {
-
-        Set<Configuration> accum = []
-
-        // todo maybe dependencies is enough ? (stead of allDependencies)
-        def inputDependencySet = defaultConfiguration.allDependencies
-
-        def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
-                .collect { it as ProjectDependency }
-        def currentProjectTypDepsForDefault = currentProjectTypDeps.findAll { it.targetConfiguration == null }
-        // todo copy is sufficient ? (stead of copyRecursive)
-        def copiedAndFiltered = defaultConfiguration.copyRecursive { Dependency dependency ->
-            !modules*.name.contains(dependency.name)
-        }
-        accum.add(copiedAndFiltered)
-        if (currentProjectTypDepsForDefault.size() > 0) {
-            currentProjectTypDepsForDefault.each { ProjectDependency dependency ->
-                def nextDefaultConfiguration = dependency.dependencyProject.configurations['default']
-                accum.addAll(extractCopiedDefaultConfigurationsRecursivelyInternal(modules, nextDefaultConfiguration))
-            }
-        }
-
-        accum
     }
 
     /**
@@ -255,31 +196,35 @@ class DependencyInsights {
      * @return a set of detached configurations derived from the 'default' configuration found in the dependency tree
      */
     private Set<Configuration> generateDetachedDefaultConfigurationsRecursivelyFor(Project dependencyProject,
-                                                                                   Set<Project> modules) {
+                                                                                   Set<Project> modules,
+                                                                                   SourceSetInsightsView insightsView) {
         Set<Configuration> accum = []
 
-        // todo maybe dependencies is enough ? (stead of allDependencies)
         def defaultConfiguration = dependencyProject.configurations['default']
+        def mainConfiguration = insightsView.configurations.main
         def inputDependencySet = defaultConfiguration.allDependencies
 
-        def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
+        def currentProjectTypeDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
                 .collect { it as ProjectDependency }
-        def currentProjectTypDepsForDefault = currentProjectTypDeps.findAll { it.targetConfiguration == null }
-        // todo copy is sufficient ? (stead of copyRecursive)
+        def currentProjectTypeDepsForDefault = currentProjectTypeDeps.findAll { it.targetConfiguration == null }
 
         def filteredDefaultDependencies = defaultConfiguration.allDependencies.findAll { Dependency dependency ->
             !modules*.name.contains(dependency.name)
         }
-        def filteredDefaultDependenciesArray =
-                filteredDefaultDependencies.toArray(new Dependency[filteredDefaultDependencies.size()]) as Dependency[]
+        def intersectedDefaultDependencies = filteredDefaultDependencies.intersect(mainConfiguration.allDependencies)
+        def arrSize = intersectedDefaultDependencies.size()
+        def intersectedDefaultDependenciesArray =
+                intersectedDefaultDependencies.toArray(new Dependency[arrSize]) as Dependency[]
         def detachedDefaultConfiguration =
-                dependencyProject.configurations.detachedConfiguration(filteredDefaultDependenciesArray)
+                dependencyProject.configurations.detachedConfiguration(intersectedDefaultDependenciesArray)
 
         accum.add(detachedDefaultConfiguration)
-        if (currentProjectTypDepsForDefault.size() > 0) {
-            currentProjectTypDepsForDefault.each { ProjectDependency dependency ->
+        if (currentProjectTypeDepsForDefault.size() > 0) {
+            currentProjectTypeDepsForDefault.each { ProjectDependency dependency ->
                 def nextDependencyProject = dependency.dependencyProject
-                accum.addAll(generateDetachedDefaultConfigurationsRecursivelyFor(nextDependencyProject, modules))
+                def nextInsightsView = insightsView.switchTo(nextDependencyProject)
+                accum.addAll(generateDetachedDefaultConfigurationsRecursivelyFor(nextDependencyProject, modules,
+                        nextInsightsView))
             }
         }
 
@@ -452,20 +397,20 @@ class DependencyInsights {
      *
      * NOTE: The outcome is dependent on the lifecycle stage this method is called in. It is complete and stable
      * after {@code gradle.projectsEvaluated} and gives a limited visibility (of one level only)
-     * in {@code project.afterEvaluated} see {@link #findAllCrossBuildPluginAppliedProjects}
+     * in {@code project.afterEvaluated} see {@link CrossBuildPluginUtils#findAllCrossBuildPluginAppliedProjects}
      *
      * @return A set of {@link ProjectDependency} that belong to the dependency graph originated from the initial
      *         project type dependencies found in the initial dependency set
      */
-    Set<ProjectDependency> extractCrossBuildProjectTypeDependencies() {
-        def modules = findAllCrossBuildPluginAppliedProjects()
+    Set<ProjectDependency> extractCrossBuildProjectTypeDependencies(ViewType viewType) {
+        def insightsView = new SourceSetInsightsView(sourceSetInsights, viewType)
+        def modules = CrossBuildPluginUtils.findAllCrossBuildPluginAppliedProjects(insightsView)
 
-        def initialDependencySet = diContext.dependencies.collectMany { it.toSet() }
-        def configuration = diContext.configurations.current
-        def parentConfiguration = diContext.configurations.parent
-        def configurationSet = [configuration.name, parentConfiguration?.name].findAll { it != null } as Set
-        def dependencies = extractCrossBuildProjectTypeDependenciesRecursively(modules, initialDependencySet.toSet(),
-                configurationSet)
+        def inputDependencySet = insightsView.getDependencySets(DependencySetType.ALL).flatMapped().toSet()
+        def configurationNames = insightsView.names.flatMapped().toSet()
+
+        def dependencies = extractCrossBuildProjectTypeDependenciesRecursively(modules, inputDependencySet,
+                configurationNames)
 
         dependencies
     }
@@ -485,14 +430,12 @@ class DependencyInsights {
      *         transitively linked as dependency according to
      *         {@link #extractCrossBuildProjectTypeDependencyDependencies}
      */
-    private Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(
-            Set<Project> modules,
-            Set<Dependency> inputDependencySet,
-            Set<String> configurationNames) {
-
+    private Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(Set<Project> modules,
+                                                                                       Set<Dependency> inDependencySet,
+                                                                                       Set<String> configurationNames) {
         Set<ProjectDependency> accum = []
 
-        def currentProjectTypDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
+        def currentProjectTypDeps = inDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
                 .findAll { isNotAccumulated(it, accum) }.collect { it as ProjectDependency }
         def currentProjectTypDepsForDefault = currentProjectTypDeps.findAll { it.targetConfiguration == null }
         if (currentProjectTypDepsForDefault.size() > 0) {

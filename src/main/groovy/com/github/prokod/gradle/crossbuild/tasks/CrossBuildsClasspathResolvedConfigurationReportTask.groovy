@@ -10,10 +10,8 @@ import org.gradle.api.tasks.TaskAction
 /**
  * Custom gradle task for cross building related reporting
  *
- * todo add compileOnly, runtimeOnly
- * todo group under sourceset all configs
- * todo depict extendsFrom
  */
+// todo 1. add compileOnly, runtimeOnly 2. group under sourceset all configs 3. depict extendsFrom
 class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossBuildsReportTask {
     CrossBuildExtension extension
 
