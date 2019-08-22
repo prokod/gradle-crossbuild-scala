@@ -3,6 +3,13 @@ package com.github.prokod.gradle.crossbuild
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.w3c.dom.Node
+import org.xmlunit.builder.DiffBuilder
+import org.xmlunit.builder.Input
+import org.xmlunit.diff.DefaultNodeMatcher
+import org.xmlunit.diff.Diff
+import org.xmlunit.diff.ElementSelectors
+import org.xmlunit.util.Predicate
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -98,5 +105,27 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
         tokenObjects.each { tkn -> replaceTokens.addConfiguredToken(tkn) }
 
         replaceTokens.text
+    }
+
+    protected String loadResourceAsText(String path) {
+        loadResourceAsText([:], path)
+    }
+
+    protected Diff pomDiffFor(String expected, File actual) {
+        DiffBuilder.compare(Input.fromString(expected))
+                .withTest(Input.fromFile(actual))
+                .ignoreWhitespace()
+                .ignoreComments()
+                .normalizeWhitespace()
+                .withNodeFilter(new Predicate<Node>() {
+                    @Override
+                    boolean test(Node toTest) {
+                        ['dependency', 'artifactId', 'groupId', 'version', 'scope'].contains(toTest.nodeName)
+                    }
+                })
+                .withNodeMatcher(new DefaultNodeMatcher(
+                        ElementSelectors.selectorForElementNamed("dependency",
+                                ElementSelectors.byNameAndText)))
+                .build()
     }
 }
