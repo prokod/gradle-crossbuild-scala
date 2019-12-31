@@ -5,6 +5,7 @@ import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.SourceSet
@@ -21,7 +22,9 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def crossBuildSourceSet = getCrossBuildSourceSet()
         def crossBuildPomAidingTuples =
                 [createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.COMPILE, crossBuildSourceSet),
-                 createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.RUNTIME, crossBuildSourceSet)]
+                 createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.RUNTIME, crossBuildSourceSet),
+                 createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.PROVIDED, crossBuildSourceSet),
+                ]
 
         updateCrossBuildPublications(crossBuildPomAidingTuples.toSet(), crossBuildSourceSet)
     }
@@ -39,52 +42,80 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
     Tuple2<ScopeType, Configuration> createCrossBuildPomAidingConfigurationForMavenScope(ScopeType scopeType,
                                                                                          SourceSet crossBuildSourceSet){
 
-        def mavenToGradleScope = { ScopeType scope ->
-            switch (scope) {
-                case ScopeType.COMPILE:
-                    return project.configurations[crossBuildSourceSet.compileClasspathConfigurationName]
-                case ScopeType.RUNTIME:
-                    return project.configurations[crossBuildSourceSet.runtimeClasspathConfigurationName]
+        def resolveSourceSet = { ScopeType scope ->
+            def sourceSetName = {
+                switch (scope) {
+                    case ScopeType.COMPILE:
+                        return crossBuildSourceSet.compileClasspathConfigurationName
+                    case ScopeType.PROVIDED:
+                        return crossBuildSourceSet.compileOnlyConfigurationName
+                    case ScopeType.RUNTIME:
+                        return crossBuildSourceSet.runtimeClasspathConfigurationName
+                }
             }
+
+            project
+                .configurations[sourceSetName()]
+                .resolvedConfiguration
+                .firstLevelModuleDependencies
+        }
+
+        def toComparableDependency = { ResolvedDependency dep ->
+            "$dep.moduleGroup:$dep.moduleName:$dep.moduleVersion"
+        }
+
+        def dependencyFilter = { ScopeType scope ->
+            def set = resolveSourceSet(scope)
+                .collect { it -> toComparableDependency(it) };
+
+           { ResolvedDependency dep ->
+               set.contains(toComparableDependency(dep))
+           }
+        }
+
+        def resolveDependency = {ResolvedDependency m ->
+            project.dependencies.create(
+                group:m.moduleGroup,
+                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
+                    m.moduleArtifacts[0].name : m.moduleName,
+                version:m.moduleVersion,
+            )
         }
 
         def dependencySetFunction = { ScopeType scope ->
             switch (scope) {
+                case ScopeType.PROVIDED:
+                    def providedDeps = resolveSourceSet(ScopeType.PROVIDED)
+                    return providedDeps
+                        .collect { m ->
+                            project.dependencies.create(
+                                group:m.moduleGroup,
+                                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
+                                    m.moduleArtifacts[0].name : m.moduleName,
+                                version:m.moduleVersion
+                            )
+                        }
+
                 case ScopeType.COMPILE:
-                    def compileConfiguration = mavenToGradleScope(scope)
+                    def compileModuleDeps = resolveSourceSet(ScopeType.COMPILE)
+                    def inProvidedSourceSet = dependencyFilter(ScopeType.PROVIDED)
 
                     // If this is called and there were no repositories defined, an Exception will be raised
                     // Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Cannot resolve external
                     // dependency org.scala-lang:scala-library:2.10.6 because no repositories are defined.
-                    def deps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies.collect { m ->
-                        project.dependencies.create(
-                                group:m.moduleGroup,
-                                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
-                                        m.moduleArtifacts[0].name : m.moduleName,
-                                version:m.moduleVersion)
-                    }
-                    return deps.toSet()
+                    return compileModuleDeps
+                        .findAll{md -> !inProvidedSourceSet(md) }
+                        .collect { m -> resolveDependency(m) }
+
                 case ScopeType.RUNTIME:
-                    def runtimeConfiguration = mavenToGradleScope(scope)
-                    def compileConfiguration = mavenToGradleScope(ScopeType.COMPILE)
+                    def runtimeModuleDeps = resolveSourceSet(ScopeType.RUNTIME)
+                    def inCompileSoureSet = dependencyFilter(ScopeType.COMPILE)
 
-                    def runtimeModuleDeps = runtimeConfiguration.resolvedConfiguration.firstLevelModuleDependencies
-                    def compileModuleDeps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies
 
-                    def comparableCompileModuleDependencies =
-                            compileModuleDeps.collect { "$it.moduleGroup:$it.moduleName:$it.moduleVersion" }
-                    def filteredRuntimeModuleDependencies = runtimeModuleDeps.findAll { md ->
-                        def comparableRuntimeModuleDependency = "$md.moduleGroup:$md.moduleName:$md.moduleVersion"
-                        !comparableCompileModuleDependencies.contains(comparableRuntimeModuleDependency)
-                    }
-                    def deps = filteredRuntimeModuleDependencies.collect { m ->
-                        project.dependencies.create(
-                                group:m.moduleGroup,
-                                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
-                                        m.moduleArtifacts[0].name : m.moduleName,
-                                version:m.moduleVersion)
-                    }
-                    return deps.toSet()
+                    return runtimeModuleDeps
+                        .findAll { md -> !inCompileSoureSet(md) }
+                        .collect { m -> resolveDependency(m) }
+
             }
         }
 
@@ -96,11 +127,11 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         project.logger.info(LoggerUtils.logTemplate(project,
                 lifecycle:'task',
                 sourceset:crossBuildSourceSet.name,
-                configuration:mavenToGradleScope(scopeType).name,
+                configuration:resolveSourceSet(scopeType).name,
                 msg:"Created Maven scope ${scopeType} related configuration: ${createdTargetMavenScopeConfig.name}"
         ))
 
-        set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType))
+        set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType).toSet())
         new Tuple2<>(scopeType, createdTargetMavenScopeConfig)
     }
 

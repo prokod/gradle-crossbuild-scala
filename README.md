@@ -275,6 +275,16 @@ dependencies {
   The other dependency specified for Scala versions **2.10**, **2.11** respectively (`crossBuild210Compile/Only`, `crossBuild211Compile/Only`), will be used only for `crossBuild210Jar`, `crossBuild211Jar`, and other corresponding task variants (`publishCrossBuild210PublicationToMavenLocal`, `publishCrossBuild211PublicationToMavenLocal` ...)<br/>
 > - The plugin provides pre defined configurations (sourceSets) being used by the matching pre generated Jar tasks:<br/>
   crossBuild211Jar -> crossBuild211Compile, crossBuild211CompileOnly, ...
+### pom result
+how the builds are resolved in the pom file
+
+| type | pom  |
+| ------ | ----- |
+| compile | compile |
+| compileOnly | provided |
+| annotationProcessor | ignored, not added to the pom file|
+| runtimeOnly | runtime |
+
 
 ## <a name="build_scenarios"></a>`builds {}` -> Gradle SourceSets, Configurations and Tasks
 The following table shows some commonly build scenarios expressed through the plugin DSL and how they are actually resolved
