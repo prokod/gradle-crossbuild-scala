@@ -65,11 +65,11 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         }
 
         def dependencyFilter = { ScopeType scope ->
-            def set = resolveSourceSet(scope)
+            def dependencies = resolveSourceSet(scope)
                 .collect { it -> toComparableDependency(it) };
 
            { ResolvedDependency dep ->
-               set.contains(toComparableDependency(dep))
+               dependencies.contains(toComparableDependency(dep))
            }
         }
 
@@ -131,11 +131,11 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
                 msg:"Created Maven scope ${scopeType} related configuration: ${createdTargetMavenScopeConfig.name}"
         ))
 
-        set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType).toSet())
+        setDependencies(createdTargetMavenScopeConfig, dependencySetFunction(scopeType).toSet())
         new Tuple2<>(scopeType, createdTargetMavenScopeConfig)
     }
 
-    private void set(Configuration target, Set<Dependency> sourceDependencies) {
+    private void setDependencies(Configuration target, Set<Dependency> sourceDependencies) {
         target.dependencies.addAll(sourceDependencies)
     }
 
