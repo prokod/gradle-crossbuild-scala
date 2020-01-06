@@ -47,8 +47,10 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
                 switch (scope) {
                     case ScopeType.COMPILE:
                         return crossBuildSourceSet.compileClasspathConfigurationName
-                    case ScopeType.PROVIDED:
+                    case ScopeType.COMPILE_ONLY:
                         return crossBuildSourceSet.compileOnlyConfigurationName
+                    case ScopeType.PROVIDED:
+                        return []
                     case ScopeType.RUNTIME:
                         return crossBuildSourceSet.runtimeClasspathConfigurationName
                 }
@@ -98,7 +100,7 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
 
                 case ScopeType.COMPILE:
                     def compileModuleDeps = resolveSourceSet(ScopeType.COMPILE)
-                    def inProvidedSourceSet = dependencyFilter(ScopeType.PROVIDED)
+                    def inProvidedSourceSet = dependencyFilter(ScopeType.COMPILE_ONLY)
 
                     // If this is called and there were no repositories defined, an Exception will be raised
                     // Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Cannot resolve external

@@ -30,6 +30,7 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
     static enum ScopeType {
         COMPILE,
         RUNTIME,
-        PROVIDED
+        PROVIDED,
+        COMPILE_ONLY
     }
 }

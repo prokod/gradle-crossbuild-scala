@@ -130,7 +130,7 @@ if(gradle.gradleVersion != '4.2'){
             }
         println(project210)
         then:
-        project210.size() == 4
+        project210.size() == 3
         project210['org.scala-lang'].groupId == 'org.scala-lang'
         project210['org.scala-lang'].artifactId == 'scala-library'
         project210['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
@@ -143,10 +143,7 @@ if(gradle.gradleVersion != '4.2'){
         project210['com.google.guava'].artifactId == 'guava'
         project210['com.google.guava'].version == '18.0'
         project210['com.google.guava'].scope == 'compile'
-        project210['org.apache.spark'].groupId == 'org.apache.spark'
-        project210['org.apache.spark'].artifactId == 'spark-sql_2.10'
-        project210['org.apache.spark'].version == '1.6.3'
-        project210['org.apache.spark'].scope == 'provided'
+
         when:
         def project211 = new XmlSlurper().parseText(pom211)
             .dependencies
@@ -156,7 +153,7 @@ if(gradle.gradleVersion != '4.2'){
             }
 
         then:
-        project211.size() == 4
+        project211.size() == 3
         project211['org.scalatest'].groupId == 'org.scalatest'
         project211['org.scalatest'].artifactId == 'scalatest_2.11'
         project211['org.scalatest'].version == '3.0.1'
@@ -169,10 +166,7 @@ if(gradle.gradleVersion != '4.2'){
         project211['org.scala-lang'].artifactId == 'scala-library'
         project211['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
         project211['org.scala-lang'].scope == 'compile'
-        project211['org.apache.spark'].groupId == 'org.apache.spark'
-        project211['org.apache.spark'].artifactId == 'spark-sql_2.11'
-        project211['org.apache.spark'].version == '2.2.1'
-        project211['org.apache.spark'].scope == 'provided'
+
         where:
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.10'
