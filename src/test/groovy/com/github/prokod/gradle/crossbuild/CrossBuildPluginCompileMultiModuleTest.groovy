@@ -174,7 +174,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('crossBuildResolvedDsl', '--info', '--stacktrace')
                 .build()
 
@@ -341,7 +341,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('tasks', 'build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -510,7 +510,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -684,7 +684,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 

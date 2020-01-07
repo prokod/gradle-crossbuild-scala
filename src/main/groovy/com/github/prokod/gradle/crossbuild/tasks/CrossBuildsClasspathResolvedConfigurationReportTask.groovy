@@ -4,6 +4,7 @@ import com.github.prokod.gradle.crossbuild.CrossBuildExtension
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import groovy.json.JsonBuilder
 import groovy.transform.TupleConstructor
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 
@@ -13,6 +14,7 @@ import org.gradle.api.tasks.TaskAction
  */
 // todo 1. add compileOnly, runtimeOnly 2. group under sourceset all configs 3. depict extendsFrom
 class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossBuildsReportTask {
+    @Internal
     CrossBuildExtension extension
 
     CrossBuildsClasspathResolvedConfigurationReportTask() {

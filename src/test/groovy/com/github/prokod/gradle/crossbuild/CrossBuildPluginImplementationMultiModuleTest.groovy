@@ -60,7 +60,7 @@ class CrossBuildPluginImplementationMultiModuleTest extends CrossBuildGradleRunn
      * 04-pom_app-00.xml
      */
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl, should produce expected jars and pom files and should have correct pom files content"() {
         given:
         // root project settings.gradle
         settingsFile << """
@@ -247,7 +247,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('crossBuildResolvedConfigs', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -348,6 +348,7 @@ dependencies {
         !dApp211.hasDifferences()
 
         where:
+        id = 'TST.004'
         gradleVersion | defaultScalaVersion
         '4.2'         | '2.11'
         '4.10.3'      | '2.12'
@@ -563,7 +564,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('build', 'lib:crossBuildV210Jar', 'lib3:jar', 'app:crossBuildSpark233_211Jar', 'app:crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 

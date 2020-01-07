@@ -59,12 +59,20 @@ crossBuild {
         !result.output.contains('publishCrossBuildV211PublicationToMavenLocal')
         result.output.contains('crossBuildV212Jar')
         !result.output.contains('publishCrossBuildV212PublicationToMavenLocal')
-        result.output.contains('_2.11]')
-        result.output.contains('_2.12]')
+        result.output.contains("""
+Crossbuilding tasks
+-------------------
+crossBuildResolvedConfigs - Summary report for cross building resolved Configurations
+crossBuildResolvedDsl - Summary report for cross building resolved Dsl
+""")
         result.task(":tasks").outcome == SUCCESS
 
+        // TODO: consider removing/splitting test
+        result.output.contains('_2.11]')
+        result.output.contains('_2.12]')
+
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.2', '4.10.3', '5.6.4']
     }
 
     @Unroll
@@ -91,7 +99,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -270,7 +278,7 @@ gradle.projectsEvaluated {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--debug', '--stacktrace')
                 .build()
 
@@ -337,7 +345,7 @@ gradle.projectsEvaluated {
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
-                .withDebug(true)
+                .withDebug(false)
                 .withPluginClasspath()
                 .withArguments('crossBuildV210Jar',
                         'crossBuildV211_211Jar',
@@ -411,7 +419,7 @@ crossBuild {
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
-                .withDebug(true)
+                .withDebug(false)
                 .withPluginClasspath()
                 .withArguments('tasks',
                         '--info', '--stacktrace')

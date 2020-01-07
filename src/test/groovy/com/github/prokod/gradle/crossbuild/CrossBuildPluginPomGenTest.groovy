@@ -101,7 +101,7 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withDebug(true)
+                .withDebug(false)
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
