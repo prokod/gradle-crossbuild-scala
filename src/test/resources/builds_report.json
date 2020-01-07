@@ -1,0 +1,136 @@
+[{
+  "name": "Spark24_212",
+  "scalaVersion": "2.12",
+  "archive": {
+    "appendixPattern": "-2-4-3_?",
+    "appendix": "-2-4-3_2.12"
+  },
+  "scalaVersionInsights": {
+    "baseVersion": "2.12",
+    "compilerVersion": "2.12.8",
+    "artifactInlinedVersion": "2.12",
+    "strippedArtifactInlinedVersion": "212",
+    "underscoredBaseVersion": "2_12",
+    "underscoredCompilerVersion": "2_12_8",
+    "underscoredArtifactInlinedVersion": "2_12"
+  }
+},
+  {
+    "name": "Spark24_211",
+    "scalaVersion": "2.11",
+    "archive": {
+      "appendixPattern": "-2-4-3_?",
+      "appendix": "-2-4-3_2.11"
+    },
+    "scalaVersionInsights": {
+      "baseVersion": "2.11",
+      "compilerVersion": "2.11.12",
+      "artifactInlinedVersion": "2.11",
+      "strippedArtifactInlinedVersion": "211",
+      "underscoredBaseVersion": "2_11",
+      "underscoredCompilerVersion": "2_11_12",
+      "underscoredArtifactInlinedVersion": "2_11"
+    }
+  },
+  {
+    "name": "V210",
+    "scalaVersion": "2.10",
+    "archive": {
+      "appendixPattern": "_?",
+      "appendix": "_2.10"
+    },
+    "scalaVersionInsights": {
+      "baseVersion": "2.10",
+      "compilerVersion": "2.10.6",
+      "artifactInlinedVersion": "2.10",
+      "strippedArtifactInlinedVersion": "210",
+      "underscoredBaseVersion": "2_10",
+      "underscoredCompilerVersion": "2_10_6",
+      "underscoredArtifactInlinedVersion": "2_10"
+    }
+  },
+  {
+    "name": "V211_212",
+    "scalaVersion": "2.12",
+    "archive": {
+      "appendixPattern": "_?",
+      "appendix": "_2.12"
+    },
+    "scalaVersionInsights": {
+      "baseVersion": "2.12",
+      "compilerVersion": "2.12.8",
+      "artifactInlinedVersion": "2.12",
+      "strippedArtifactInlinedVersion": "212",
+      "underscoredBaseVersion": "2_12",
+      "underscoredCompilerVersion": "2_12_8",
+      "underscoredArtifactInlinedVersion": "2_12"
+    }
+  },
+  {
+    "name": "V211_211",
+    "scalaVersion": "2.11",
+    "archive": {
+      "appendixPattern": "_?",
+      "appendix": "_2.11"
+    },
+    "scalaVersionInsights": {
+      "baseVersion": "2.11",
+      "compilerVersion": "2.11.12",
+      "artifactInlinedVersion": "2.11",
+      "strippedArtifactInlinedVersion": "211",
+      "underscoredBaseVersion": "2_11",
+      "underscoredCompilerVersion": "2_11_12",
+      "underscoredArtifactInlinedVersion": "2_11"
+    }
+  },
+  {
+    "name": "V211_A_211",
+    "scalaVersion": "2.11",
+    "archive": {
+      "appendixPattern": "_?_A",
+      "appendix": "_2.11_A"
+    },
+    "scalaVersionInsights": {
+      "baseVersion": "2.11",
+      "compilerVersion": "2.11.12",
+      "artifactInlinedVersion": "2.11",
+      "strippedArtifactInlinedVersion": "211",
+      "underscoredBaseVersion": "2_11",
+      "underscoredCompilerVersion": "2_11_12",
+      "underscoredArtifactInlinedVersion": "2_11"
+    }
+  },
+  {
+    "name": "V212_213",
+    "scalaVersion": "2.13",
+    "archive": {
+      "appendixPattern": "_?",
+      "appendix": "_2.13"
+    },
+    "scalaVersionInsights": {
+      "baseVersion": "2.13",
+      "compilerVersion": "2.13.0",
+      "artifactInlinedVersion": "2.13",
+      "strippedArtifactInlinedVersion": "213",
+      "underscoredBaseVersion": "2_13",
+      "underscoredCompilerVersion": "2_13_0",
+      "underscoredArtifactInlinedVersion": "2_13"
+    }
+  },
+  {
+    "name": "V213",
+    "scalaVersion": "2.13",
+    "archive": {
+      "appendixPattern": "_?",
+      "appendix": "_2.13"
+    },
+    "scalaVersionInsights": {
+      "baseVersion": "2.13",
+      "compilerVersion": "2.13.0",
+      "artifactInlinedVersion": "2.13",
+      "strippedArtifactInlinedVersion": "213",
+      "underscoredBaseVersion": "2_13",
+      "underscoredCompilerVersion": "2_13_0",
+      "underscoredArtifactInlinedVersion": "2_13"
+    }
+  }]

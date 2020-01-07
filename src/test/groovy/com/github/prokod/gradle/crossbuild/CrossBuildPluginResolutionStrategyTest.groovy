@@ -117,7 +117,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(true)
+                .withDebug(false)
                 .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 

@@ -43,7 +43,7 @@ class CrossBuildPlugin implements Plugin<Project> {
                 "${AbstractCrossBuildsReportTask.BASE_TASK_NAME}ResolvedDsl") { CrossBuildsReportTask t ->
             t.resolvedBuilds = extension.resolvedBuilds
 
-            t.description = 'Summary report for ross building resolved Dsl'
+            t.description = 'Summary report for cross building resolved Dsl'
         }
 
         project.task(type:CrossBuildsClasspathResolvedConfigurationReportTask,

@@ -1,12 +1,14 @@
 package com.github.prokod.gradle.crossbuild.tasks
 
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 /**
  * Custom gradle task for cross building related reporting
  */
 class CrossBuildsReportTask extends AbstractCrossBuildsReportTask {
+    @Internal
     Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds
 
     CrossBuildsReportTask() {

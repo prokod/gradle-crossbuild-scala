@@ -5,11 +5,14 @@ import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.MutableActionSet
 
 /**
  * Custom gradle task for cross building related Pom files
@@ -139,7 +142,14 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         crossBuildPomAidingTuples.each { tuple ->
             def scope = tuple.first
             def configuration = tuple.second
-            pub.pom.withXml { withXmlHandler(it, configuration, scope) }
+            def defaultMavenPom = pub.getPom() as DefaultMavenPom
+            def xmlActions = defaultMavenPom.getXmlAction() as MutableActionSet
+            if (xmlActions.isEmpty()) {
+                pub.pom.withXml { withXmlHandler(it, configuration, scope) }
+            }
+            else {
+                xmlActions.
+            }
         }
     }
 
@@ -151,6 +161,7 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         name.contains(sourceSetId.capitalize())
     }
 
+    @Internal
     Closure<Void> withXmlHandler = {
         XmlProvider xmlProvider, Configuration pomAidingConfiguration, ScopeType scopeType ->
         def dependenciesNodeFunction = { XmlProvider xml ->
