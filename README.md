@@ -281,7 +281,7 @@ how the builds are resolved in the pom file
 | type | pom  |
 | ------ | ----- |
 | compile | compile |
-| compileOnly | provided |
+| compileOnly | ignored, not added to the pom file |
 | annotationProcessor | ignored, not added to the pom file|
 | runtimeOnly | runtime |
 
