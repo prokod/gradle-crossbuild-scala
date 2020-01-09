@@ -5,6 +5,7 @@ import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -22,9 +23,38 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
     @TaskAction
     void update() {
         def crossBuildSourceSet = getCrossBuildSourceSet()
+
+        def originatedFromCrossBuildConfiguration = { ResolvedDependency dep ->
+            dep.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME)
+        }
+
+        def dependencyNameSelectorFunction = { ResolvedDependency dep ->
+            originatedFromCrossBuildConfiguration(dep) ? dep.moduleArtifacts[0].name : dep.moduleName
+        }
+
+        def gradleClasspathConfigurationBasedDependencySetFunction = { Configuration configuration ->
+            // If this is called and there were no repositories defined, an Exception will be raised
+            // Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Cannot resolve external
+            // dependency org.scala-lang:scala-library:2.10.6 because no repositories are defined.
+            def deps = configuration.resolvedConfiguration.firstLevelModuleDependencies.collect { m ->
+                project.dependencies.create(
+                        group:m.moduleGroup,
+                        name:dependencyNameSelectorFunction(m),
+                        version:m.moduleVersion)
+            }
+            deps.toSet()
+        }
+
+        def compileConfiguration = project.configurations[crossBuildSourceSet.compileClasspathConfigurationName]
+        def runtimeConfiguration = project.configurations[crossBuildSourceSet.runtimeClasspathConfigurationName]
+
+        def gcc = gradleClasspathConfigurationBasedDependencySetFunction(compileConfiguration)
+        def grc = gradleClasspathConfigurationBasedDependencySetFunction(runtimeConfiguration)
+
         def crossBuildPomAidingTuples =
-                [createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.COMPILE, crossBuildSourceSet),
-                 createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.RUNTIME, crossBuildSourceSet)]
+                [createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.COMPILE, gcc, grc, crossBuildSourceSet),
+                 createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.RUNTIME, gcc, grc, crossBuildSourceSet),
+                 createCrossBuildPomAidingConfigurationForMavenScope(ScopeType.PROVIDED, gcc, grc, crossBuildSourceSet)]
 
         updateCrossBuildPublications(crossBuildPomAidingTuples.toSet(), crossBuildSourceSet)
     }
@@ -34,60 +64,36 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
      * for a cross build artifact's pom file.
      *
      * @param scopeType Maven type scopes COMPILE/RUNTIME...
+     * @param gcc Gradle compileClasspath configuration for the sourceset
+     * @param grc Gradle runtimeClasspath configuration for the sourceset
      * @param crossBuildSourceSet The sourceSet associated with the cross build artifact's pom file.
      * @return Tuple of  requested Scope and the created Configuration
      * @throws org.gradle.api.InvalidUserDataException if an object with the given name already exists in this
      *         container.
      */
     Tuple2<ScopeType, Configuration> createCrossBuildPomAidingConfigurationForMavenScope(ScopeType scopeType,
+                                                                                         Set<Dependency> gcc,
+                                                                                         Set<Dependency> grc,
                                                                                          SourceSet crossBuildSourceSet){
 
-        def mavenToGradleScope = { ScopeType scope ->
+        def mavenScopeBasedDependencySetFunction = { ScopeType scope ->
             switch (scope) {
                 case ScopeType.COMPILE:
-                    return project.configurations[crossBuildSourceSet.compileClasspathConfigurationName]
+                    // Gradle compileOnly deps
+                    def gco = gcc - grc
+                    // Maven compile scope
+                    def mc = gcc - gco
+                    return mc
                 case ScopeType.RUNTIME:
-                    return project.configurations[crossBuildSourceSet.runtimeClasspathConfigurationName]
-            }
-        }
-
-        def dependencySetFunction = { ScopeType scope ->
-            switch (scope) {
-                case ScopeType.COMPILE:
-                    def compileConfiguration = mavenToGradleScope(scope)
-
-                    // If this is called and there were no repositories defined, an Exception will be raised
-                    // Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Cannot resolve external
-                    // dependency org.scala-lang:scala-library:2.10.6 because no repositories are defined.
-                    def deps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies.collect { m ->
-                        project.dependencies.create(
-                                group:m.moduleGroup,
-                                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
-                                        m.moduleArtifacts[0].name : m.moduleName,
-                                version:m.moduleVersion)
-                    }
-                    return deps.toSet()
-                case ScopeType.RUNTIME:
-                    def runtimeConfiguration = mavenToGradleScope(scope)
-                    def compileConfiguration = mavenToGradleScope(ScopeType.COMPILE)
-
-                    def runtimeModuleDeps = runtimeConfiguration.resolvedConfiguration.firstLevelModuleDependencies
-                    def compileModuleDeps = compileConfiguration.resolvedConfiguration.firstLevelModuleDependencies
-
-                    def comparableCompileModuleDependencies =
-                            compileModuleDeps.collect { "$it.moduleGroup:$it.moduleName:$it.moduleVersion" }
-                    def filteredRuntimeModuleDependencies = runtimeModuleDeps.findAll { md ->
-                        def comparableRuntimeModuleDependency = "$md.moduleGroup:$md.moduleName:$md.moduleVersion"
-                        !comparableCompileModuleDependencies.contains(comparableRuntimeModuleDependency)
-                    }
-                    def deps = filteredRuntimeModuleDependencies.collect { m ->
-                        project.dependencies.create(
-                                group:m.moduleGroup,
-                                name:m.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME) ?
-                                        m.moduleArtifacts[0].name : m.moduleName,
-                                version:m.moduleVersion)
-                    }
-                    return deps.toSet()
+                    // Maven runtime scope
+                    def mr = grc - gcc
+                    return mr
+                case ScopeType.PROVIDED:
+                    // Gradle compileOnly deps
+                    def gco = gcc - grc
+                    // Maven provided scope
+                    def mp = gco
+                    return mp
             }
         }
 
@@ -99,11 +105,10 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         project.logger.info(LoggerUtils.logTemplate(project,
                 lifecycle:'task',
                 sourceset:crossBuildSourceSet.name,
-                configuration:mavenToGradleScope(scopeType).name,
                 msg:"Created Maven scope ${scopeType} related configuration: ${createdTargetMavenScopeConfig.name}"
         ))
 
-        set(createdTargetMavenScopeConfig, dependencySetFunction(scopeType))
+        set(createdTargetMavenScopeConfig, mavenScopeBasedDependencySetFunction(scopeType))
         new Tuple2<>(scopeType, createdTargetMavenScopeConfig)
     }
 
@@ -139,16 +144,13 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def jarBaseName = project.tasks.findByName(crossBuildSourceSet.jarTaskName).baseName
         pub.artifactId = jarBaseName
 
-        crossBuildPomAidingTuples.each { tuple ->
-            def scope = tuple.first
-            def configuration = tuple.second
-            def defaultMavenPom = pub.getPom() as DefaultMavenPom
-            def xmlActions = defaultMavenPom.getXmlAction() as MutableActionSet
-            if (xmlActions.isEmpty()) {
+        def defaultMavenPom = pub.getPom() as DefaultMavenPom
+        def xmlActions = defaultMavenPom.getXmlAction() as MutableActionSet
+        if (xmlActions.isEmpty()) {
+            crossBuildPomAidingTuples.each { tuple ->
+                def scope = tuple.first
+                def configuration = tuple.second
                 pub.pom.withXml { withXmlHandler(it, configuration, scope) }
-            }
-            else {
-                xmlActions.
             }
         }
     }
