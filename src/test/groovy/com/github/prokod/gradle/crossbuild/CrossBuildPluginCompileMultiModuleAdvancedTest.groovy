@@ -399,7 +399,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.2'           | '2.11'
         '4.10.3'        | '2.12'
-        '5.5.1'         | '2.12'
+        '5.6.4'         | '2.12'
     }
 
     @Unroll
@@ -1391,12 +1391,12 @@ dependencies {
 
     /**
      * This test checks the following plugin behaviour:
-     * 1. under compileOnly type of dependencies. It shows that compileOnly dependencies needs to be repeated in
-     * dependent sub module even though the dependency sub module already declares those compileOnly dependencies.
+     * 1. compileOnly type of dependencies - compileOnly dependencies must be repeated in dependent sub module that
+     * contains code that requires them, even though the parent sub module (from dependency perspective) already
+     * declares those compileOnly dependencies.
      * In short compileOnly dependencies can not become transitive
-     * 2. Plugin forgives scala-lang unaligned default-variant dependency by fixing it (update version) in
-     * dependency resolution
-     * @return
+     * 2. misalignment in scala-lang dependency - the plugin forgives scala-lang unaligned default-variant dependency
+     * by fixing it (update version) in dependency resolution
      */
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 with a more complex inter sub module dependencies and with cross building dsl that is different on each submodule and inlined individual appendixPattern with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
@@ -1739,7 +1739,7 @@ dependencies {
         !fileExists("$dir.root.absolutePath/app/build/libs/app-all_2.12*.jar")
 
         when:
-        // Gradle 4 'java' plugin Configuration model is less precise ans so firstLevelModuleDependencies are under
+        // Gradle 4 'java' plugin Configuration model is less precise and so firstLevelModuleDependencies are under
         // 'default' configuration, Gradle 5 already has a more precise model and so 'default' configuration is replaced
         // by either 'runtime' or 'compile' see https://gradle.org/whats-new/gradle-5/#fine-grained-transitive-dependency-management
         def expectedLib2JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
@@ -1778,7 +1778,6 @@ dependencies {
     /**
      * Here lib3 is a non cross build dependency.
      * This test checks that the transitive dependencies for lib3 are added to dependent lib2
-     * @return
      */
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is applied only to some sub modules should produce expected: jars, pom files; and pom files content should be correct"() {
