@@ -293,10 +293,6 @@ dependencies {
         project210['org.scala-lang'].artifactId == 'scala-library'
         project210['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
         project210['org.scala-lang'].scope == 'compile'
-//        project210['org.apache.spark'].groupId == 'org.apache.spark'
-//        project210['org.apache.spark'].artifactId == 'spark-sql_2.10'
-//        project210['org.apache.spark'].version == '1.6.3'
-//        project210['org.apache.spark'].scope == 'provided'
         project210['com.google.guava'].groupId == 'com.google.guava'
         project210['com.google.guava'].artifactId == 'guava'
         project210['com.google.guava'].version == '18.0'
