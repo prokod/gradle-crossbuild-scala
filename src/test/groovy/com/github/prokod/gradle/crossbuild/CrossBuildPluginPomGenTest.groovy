@@ -101,10 +101,10 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withDebug(false)
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', 'crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
@@ -266,10 +266,10 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withDebug(false)
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', 'crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
