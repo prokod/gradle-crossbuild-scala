@@ -247,7 +247,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(false)
+                .withDebug(true)
                 .withArguments('crossBuildResolvedConfigs', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -564,7 +564,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(false)
+                .withDebug(true)
                 .withArguments('build', 'lib:crossBuildV210Jar', 'lib3:jar', 'app:crossBuildSpark233_211Jar', 'app:crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 

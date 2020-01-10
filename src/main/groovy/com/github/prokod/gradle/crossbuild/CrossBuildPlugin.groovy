@@ -91,9 +91,8 @@ class CrossBuildPlugin implements Plugin<Project> {
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
             def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
-            def configurer =
-                    new ResolutionStrategyConfigurer(sourceSetInsights, extension.scalaVersionsCatalog,
-                            rb.scalaVersionInsights)
+            def configurer = new ResolutionStrategyConfigurer(sourceSetInsights, extension.scalaVersionsCatalog,
+                    rb.scalaVersionInsights)
 
             configurer.applyForLinkWith(
                     ViewType.COMPILE,

@@ -51,6 +51,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -99,7 +100,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(false)
+                .withDebug(true)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -155,6 +156,7 @@ publishing {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -190,6 +192,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV211Jar', 'crossBuildV212Jar', '--info', '--stacktrace')
                 .build()
 
@@ -230,6 +233,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -278,7 +282,7 @@ gradle.projectsEvaluated {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
-                .withDebug(false)
+                .withDebug(true)
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--debug', '--stacktrace')
                 .build()
 
@@ -345,8 +349,8 @@ gradle.projectsEvaluated {
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
-                .withDebug(false)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV210Jar',
                         'crossBuildV211_211Jar',
                         'crossBuildV211_212Jar',
@@ -419,8 +423,8 @@ crossBuild {
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
-                .withDebug(false)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('tasks',
                         '--info', '--stacktrace')
                 .build()
@@ -493,6 +497,7 @@ publishing {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -542,6 +547,7 @@ sourceSets {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -577,6 +583,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuild213Jar', '--info')
                 .build()
 
@@ -611,6 +618,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuild213Jar', '--info')
                 .build()
 
@@ -645,6 +653,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV213Jar', '--info')
                 .build()
 
