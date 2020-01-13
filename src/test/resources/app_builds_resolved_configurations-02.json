@@ -13,8 +13,8 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scala-library.jar (org.scala-lang:scala-library:2.11.12)"
+        "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
       ],
       "files": [
         "scala-reflect-2.11.12.jar",
@@ -59,9 +59,9 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scalaz-core_2.11.jar (org.scalaz:scalaz-core_2.11:7.2.26)",
-        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+        "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+        "scalaz-core_2.11@_7_2_26_@.jar (org.scalaz:scalaz-core_2.11:7.2.26)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
         "lib_2.11.jar (project :lib)"
       ],
       "files": [
@@ -92,8 +92,8 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+          "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
           "lib_2.11.jar (project :lib)"
         ],
         "files": [
@@ -123,8 +123,8 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scala-library.jar (org.scala-lang:scala-library:2.12.8)"
+          "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)"
         ],
         "files": [
           "scala-reflect-2.12.8.jar",
@@ -169,9 +169,9 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12.jar (org.scalaz:scalaz-core_2.12:7.2.27)",
-          "scala-library.jar (org.scala-lang:scala-library:2.12.8)",
+          "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
+          "scalaz-core_2.12@_7_2_27_@.jar (org.scalaz:scalaz-core_2.12:7.2.27)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
           "lib_2.12.jar (project :lib)"
         ],
         "files": [
@@ -202,8 +202,8 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scala-library.jar (org.scala-lang:scala-library:2.12.8)",
+          "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
           "lib_2.12.jar (project :lib)"
         ],
         "files": [
@@ -233,8 +233,8 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scala-library.jar (org.scala-lang:scala-library:2.11.12)"
+          "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
         ],
         "files": [
           "scala-reflect-2.11.12.jar",
@@ -279,9 +279,9 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scalaz-core_2.11.jar (org.scalaz:scalaz-core_2.11:7.2.28)",
-          "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+          "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+          "scalaz-core_2.11@_7_2_28_@.jar (org.scalaz:scalaz-core_2.11:7.2.28)",
+          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
           "lib-2-4-3_2.11.jar (project :lib)"
         ],
         "files": [
@@ -312,8 +312,8 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+          "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
           "lib-2-4-3_2.11.jar (project :lib)"
         ],
         "files": [
@@ -343,8 +343,8 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scala-library.jar (org.scala-lang:scala-library:2.12.8)"
+          "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)"
         ],
         "files": [
           "scala-reflect-2.12.8.jar",
@@ -389,9 +389,9 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12.jar (org.scalaz:scalaz-core_2.12:7.2.28)",
-          "scala-library.jar (org.scala-lang:scala-library:2.12.8)",
+          "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
+          "scalaz-core_2.12@_7_2_28_@.jar (org.scalaz:scalaz-core_2.12:7.2.28)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
           "lib-2-4-3_2.12.jar (project :lib)"
         ],
         "files": [
@@ -422,8 +422,8 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scala-reflect.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scala-library.jar (org.scala-lang:scala-library:2.12.8)",
+          "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
           "lib-2-4-3_2.12.jar (project :lib)"
         ],
         "files": [

@@ -43,7 +43,7 @@ class CrossBuildPlugin implements Plugin<Project> {
                 "${AbstractCrossBuildsReportTask.BASE_TASK_NAME}ResolvedDsl") { CrossBuildsReportTask t ->
             t.resolvedBuilds = extension.resolvedBuilds
 
-            t.description = 'Summary report for ross building resolved Dsl'
+            t.description = 'Summary report for cross building resolved Dsl'
         }
 
         project.task(type:CrossBuildsClasspathResolvedConfigurationReportTask,
@@ -91,9 +91,8 @@ class CrossBuildPlugin implements Plugin<Project> {
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
             def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
-            def configurer =
-                    new ResolutionStrategyConfigurer(sourceSetInsights, extension.scalaVersionsCatalog,
-                            rb.scalaVersionInsights)
+            def configurer = new ResolutionStrategyConfigurer(sourceSetInsights, extension.scalaVersionsCatalog,
+                    rb.scalaVersionInsights)
 
             configurer.applyForLinkWith(
                     ViewType.COMPILE,
