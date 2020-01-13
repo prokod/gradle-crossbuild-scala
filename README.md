@@ -443,5 +443,13 @@ subprojects {
 ## Supported Gradle versions
 |plugin version | Tested Gradle versions |
 |---------------|------------------------|
+|0.10.x         | 4.10.3, 5.6.4, 6.0.1   |
 |0.9.x          | 4.2, 4.10.3, 5.4.1     |
 |0.4.x          | 2.14, 3.0, 4.1         |
+
+## Contributing
+- This project uses gitflow process. PRs should be done against develop branch
+- PRs to develop should be style checked/tested locally by running `./gradlew clean check`
+
+## Building
+- `./gradlew clean build`

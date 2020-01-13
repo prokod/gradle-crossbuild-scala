@@ -167,7 +167,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.10'
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.10'
         '6.0.1'         | '2.11'
@@ -328,7 +327,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.10'
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.10'
         '6.0.1'         | '2.11'
