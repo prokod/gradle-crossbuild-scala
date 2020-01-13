@@ -20,7 +20,7 @@
 #### Using the plugin DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version "0.9.0"
+    id "com.github.prokod.gradle-crossbuild" version "0.10.0"
 }
 ```  
     
@@ -28,7 +28,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.9.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.10.0")
     }
 }
 ```
@@ -345,7 +345,7 @@ To apply cross building to a multi-module project use one of the following sugge
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version '0.9.0' apply false
+    id "com.github.prokod.gradle-crossbuild" version '0.10.0' apply false
 }
 
 allprojects {
@@ -393,7 +393,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version '0.9.0' apply false
+    id "com.github.prokod.gradle-crossbuild" version '0.10.0' apply false
 }
 
 allprojects {
