@@ -266,6 +266,7 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -348,11 +349,10 @@ dependencies {
         !dApp211.hasDifferences()
 
         where:
-        id = 'TST.004'
         gradleVersion | defaultScalaVersion
-        '4.2'         | '2.11'
         '4.10.3'      | '2.12'
         '5.6.4'       | '2.11'
+        '6.0.1'       | '2.12'
     }
 
     /**
@@ -592,8 +592,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        '4.10.3'        | '2.11'
+        '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 }

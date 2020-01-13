@@ -9,7 +9,7 @@
     "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-            "scala-library.jar (org.scala-lang:scala-library:2.11.12)"
+            "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
         ],
         "files": [
             "scala-library-2.11.12.jar"
@@ -49,7 +49,7 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
         "lib2_2.11.jar (project :lib2)",
         "lib_2.11.jar (project :lib)"
       ],
@@ -78,7 +78,7 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
         "lib2_2.11.jar (project :lib2)",
         "lib_2.11.jar (project :lib)"
       ],

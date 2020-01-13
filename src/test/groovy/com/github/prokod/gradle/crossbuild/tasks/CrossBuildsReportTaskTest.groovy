@@ -74,6 +74,6 @@ crossBuild {
         JSONAssert.assertEquals(expectedJsonAsText, actualJsonAsText, false)
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 }

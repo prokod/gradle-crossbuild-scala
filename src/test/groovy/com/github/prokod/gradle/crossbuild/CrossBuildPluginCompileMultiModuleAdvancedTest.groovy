@@ -265,6 +265,8 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
+                _18_0_: gradleVersion.startsWith('6') ? '-18.0' : '',
                 '/app_builds_resolved_configurations-00.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -397,9 +399,9 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
+        '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 
     @Unroll
@@ -649,9 +651,9 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        '4.10.3'        | '2.11'
+        '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 
     /**
@@ -882,12 +884,12 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion | scalazQmarked
-        '4.2'           | '2.11'              | false
-        '4.10.3'        | '2.12'              | false
-        '5.4.1'         | '2.12'              | false
-        '4.2'           | '2.11'              | true
-        '4.10.3'        | '2.12'              | true
-        '5.4.1'         | '2.12'              | true
+        '4.10.3'        | '2.11'              | false
+        '5.6.4'         | '2.12'              | false
+        '6.0.1'         | '2.12'              | false
+        '4.10.3'        | '2.11'              | true
+        '5.6.4'         | '2.12'              | true
+        '6.0.1'         | '2.12'              | true
     }
 
     @Unroll
@@ -1127,9 +1129,9 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        '4.10.3'        | '2.11'
+        '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 
     /**
@@ -1374,6 +1376,8 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
+                _7_2_28_: gradleVersion.startsWith('6') ? '-7.2.28' : '',
                 '/app_builds_resolved_configurations-01.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -1384,9 +1388,9 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        '4.10.3'        | '2.11'
+        '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 
     /**
@@ -1745,6 +1749,11 @@ dependencies {
         def expectedLib2JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _2_12_8_: gradleVersion.startsWith('6') ? '-2.12.8' : '',
+                _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
+                _7_2_26_: gradleVersion.startsWith('6') ? '-7.2.26' : '',
+                _7_2_27_: gradleVersion.startsWith('6') ? '-7.2.27' : '',
+                _7_2_28_: gradleVersion.startsWith('6') ? '-7.2.28' : '',
                 '/app_builds_resolved_configurations-02.json')
         def lib2ResolvedConfigurationReportFile = findFile("*/lib2_builds_resolved_configurations.json")
 
@@ -1760,6 +1769,8 @@ dependencies {
         def expectedLib3JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _2_12_8_: gradleVersion.startsWith('6') ? '-2.12.8' : '',
+                _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
                 '/app_builds_resolved_configurations-03.json')
         def lib3ResolvedConfigurationReportFile = findFile("*/lib3_builds_resolved_configurations.json")
 
@@ -1770,9 +1781,9 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        '4.10.3'        | '2.11'
+        '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 
     /**
@@ -2081,8 +2092,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        '4.10.3'        | '2.11'
+        '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 }
