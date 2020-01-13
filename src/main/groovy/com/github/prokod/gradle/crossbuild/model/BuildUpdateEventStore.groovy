@@ -91,9 +91,6 @@ class BuildUpdateEventStore {
                 def resolvedCatalog = ScalaVersions.withDefaultsAsFallback(catalog)
                 def resolvedBuildsReplay = BuildResolver.resolveDslBuild(Build.from(prevBuild), resolvedCatalog)
                 resolvedBuildsReplay.each { rb ->
-                    // TODO: consider removal of previously created and obsolete sourceset
-                    // TODO: for that, propagate crossBuildSourceSets from extension object
-
                     // Tasks creation in such case are prevented by removing the stale resolvedBuild instance.
                     extension.resolvedBuilds.removeIf { it.name == rb.name }
                 }
@@ -103,9 +100,6 @@ class BuildUpdateEventStore {
                 def resolvedCatalog = ScalaVersions.withDefaultsAsFallback(catalog)
                 def resolvedBuildsReplay = BuildResolver.resolveDslBuild(Build.from(prevBuild), resolvedCatalog)
                 resolvedBuildsReplay.each { rb ->
-                    // TODO: consider removal of previously created and obsolete sourceset
-                    // TODO: for that, propagate crossBuildSourceSets from extension object
-
                     // Tasks creation in such case are prevented by removing the stale resolvedBuild instance.
                     extension.resolvedBuilds.removeIf { it.name == rb.name }
                 }

@@ -104,33 +104,4 @@ class CrossBuildSourceSets {
         assert sourceSets != null : "Missing 'sourceSets' property under Project ${project.name} properties."
         sourceSets
     }
-
-    /**
-     * Removal of source set from container based on fraction of source set name.
-     *
-     * NOTE: current impl. is not guarding against removal of source set other then the intended one which can lead
-     * to unwanted affects.
-     *
-     * TODO: Tighten method so it will only remove one sourceSet and only the intended one
-     *
-     * @param idPostfix
-     */
-    void cleanSourceSetsContainer(String idPostfix) {
-        container.removeIf { sourceSet -> sourceSet.name.contains(idPostfix) }
-    }
-
-    /**
-     * Removal of task from tasks container based on fraction of task name
-     *
-     * NOTE: current impl. is not guarding against removal of tasks other then the intended ones which can lead
-     * to unwanted affects.
-     *
-     * TODO: Tighten method so it will only remove the set of tasks associated to a specific sourceSet
-     *
-     * @param idPostfix
-     */
-    void cleanTasksContainer(String idPostfix) {
-        def tasks = project.tasks
-        tasks.removeIf { task -> task.name.contains(idPostfix) }
-    }
 }

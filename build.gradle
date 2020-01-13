@@ -10,7 +10,7 @@ apply plugin: 'signing'
 apply plugin: 'codenarc'
 
 group = 'com.github.prokod'
-version = '0.9.1'
+version = '0.10.0-SNAPSHOT'
 
 repositories {
     jcenter()
@@ -169,9 +169,10 @@ tasks.withType(Test) {
 }
 
 jacoco {
-    toolVersion = "0.8.4"
+    toolVersion = "0.8.5"
 }
 
+// For jacoco to cover also Gradle's TestKit tests, GradleRunner.create() should be built using withDebug(true)
 jacocoTestReport {
     reports {
         xml.enabled true

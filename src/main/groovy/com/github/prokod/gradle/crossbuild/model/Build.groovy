@@ -88,7 +88,6 @@ class Build {
     }
 
     private void trySettingScalaVersionImplicitlyFrom(String name) {
-        // TODO: Is catalog already resolved in this stage ? To add test!
         def catalog = extension.scalaVersionsCatalog
         def resolvedCatalog = ScalaVersions.withDefaultsAsFallback(catalog)
         def versionInsights = resolvedCatalog.catalog.collect { new ScalaVersionInsights(it.value) }

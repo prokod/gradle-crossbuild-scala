@@ -85,7 +85,6 @@ class CrossBuildExtension {
         def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
 
         build.eventStore.onEvent { event ->
-            // TODO: Unify both resolve methods to one
             def resolvedBuilds = BuildResolver.resolve(build, sv)
 
             if (event.eventType == EventType.SCALA_VERSIONS_UPDATE) {

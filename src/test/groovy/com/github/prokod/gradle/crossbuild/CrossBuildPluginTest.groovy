@@ -51,6 +51,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -59,12 +60,20 @@ crossBuild {
         !result.output.contains('publishCrossBuildV211PublicationToMavenLocal')
         result.output.contains('crossBuildV212Jar')
         !result.output.contains('publishCrossBuildV212PublicationToMavenLocal')
-        result.output.contains('_2.11]')
-        result.output.contains('_2.12]')
+        result.output.contains("""
+Crossbuilding tasks
+-------------------
+crossBuildResolvedConfigs - Summary report for cross building resolved Configurations
+crossBuildResolvedDsl - Summary report for cross building resolved Dsl
+""")
         result.task(":tasks").outcome == SUCCESS
 
+        // TODO: consider removing/splitting test
+        result.output.contains('_2.11]')
+        result.output.contains('_2.12]')
+
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -105,7 +114,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -147,6 +156,7 @@ publishing {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -158,7 +168,7 @@ publishing {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2','4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -182,6 +192,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV211Jar', 'crossBuildV212Jar', '--info', '--stacktrace')
                 .build()
 
@@ -192,7 +203,7 @@ crossBuild {
         result.task(":crossBuildV212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -222,6 +233,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -232,7 +244,7 @@ crossBuild {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -281,7 +293,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -337,8 +349,8 @@ gradle.projectsEvaluated {
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
-                .withDebug(true)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV210Jar',
                         'crossBuildV211_211Jar',
                         'crossBuildV211_212Jar',
@@ -369,7 +381,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildSpark24_212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -411,8 +423,8 @@ crossBuild {
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
-                .withDebug(true)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('tasks',
                         '--info', '--stacktrace')
                 .build()
@@ -439,7 +451,7 @@ crossBuildV213Jar - Assembles a jar archive containing 213 classes
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -485,6 +497,7 @@ publishing {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -497,7 +510,7 @@ publishing {
         result.task(":publishCrossBuildV211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -534,6 +547,7 @@ sourceSets {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -569,6 +583,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuild213Jar', '--info')
                 .build()
 
@@ -576,7 +591,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -603,6 +618,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuild213Jar', '--info')
                 .build()
 
@@ -610,7 +626,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -637,6 +653,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('crossBuildV213Jar', '--info')
                 .build()
 
@@ -644,6 +661,6 @@ crossBuild {
         result.task(":crossBuildV213Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.2', '4.10.3', '5.4.1']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 }
