@@ -60,7 +60,7 @@ class CrossBuildPluginImplementationMultiModuleTest extends CrossBuildGradleRunn
      * 04-pom_app-00.xml
      */
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl, should produce expected jars and pom files and should have correct pom files content"() {
         given:
         // root project settings.gradle
         settingsFile << """
@@ -266,6 +266,7 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -349,9 +350,9 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        '4.2'         | '2.11'
         '4.10.3'      | '2.12'
-        '5.4.1'       | '2.11'
+        '5.6.4'       | '2.11'
+        '6.0.1'       | '2.12'
     }
 
     /**
@@ -591,8 +592,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.2'           | '2.11'
-        '4.10.3'        | '2.12'
-        '5.4.1'         | '2.12'
+        '4.10.3'        | '2.11'
+        '5.6.4'         | '2.12'
+        '6.0.1'         | '2.12'
     }
 }

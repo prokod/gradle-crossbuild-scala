@@ -13,9 +13,9 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
-        "guava.jar (com.google.guava:guava:18.0)"
+        "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
+        "guava@_18_0_@.jar (com.google.guava:guava:18.0)"
       ],
       "files": [
         "scala-reflect-2.11.12.jar",
@@ -65,9 +65,9 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
-        "guava.jar (com.google.guava:guava:18.0)",
+        "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
+        "guava@_18_0_@.jar (com.google.guava:guava:18.0)",
         "lib2_2.11.jar (project :lib2)",
         "lib_2.11.jar (project :lib)"
       ],
@@ -103,9 +103,9 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scala-reflect.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scala-library.jar (org.scala-lang:scala-library:2.11.12)",
-        "guava.jar (com.google.guava:guava:18.0)",
+        "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
+        "guava@_18_0_@.jar (com.google.guava:guava:18.0)",
         "lib2_2.11.jar (project :lib2)",
         "lib_2.11.jar (project :lib)"
       ],

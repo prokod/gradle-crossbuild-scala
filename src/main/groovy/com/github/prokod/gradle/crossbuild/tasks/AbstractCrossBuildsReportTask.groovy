@@ -2,6 +2,7 @@ package com.github.prokod.gradle.crossbuild.tasks
 
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 
 /**
@@ -25,6 +26,7 @@ abstract class AbstractCrossBuildsReportTask extends DefaultTask {
         this.outputFile
     }
 
+    @Internal
     protected String getOutputFileBasePath() {
         "$project.buildDir.path${File.separator}$REPORTS_DIR$File.separator"
     }
