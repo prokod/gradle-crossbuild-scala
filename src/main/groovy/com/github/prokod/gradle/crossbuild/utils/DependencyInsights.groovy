@@ -431,10 +431,9 @@ class DependencyInsights {
      *         {@link #extractCrossBuildProjectTypeDependencyDependencies}
      */
     private Set<ProjectDependency> extractCrossBuildProjectTypeDependenciesRecursively(Set<Project> modules,
-                                                                                       Set<Dependency> inDependencySet,
-                                                                                       Set<String> configurationNames,
-                                                                                       Set<ProjectDependency> accum = []) {
-
+                                                                                    Set<Dependency> inDependencySet,
+                                                                                    Set<String> configurationNames,
+                                                                                    Set<ProjectDependency> accum = []) {
 
         def currentProjectTypDeps = inDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
                 .findAll { isNotAccumulated(it, accum) }.collect { it as ProjectDependency }
@@ -444,8 +443,10 @@ class DependencyInsights {
             def currentProjectTypeDependenciesDependencies = currentProjectTypDepsForDefault.collectMany { prjDep ->
                 extractCrossBuildProjectTypeDependencyDependencies(prjDep, configurationNames)
             }
-            extractCrossBuildProjectTypeDependenciesRecursively(modules,
-                    currentProjectTypeDependenciesDependencies.findAll { isNotAccumulated(it, accum) }.toSet(), configurationNames, accum)
+            extractCrossBuildProjectTypeDependenciesRecursively(
+                    modules,
+                    currentProjectTypeDependenciesDependencies.findAll { isNotAccumulated(it, accum) }.toSet(),
+                    configurationNames, accum)
         }
         accum
     }
