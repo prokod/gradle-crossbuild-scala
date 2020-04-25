@@ -196,16 +196,24 @@ class DependencyInsights {
      * @return a set of detached configurations derived from the 'default' configuration found in the dependency tree
      */
     private Set<Configuration> generateDetachedDefaultConfigurationsRecursivelyFor(Project dependencyProject,
-                                                                                   Set<Project> modules,
-                                                                                   SourceSetInsightsView insightsView) {
-        Set<Configuration> accum = []
+                                                                                 Set<Project> modules,
+                                                                                 SourceSetInsightsView insightsView,
+                                                                                 Set<ProjectDependency> depTracker = [],
+                                                                                 Set<Configuration> accum = []) {
+        //Set<Configuration> accum = []
 
+        //println ("accum: ${accum.collect {it.toString() + "($it.name)"}.join(' | ')}")
+        //println ("modules: $modules")
+        //println ("dependency (project type) $dependencyProject")
+        //println ("insightsView: $insightsView")
         def defaultConfiguration = dependencyProject.configurations['default']
         def mainConfiguration = insightsView.configurations.main
         def inputDependencySet = defaultConfiguration.allDependencies
 
         def currentProjectTypeDeps = inputDependencySet.findAll(isProjectDependency).findAll { isValid(it, modules) }
+                .findAll { isNotAccumulated(it, depTracker) }
                 .collect { it as ProjectDependency }
+        depTracker.addAll(currentProjectTypeDeps)
         def currentProjectTypeDepsForDefault = currentProjectTypeDeps.findAll { it.targetConfiguration == null }
 
         def filteredDefaultDependencies = defaultConfiguration.allDependencies.findAll { Dependency dependency ->
@@ -223,8 +231,10 @@ class DependencyInsights {
             currentProjectTypeDepsForDefault.each { ProjectDependency dependency ->
                 def nextDependencyProject = dependency.dependencyProject
                 def nextInsightsView = insightsView.switchTo(nextDependencyProject)
-                accum.addAll(generateDetachedDefaultConfigurationsRecursivelyFor(nextDependencyProject, modules,
-                        nextInsightsView))
+                //accum.addAll(
+                generateDetachedDefaultConfigurationsRecursivelyFor(
+                        nextDependencyProject, modules, nextInsightsView, depTracker, accum)
+                //)
             }
         }
 
@@ -446,7 +456,8 @@ class DependencyInsights {
             extractCrossBuildProjectTypeDependenciesRecursively(
                     modules,
                     currentProjectTypeDependenciesDependencies.findAll { isNotAccumulated(it, accum) }.toSet(),
-                    configurationNames, accum)
+                    configurationNames,
+                    accum)
         }
         accum
     }

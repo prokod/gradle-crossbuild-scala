@@ -732,4 +732,137 @@ dependencies {
         '5.6.4'         | '2.11'
         '6.0.1'         | '2.11'
     }
+
+
+    /**
+     * Leveraging layout 2 of propagating cross build configs to sub projects
+     * Layout 2 means:
+     * <ul>
+     *     <li>root-project</li>
+     *     <ul>
+     *         <li>{@code plugins} DSL for crossbuild plugin</li>
+     *         <li>{@code subprojects} block with {@code apply plugin:} {@link CrossBuildPlugin} followed by crossbuld plugin DSL</li>
+     *     </ul>
+     *     <li>sub-projects</li>
+     *     <ul>
+     *         <li>Nothing special</li>
+     *     </ul>
+     * </ul>
+     *
+     * Expects to throw exception regarding org.gradle.api.CircularReferenceException: Circular dependency between lib and app
+     *
+     * @return
+     */
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with circular dependency should not stack overflow  <git issue #72>)"() {
+        given:
+        // root project settings.gradle
+        settingsFile << """
+include 'lib'
+include 'app'
+"""
+
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
+
+allprojects {
+    group = 'com.github.prokod.it'
+    version = '1.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'com.github.prokod.gradle-crossbuild'
+
+    crossBuild {
+        
+        scalaVersionsCatalog = ['2.11':'2.11.11']
+
+        builds {
+            spark160_210 
+            spark240_211
+        }
+    }
+}
+"""
+
+        libScalaFile << """
+import org.scalatest._
+
+trait HelloWorldLibApi {
+   def greet()
+}
+"""
+
+        libJavaFile << """
+
+public class HelloWorldLibImpl implements HelloWorldLibApi {
+   public void greet() {
+      System.out.println("Hello, world!");
+   }
+}
+"""
+
+        libBuildFile << """
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    compile "org.scalatest:scalatest_?:3.0.1"
+    compile "com.google.guava:guava:18.0"
+    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+
+    compile project(':app')
+}
+"""
+
+        appScalaFile << """
+import HelloWorldLibImpl._
+
+object HelloWorldApp {
+   def main(args: Array[String]) {
+      new HelloWorldLibImpl().greet()
+   }
+}
+"""
+
+        appBuildFile << """
+dependencies {
+    compile project(':lib')
+}
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.root)
+                .withPluginClasspath()
+                .withDebug(true)
+                .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
+                .build()
+
+        then:
+        org.gradle.testkit.runner.UnexpectedBuildFailure ex = thrown()
+        ex.buildResult.output.contains('org.gradle.api.CircularReferenceException: Circular dependency')
+
+        where:
+        gradleVersion   | defaultScalaVersion
+        '4.10.3'        | '2.12'
+        '5.6.4'         | '2.11'
+        '6.0.1'         | '2.11'
+    }
 }
