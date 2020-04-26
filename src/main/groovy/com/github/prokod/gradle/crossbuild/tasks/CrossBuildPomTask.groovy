@@ -144,6 +144,7 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def jarBaseName = project.tasks.findByName(crossBuildSourceSet.jarTaskName).baseName
         pub.artifactId = jarBaseName
 
+        // todo try to replace internal api DefaultMavenPom getXmlAction ... with stable external api
         def defaultMavenPom = pub.getPom() as DefaultMavenPom
         def xmlActions = defaultMavenPom.getXmlAction() as MutableActionSet
         if (xmlActions.isEmpty()) {
