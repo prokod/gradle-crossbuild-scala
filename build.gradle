@@ -11,7 +11,7 @@ apply plugin: 'codenarc'
 
 
 group = 'com.github.prokod'
-version = '0.10.0'
+version = '0.10.1-SNAPSHOT'
 
 repositories {
     jcenter()

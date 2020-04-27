@@ -82,7 +82,7 @@ class SourceSetInsightsView {
 
     static class SourceSetInsight<R, S> {
         private final Tuple2<R, R> rawInsight
-        private final Closure<S> flatMapFunc
+        private final Closure<Collection<S>> flatMapFunc
 
         SourceSetInsight(Tuple2<R, R> rawInsight, Closure<Collection<S>> flatMapFunc) {
             this.rawInsight = rawInsight
