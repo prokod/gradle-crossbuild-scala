@@ -63,7 +63,13 @@ class CrossBuildPluginUtils {
         }
     }
 
+    //this feature is undocumented!
     static String qmarkReplace(String template, String replacement) {
-        template.replaceAll('\\?', replacement)
+        String newTag = template.replaceAll('\\?', replacement)
+        if(newTag == template) {
+            "_$replacement"
+        } else {
+            newTag
+        }
     }
 }
