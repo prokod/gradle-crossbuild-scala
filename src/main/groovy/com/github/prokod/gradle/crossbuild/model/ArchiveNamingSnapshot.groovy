@@ -21,13 +21,14 @@ package com.github.prokod.gradle.crossbuild.model
 class ArchiveNamingSnapshot {
     final String name
     final String appendixPattern
-
+    final String scalaTag
     static ArchiveNamingSnapshot from(ArchiveNaming archive) {
-        new ArchiveNamingSnapshot(archive.name, archive.appendixPattern)
+        new ArchiveNamingSnapshot(archive.name, archive.appendixPattern, archive.scalaTag)
     }
 
-    ArchiveNamingSnapshot(String name, String appendixPattern) {
+    ArchiveNamingSnapshot(String name, String appendixPattern, String scalaTag) {
         this.name = name
+        this.scalaTag = scalaTag
         this.appendixPattern = appendixPattern
     }
 }

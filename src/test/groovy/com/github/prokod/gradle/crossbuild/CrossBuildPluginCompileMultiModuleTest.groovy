@@ -66,11 +66,11 @@ class CrossBuildPluginCompileMultiModuleTest extends CrossBuildGradleRunnerSpec 
      */
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with `withPlugin` dsl should propagate the same plugin configuration to all sub projects"(
-            String gradleVersion,
-            String defaultScalaVersion,
-            String ap,
-            String oap1, String oap2, String oap3,
-            String eap1, String eap2, String eap3
+        String gradleVersion,
+        String defaultScalaVersion,
+        String ap,
+        String oap1, String oap2, String oap3,
+        String eap1, String eap2, String eap3
     ) {
         given:
         // root project settings.gradle
@@ -105,7 +105,7 @@ allprojects {
             builds {
                 spark160 {
                     scalaVersions = ['2.10']
-                    ${oap1 != null ? 'archive.appendixPattern = \'' + oap1 + '\'': ''}
+                    ${oap1 != null ? 'archive.appendixPattern = \'' + oap1 + '\'' : ''}
                 }
                 spark240 {
                     scalaVersions = ['2.11']
@@ -113,7 +113,7 @@ allprojects {
                 }
                 spark241 {
                     scalaVersions = ['2.12']
-                        ${oap3 != null ? 'archive { appendixPattern = \'' + oap3 + '\' }': ''}
+                        ${oap3 != null ? 'archive { appendixPattern = \'' + oap3 + '\' }' : ''}
                 }
             }
         }
@@ -162,21 +162,21 @@ dependencies {
             archive.appendixPattern = eap3
             b
         }
-        def rb1 = BuildResolver.resolve(build1, ScalaVersions.withDefaultsAsFallback('2.11':'2.11.12'))
-        def rb2 = BuildResolver.resolve(build2, ScalaVersions.withDefaultsAsFallback('2.11':'2.11.12'))
-        def rb3 = BuildResolver.resolve(build3, ScalaVersions.withDefaultsAsFallback('2.11':'2.11.12'))
+        def rb1 = BuildResolver.resolve(build1, ScalaVersions.withDefaultsAsFallback('2.11': '2.11.12'))
+        def rb2 = BuildResolver.resolve(build2, ScalaVersions.withDefaultsAsFallback('2.11': '2.11.12'))
+        def rb3 = BuildResolver.resolve(build3, ScalaVersions.withDefaultsAsFallback('2.11': '2.11.12'))
 
-        def expectedReport = '[' + (rb1 + rb2 + rb3).collect {it.toString()}.join(',\n') + ']'
+        def expectedReport = '[' + (rb1 + rb2 + rb3).collect { it.toString() }.join(',\n') + ']'
 
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
-                .withPluginClasspath()
-                .withDebug(true)
-                .withArguments('crossBuildResolvedDsl', '--info', '--stacktrace')
-                .build()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('crossBuildResolvedDsl', '--info', '--stacktrace')
+            .build()
 
         then:
         result.task(":crossBuildResolvedDsl").outcome == SUCCESS
@@ -192,10 +192,10 @@ dependencies {
         appBuildsReportFile.text == expectedReport
 
         where:
-        gradleVersion   | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
-                '4.10.3'| '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
-                '5.6.4' | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-                '6.0.1' | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
+        gradleVersion | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
+        '4.10.3'      | '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
+        '5.6.4'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+        '6.0.1'       | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
     }
 
     /**
@@ -338,12 +338,12 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
-                .withPluginClasspath()
-                .withDebug(true)
-                .withArguments('tasks', 'build', 'publishToMavenLocal', '--info', '--stacktrace')
-                .build()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('tasks', 'build', 'publishToMavenLocal', '--info', '--stacktrace')
+            .build()
 
         then:
         result.task(":lib:publishToMavenLocal").outcome == SUCCESS
@@ -367,10 +367,10 @@ dependencies {
         pom211.contains('3.0.1')
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.10'
-        '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        gradleVersion | defaultScalaVersion
+        '4.10.3'      | '2.10'
+        '5.6.4'       | '2.11'
+        '6.0.1'       | '2.11'
     }
 
     /**
@@ -507,12 +507,12 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
-                .withPluginClasspath()
-                .withDebug(true)
-                .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
-                .build()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
+            .build()
 
         then:
         result.task(":lib:crossBuildSpark160_210Jar").outcome == SUCCESS
@@ -526,10 +526,10 @@ dependencies {
         fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.12'
-        '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        gradleVersion | defaultScalaVersion
+        '4.10.3'      | '2.12'
+        '5.6.4'       | '2.11'
+        '6.0.1'       | '2.11'
     }
 
     @Unroll
@@ -681,12 +681,12 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
-                .withPluginClasspath()
-                .withDebug(true)
-                .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
-                .build()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
+            .build()
 
         then:
         result.task(":lib:publishToMavenLocal").outcome == SUCCESS
@@ -727,10 +727,10 @@ dependencies {
         lib2pom211.contains('1.0-SNAPSHOT')
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.10'
-        '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        gradleVersion | defaultScalaVersion
+        '4.10.3'      | '2.10'
+        '5.6.4'       | '2.11'
+        '6.0.1'       | '2.11'
     }
 
 
@@ -848,21 +848,130 @@ dependencies {
         when:
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
-                .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
-                .withPluginClasspath()
-                .withDebug(true)
-                .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
-                .build()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
+            .build()
 
         then:
         org.gradle.testkit.runner.UnexpectedBuildFailure ex = thrown()
         ex.buildResult.output.contains('org.gradle.api.CircularReferenceException: Circular dependency')
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.12'
-        '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        gradleVersion | defaultScalaVersion
+        '4.10.3'      | '2.12'
+        '5.6.4'       | '2.11'
+        '6.0.1'       | '2.11'
+    }
+
+
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] setting a scala version as a scalaTag should allow a project without crossbuild plugin to resolve the right dependencies"() {
+        given:
+        // root project settings.gradle
+        settingsFile << """
+include 'lib'
+include 'app'
+"""
+
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
+
+allprojects {
+    group = 'com.github.prokod.it'
+    version = '1.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+"""
+
+        libScalaFile << """
+import org.scalatest._
+
+trait HelloWorldLibApi {
+   def greet()
+}
+"""
+
+        libJavaFile << """
+
+public class HelloWorldLibImpl implements HelloWorldLibApi {
+   public void greet() {
+      System.out.println("Hello, world!");
+   }
+}
+"""
+
+        libBuildFile << """
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+apply plugin: 'com.github.prokod.gradle-crossbui
+
+crossBuild {
+    scalaTag = _$defaultScalaVersion
+    builds {
+        v211 
+        v212
+    }
+}
+
+dependencies {
+    compile "org.scalatest:scalatest_$defaultScalaVersion:3.0.1"
+    compile "com.google.guava:guava:18.0"
+    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+}
+"""
+
+        appScalaFile << """
+import HelloWorldLibImpl._
+
+object HelloWorldApp {
+   def main(args: Array[String]) {
+      new HelloWorldLibImpl().greet()
+   }
+}
+"""
+
+        appBuildFile << """
+dependencies {
+    compile project(':lib')
+}
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('crossBuildV212', 'crossBuildV211', 'build', '--info', '--stacktrace')
+            .build()
+
+        then:
+        result.task(":lib:crossBuildV212").outcome == SUCCESS
+        result.task(":lib:crossBuildV211").outcome == SUCCESS
+        result.task("build").outcome == SUCCESS
+        where:
+        gradleVersion | defaultScalaVersion
+        '4.10.3'      | '2.12'
+        '5.6.4'       | '2.12'
+        '6.0.1'       | '2.12'
     }
 }

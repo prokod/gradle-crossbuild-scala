@@ -38,7 +38,7 @@ class CrossBuildExtension {
         this.project = project
 
         this.archive = project.objects.newInstance(ArchiveNaming,
-                'DefaultArchiveNaming', '_?', new BuildUpdateEventStore(project))
+                'DefaultArchiveNaming', '_?', '_?', new BuildUpdateEventStore(project))
 
         this.crossBuildSourceSets = new CrossBuildSourceSets(project)
 
@@ -54,7 +54,7 @@ class CrossBuildExtension {
         def alreadyResolved = resolvedBuilds*.delegate
         builds.all { Build build ->
             if (!alreadyResolved.contains(build)) {
-                applyArchiveDefaults(build)
+                applyBuildDefaults(build)
             }
         }
     }
@@ -71,8 +71,9 @@ class CrossBuildExtension {
         }
     }
 
-    void applyArchiveDefaults(Build build) {
+    void applyBuildDefaults(Build build) {
         build.archive.appendixPattern = this.archive.appendixPattern
+        build.archive.scalaTag = this.archive.scalaTag
     }
 
     /**
@@ -133,6 +134,7 @@ class CrossBuildExtension {
 
     void updateCrossBuildTasks(Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
         def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
+
         resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByName(rb.name)
 
@@ -141,7 +143,7 @@ class CrossBuildExtension {
             def task = sourceSet?.getJarTaskName() != null ? project.tasks.findByName(sourceSet.getJarTaskName()) : null
 
             if (task != null) {
-                def origBaseName = DependencyLimitedInsight.parseByDependencyName(task.baseName, sv).baseName
+                def origBaseName = DependencyLimitedInsight.parseByDependencyName(task.baseName, sv, rb.archive.scalaTag).baseName
                 task.configure {
                     baseName = origBaseName + rb.archive.appendix
                 }

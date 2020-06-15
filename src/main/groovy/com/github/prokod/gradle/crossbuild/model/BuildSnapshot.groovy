@@ -31,18 +31,18 @@ class BuildSnapshot {
     Set<String> scalaVersions
 
     static BuildSnapshot from(Build other) {
-        new BuildSnapshot(other.name, other.extension, other.archive.appendixPattern, other.scalaVersions)
+        new BuildSnapshot(other.name, other.extension, other.archive.appendixPattern, other.scalaVersions, other.archive.scalaTag)
     }
 
-    BuildSnapshot(String name, CrossBuildExtension extension, String appendixPattern, Set<String> scalaVersions) {
+    BuildSnapshot(String name, CrossBuildExtension extension, String appendixPattern, Set<String> scalaVersions, String scalaTag) {
         this.name = name
         this.extension = extension
-        this.archive = new ArchiveNamingSnapshot(name, appendixPattern)
+        this.archive = new ArchiveNamingSnapshot(name, appendixPattern, scalaTag)
         this.scalaVersions = scalaVersions.clone()
     }
 
     BuildSnapshot(BuildSnapshot other, ArchiveNamingSnapshot archive) {
-        this(other.name, other.extension, archive.appendixPattern, other.scalaVersions)
+        this(other.name, other.extension, archive.appendixPattern, other.scalaVersions, archive.scalaTag)
         assert other.name == archive.name : "While instantiating snapshot build $other.name != $archive.name"
     }
 

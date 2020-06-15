@@ -21,8 +21,8 @@ class DependencyInsight extends DependencyLimitedInsight {
      * @param dependency to parse
      * @return tuple in the form of (groupName:baseName, scalaVersion) i.e. ('group:lib', '2.11')
      */
-    static DependencyInsight parse(Dependency dependency, ScalaVersions scalaVersions) {
-        def limitedInsight = parseByDependencyName(dependency.name, scalaVersions)
+    static DependencyInsight parse(Dependency dependency, ScalaVersions scalaVersions, String scalaTag) {
+        def limitedInsight = parseByDependencyName(dependency.name, scalaVersions, scalaTag)
         new DependencyInsight(baseName:limitedInsight.baseName,
                 supposedScalaVersion:limitedInsight.supposedScalaVersion,
                 appendix:limitedInsight.appendix,

@@ -14,10 +14,11 @@ class BuildResolverSpec extends Specification {
         when:
         
         expect:
-        resolver.generateCrossArchivesNameAppndix("_?","2.12") == "_2.12"
+        resolver.generateCrossArchivesNameAppndix("_?","2.12", "_?") == "_2.12"
 
-        resolver.generateCrossArchivesNameAppndix("_2.11","2.12") == "_2.12"
+        resolver.generateCrossArchivesNameAppndix("_2.11","2.12", "_?") == "_2.11"
+        resolver.generateCrossArchivesNameAppndix("_2.11","2.12", "_2.11") == "_2.12"
 
-        resolver.generateCrossArchivesNameAppndix("_?_weird","2.12") == "_2.12_weird"
+        resolver.generateCrossArchivesNameAppndix("_?_weird","2.12", "_?") == "_2.12_weird"
     }
 }

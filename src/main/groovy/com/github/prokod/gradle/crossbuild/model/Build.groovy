@@ -48,7 +48,7 @@ class Build {
         this.name = name
         this.extension = extension
         this.eventStore = new BuildUpdateEventStore(extension.project)
-        this.archive = extension.project.objects.newInstance(ArchiveNaming, name, '_?', this.eventStore)
+        this.archive = extension.project.objects.newInstance(ArchiveNaming, name, '_?', '_?', this.eventStore)
         trySettingScalaVersionImplicitlyFrom(name)
     }
 

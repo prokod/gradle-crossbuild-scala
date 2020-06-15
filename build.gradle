@@ -7,10 +7,10 @@ apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven'
 apply plugin: 'signing'
-apply plugin: 'codenarc'
+//apply plugin: 'codenarc'
 
 group = 'com.github.prokod'
-version = '0.10.1'
+version = '0.10.2-SNAPSHOT'
 
 repositories {
     jcenter()
@@ -119,15 +119,15 @@ uploadArchives.repositories.mavenDeployer {
     }
 }
 
-codenarc {
-    toolVersion = "1.1"
-}
-
-codenarcMain {
-    configFile = rootProject.file("config/codenarc/CodenarcMain.groovy")
-}
-
-codenarcTest.enabled = false
+//codenarc {
+//    toolVersion = "1.1"
+//}
+//
+//codenarcMain {
+//    configFile = rootProject.file("config/codenarc/CodenarcMain.groovy")
+//}
+//
+//codenarcTest.enabled = false
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent

@@ -144,6 +144,115 @@ dependencies {
     }
 
     @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct with scalaTag"() {
+        given:
+        scalaFile << """
+import org.scalatest._
+
+object HelloWorld {
+   /* This is my first java program.  
+   * This will print 'Hello World' as the output
+   */
+   def main(args: Array[String]) {
+      println("Hello, world!") // prints Hello World
+   }
+}
+"""
+
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+    id 'maven-publish'
+}
+
+group = 'com.github.prokod.it'
+
+repositories {
+    mavenCentral()
+}
+
+crossBuild {
+    scalaVersionsCatalog = ['2.10':'2.10.6', '2.11':'2.11.11'] 
+    archive.scalaTag = '_2.11'
+    builds {
+        v210 {
+            scalaVersions = ['2.10']
+        }
+        v211 {
+            scalaVersions = ['2.11']
+        }
+    }
+}
+
+publishing {
+    publications {
+        crossBuildV210(MavenPublication) {
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuildV210Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
+        crossBuildV211(MavenPublication) {
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                artifact crossBuildV211Jar
+            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
+    }
+}
+
+tasks.withType(GenerateMavenPom) { t ->
+    if (t.name.contains('CrossBuildV210')) {
+        t.destination = file("\$buildDir/generated-pom_2.10.xml")
+    }
+    if (t.name.contains('CrossBuildV211')) {
+        t.destination = file("\$buildDir/generated-pom_2.11.xml")
+    }
+}
+
+dependencies {
+    compile "org.scalatest:scalatest_2.11:3.0.1"
+    compile "com.google.guava:guava:18.0"
+    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+    // flink-connector-kafka-0.10 dependency is only built for Scala 2.11
+    // In this case, when cross building this project to Scala 2.10, that dependency should be excluded
+    //  from 'crossBuild210Compile' configurations which inherit from 'compile'. 
+    compile 'org.apache.flink:flink-connector-kafka-0.10_2.11:1.4.1'
+    crossBuildV210Compile 'org.apache.flink:flink-connector-kafka-0.10_2.10:1.3.2'
+}
+
+
+"""
+
+        when:
+        Assume.assumeTrue(testMavenCentralAccess())
+        def result = GradleRunner.create()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
+            .build()
+
+        then:
+        result.task(":publishToMavenLocal").outcome == SUCCESS
+        def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
+        def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
+
+        !pom210.contains('2.11.')
+        pom210.contains('2.10.6')
+        pom210.contains('18.0')
+        pom210.contains('3.0.1')
+        !pom211.contains('2.11.+')
+        !pom211.contains('2.10.')
+        pom211.contains('2.11.11')
+        pom211.contains('18.0')
+        pom211.contains('3.0.1')
+
+        where:
+        gradleVersion | defaultScalaVersion
+        '4.10.3'      | '2.10'
+        '5.6.4'       | '2.11'
+        '6.0.1'       | '2.11'
+    }
+
+    @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with qmark deps in test configuration should be resolved correctly"() {
         given:
         scalaFile << """
@@ -233,4 +342,5 @@ dependencies {
         '5.6.4'         | '2.12'
         '6.0.1'         | '2.12'
     }
+
 }

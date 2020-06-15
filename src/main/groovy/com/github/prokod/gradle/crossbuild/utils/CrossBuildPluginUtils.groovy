@@ -4,6 +4,8 @@ import com.github.prokod.gradle.crossbuild.CrossBuildPlugin
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
+import java.util.regex.Pattern
+
 /**
  * Util class for CrossBuildPlugin/Rules
  */
@@ -63,13 +65,8 @@ class CrossBuildPluginUtils {
         }
     }
 
-    //this feature is undocumented!
-    static String qmarkReplace(String template, String replacement) {
-        String newTag = template.replaceAll('\\?', replacement)
-        if(newTag == template) {
-            "_$replacement"
-        } else {
-            newTag
-        }
+    static String qmarkReplace(String template, String replacement, String scalaTag) {
+        def usedScalaTag = scalaTag.startsWith('_') ? scalaTag.substring(1) : scalaTag
+        template.replaceAll(Pattern.quote(usedScalaTag), replacement)
     }
 }

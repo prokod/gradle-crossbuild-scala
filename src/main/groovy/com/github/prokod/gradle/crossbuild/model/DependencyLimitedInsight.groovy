@@ -24,21 +24,20 @@ class DependencyLimitedInsight {
      * @return tuple in the form of (baseName, scalaVersion, appendix) i.e. ('lib', '2.11', '2.2.0')
      *         returns (name, {@code null}, {@code null}) otherwise.
      */
-    static DependencyLimitedInsight parseByDependencyName(String name, ScalaVersions scalaVersions) {
+    static DependencyLimitedInsight parseByDependencyName(String name, ScalaVersions scalaVersions, String scalaTag) {
         def refTargetVersions = scalaVersions.mkRefTargetVersions()
-        def qMarkDelimiter = Pattern.quote('_?')
+        def qMarkDelimiter = Pattern.quote(scalaTag)
         def qMarkSplitPattern = "(?=(?!^)$qMarkDelimiter)|(?<=$qMarkDelimiter)"
         def qMarkTokens = name.split(qMarkSplitPattern)
-        def qMarkParsedTuple =  parseTokens(qMarkTokens)
-
-        def parsedTuples = refTargetVersions.collect { version ->
+        def qMarkParsedTuple =  parseTokens(qMarkTokens,scalaTag)
+        def parsedTuples = refTargetVersions.findAll{version -> '_' + version != scalaTag}.collect { version ->
             def delimiter = Pattern.quote('_' + version)
             def splitPattern = "(?=(?!^)$delimiter)|(?<=$delimiter)"
             def tokens = name.split(splitPattern)
-            parseTokens(tokens)
+            parseTokens(tokens, scalaTag)
         }
         def allParsedTuples = parsedTuples + [qMarkParsedTuple]
-        def filtered = allParsedTuples.findAll { it != null }
+        def filtered = allParsedTuples.findAll { it != null }.toSet()
         if (filtered.size() == 1) {
             def tuple = filtered.head()
             new DependencyLimitedInsight(baseName:tuple[0], supposedScalaVersion:tuple[1], appendix:tuple[2])
@@ -48,20 +47,29 @@ class DependencyLimitedInsight {
         }
     }
 
-    private static Tuple parseTokens(String[] tokens) {
+    private static Tuple parseTokens(String[] tokens, String scalaTag) {
+        def scalaTagVersion = scalaTag.substring(1)
         if (tokens.size() < 2) {
             null
         }
         else if (tokens.size() == 2) {
             def baseName = tokens[0]
             def supposedScalaVersion = tokens[1].substring(1)
-            new Tuple(baseName, supposedScalaVersion, null)
+            if(supposedScalaVersion == scalaTagVersion){
+                new Tuple(baseName, '?', null)
+            } else {
+                new Tuple(baseName, supposedScalaVersion, null)
+            }
         }
         else if (tokens.size() == 3) {
             def baseName = tokens[0]
             def supposedScalaVersion = tokens[1].substring(1)
             def appendix = tokens[2]
-            new Tuple(baseName, supposedScalaVersion, appendix)
+            if(supposedScalaVersion == scalaTagVersion){
+                new Tuple(baseName, '?', null)
+            } else {
+                new Tuple(baseName, supposedScalaVersion, appendix)
+            }
         }
         else {
             null

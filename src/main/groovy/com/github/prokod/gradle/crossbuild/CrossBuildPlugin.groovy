@@ -92,7 +92,7 @@ class CrossBuildPlugin implements Plugin<Project> {
 
             def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
             def configurer = new ResolutionStrategyConfigurer(sourceSetInsights, extension.scalaVersionsCatalog,
-                    rb.scalaVersionInsights)
+                    rb.scalaVersionInsights, rb.archive.scalaTag)
 
             configurer.applyForLinkWith(
                     ViewType.COMPILE,
@@ -163,9 +163,9 @@ class CrossBuildPlugin implements Plugin<Project> {
 
             //todo add other needed configuration types (except COMPILE)
             // for 'implementation' configuration
-            di.addMainConfigurationToCrossBuildCounterPart(ViewType.IMPLEMENTATION, sv)
+            di.addMainConfigurationToCrossBuildCounterPart(ViewType.IMPLEMENTATION, sv, rb.archive.scalaTag)
             // for 'compileOnly' configuration
-            di.addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_ONLY, sv)
+            di.addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_ONLY, sv, rb.archive.scalaTag)
 
             // for 'compile' configuration
             di.addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE)

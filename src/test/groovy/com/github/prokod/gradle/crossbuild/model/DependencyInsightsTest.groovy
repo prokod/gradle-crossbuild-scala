@@ -16,9 +16,9 @@ class DependencyInsightsTest extends Specification {
             def dep2 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_appendix', '1.2.3')
             def dep3 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.4')
         when:
-            def dependencyInsight1 = DependencyInsight.parse(dep1, ScalaVersions.DEFAULT_SCALA_VERSIONS)
-            def dependencyInsight2 = DependencyInsight.parse(dep2, ScalaVersions.DEFAULT_SCALA_VERSIONS)
-            def dependencyInsight3 = DependencyInsight.parse(dep3, ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def dependencyInsight1 = DependencyInsight.parse(dep1, ScalaVersions.DEFAULT_SCALA_VERSIONS, '_?')
+            def dependencyInsight2 = DependencyInsight.parse(dep2, ScalaVersions.DEFAULT_SCALA_VERSIONS, '_?')
+            def dependencyInsight3 = DependencyInsight.parse(dep3, ScalaVersions.DEFAULT_SCALA_VERSIONS, '_?')
         then:
             dependencyInsight1 == dependencyInsight2
             dependencyInsight1 != dependencyInsight3
@@ -27,7 +27,7 @@ class DependencyInsightsTest extends Specification {
 
     def "When parseDependencyName is given a simple scala lib dependency name it should return correct limited insight"() {
         when:
-            def dependencyLimitedInsight = DependencyLimitedInsight.parseByDependencyName('somescalalib_2.11', ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def dependencyLimitedInsight = DependencyLimitedInsight.parseByDependencyName('somescalalib_2.11', ScalaVersions.DEFAULT_SCALA_VERSIONS, '_?')
         then:
             dependencyLimitedInsight.baseName == 'somescalalib'
             dependencyLimitedInsight.supposedScalaVersion == '2.11'
@@ -35,7 +35,7 @@ class DependencyInsightsTest extends Specification {
 
     def "When parseDependencyName is given a scala lib dependency name with '_suffix' it should return correct limited insight"() {
         when:
-            def dependencyLimitedInsight = DependencyLimitedInsight.parseByDependencyName('somescalalib_2.11_suffix', ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def dependencyLimitedInsight = DependencyLimitedInsight.parseByDependencyName('somescalalib_2.11_suffix', ScalaVersions.DEFAULT_SCALA_VERSIONS, '_?')
         then:
             dependencyLimitedInsight.baseName == 'somescalalib'
             dependencyLimitedInsight.supposedScalaVersion == '2.11'
@@ -46,7 +46,7 @@ class DependencyInsightsTest extends Specification {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.3')
         when:
-            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS,'_?')
         then:
             dependencyInsight.groupAndBaseName == 'some.group:somescalalib'
             dependencyInsight.supposedScalaVersion == '2.11'
@@ -56,7 +56,7 @@ class DependencyInsightsTest extends Specification {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_suffix', '1.2.3')
         when:
-            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS,'_?')
         then:
             dependencyInsight.groupAndBaseName == 'some.group:somescalalib'
             dependencyInsight.supposedScalaVersion == '2.11'
@@ -67,7 +67,7 @@ class DependencyInsightsTest extends Specification {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_2.2.1', '1.2.3')
         when:
-            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS,'_?')
         then:
             dependencyInsight.groupAndBaseName == 'some.group:somescalalib'
             dependencyInsight.supposedScalaVersion == '2.11'
@@ -78,7 +78,7 @@ class DependencyInsightsTest extends Specification {
         given:
             def dep = new DefaultExternalModuleDependency('some.group', 'somescalalib-v2-2.2.1_2.11', '1.2.3')
         when:
-            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def dependencyInsight = DependencyInsight.parse(dep, ScalaVersions.DEFAULT_SCALA_VERSIONS,'_?')
         then:
             dependencyInsight.groupAndBaseName == 'some.group:somescalalib-v2-2.2.1'
             dependencyInsight.supposedScalaVersion == '2.11'
@@ -96,7 +96,7 @@ class DependencyInsightsTest extends Specification {
                     null,
                     new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep4)))
         when:
-            def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS,'_?')
         then:
             tupleList.size() == 3
             tupleList[0].groupAndBaseName == 'some.group:somescalalib'
@@ -108,6 +108,32 @@ class DependencyInsightsTest extends Specification {
             tupleList[2].groupAndBaseName == 'some.group:yasomecalalib'
             tupleList[2].supposedScalaVersion == '?'
             tupleList[2].dependency == dep3
+    }
+
+    def "When findAllNonMatchingScalaVersionDependencies given a dependency set it should return when overriding the scalaTag"() {
+        given:
+        def dep1 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.12', '1.2.3')
+        def dep2 = new DefaultExternalModuleDependency('some.group', 'someotherscalalib_2.11', '1.2.4')
+        def dep3 = new DefaultExternalModuleDependency('some.group', 'yasomecalalib_2.11_suffix', '1.2.5')
+        def dep4 = new DefaultExternalModuleDependency('some.group', 'yasomecalalib_2.10', '1.2.5')
+
+        def dependencySet = new DefaultDependencySet(
+            Describables.of('someDisplayName'),
+            null,
+            new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep4)))
+        when:
+        def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS,'_2.11')
+        then:
+        tupleList.size() == 3
+        tupleList[0].groupAndBaseName == 'some.group:somescalalib'
+        tupleList[0].supposedScalaVersion == '2.12'
+        tupleList[0].dependency == dep1
+        tupleList[1].groupAndBaseName== 'some.group:someotherscalalib'
+        tupleList[1].supposedScalaVersion == '?'
+        tupleList[1].dependency == dep2
+        tupleList[2].groupAndBaseName == 'some.group:yasomecalalib'
+        tupleList[2].supposedScalaVersion == '?'
+        tupleList[2].dependency == dep3
     }
 
     def "When findAllNonMatchingScalaVersionDependenciesWithCounterparts given a dependency set it should return correctly"() {
@@ -125,7 +151,7 @@ class DependencyInsightsTest extends Specification {
                     null,
                     new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep31, dep4, dep5, dep51, dep6)))
         when:
-            def tuplesList = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS)
+            def tuplesList = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS,'_?')
         then:
             tuplesList.size() == 5
             tuplesList[0].first.groupAndBaseName == 'some.group:somescalalib'
