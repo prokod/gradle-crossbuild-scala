@@ -105,7 +105,7 @@ class CrossBuildExtension {
                 realizeCrossBuildTasks(resolvedBuilds)
             }
             else {
-                updateCrossBuildTasks(resolvedBuilds)
+                updateCrossBuildTasks(resolvedBuilds, )
             }
         }
     }

@@ -10,7 +10,7 @@ class ResolvedArchiveNaming extends ArchiveNaming {
     final String scalaTag
 
     ResolvedArchiveNaming(String appendixPattern, String appendix, String scalaTag) {
-        super('ResolvedArchiveNaming', appendixPattern,scalaTag, null)
+        super('ResolvedArchiveNaming', appendixPattern, scalaTag, null)
         this.appendix = appendix
         this.scalaTag = scalaTag
     }

@@ -65,8 +65,7 @@ class CrossBuildPluginUtils {
         }
     }
 
-    static String qmarkReplace(String template, String replacement, String scalaTag) {
-        def usedScalaTag = scalaTag.startsWith('_') ? scalaTag.substring(1) : scalaTag
-        template.replaceAll(Pattern.quote(usedScalaTag), replacement)
+    static String qmarkReplace(String template, String replacement) {
+        template.replaceAll(Pattern.quote('?'), replacement)
     }
 }

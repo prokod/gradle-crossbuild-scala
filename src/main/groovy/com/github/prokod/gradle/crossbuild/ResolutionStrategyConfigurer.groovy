@@ -229,7 +229,7 @@ class ResolutionStrategyConfigurer {
     private static void resolveQMarkDep(DependencyResolveDetails details, String replacementScalaVersion, String scalaTag) {
         def requested = details.requested
         def resolvedName = requested.name.replace(scalaTag, "_$replacementScalaVersion")
-        println("replacementScalaVersion: $replacementScalaVersion scalatag $scalaTag")
+
         details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
     }
 
@@ -302,7 +302,7 @@ class ResolutionStrategyConfigurer {
 
         def libGrid = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
             allDependencySet, targetScalaVersion, scalaVersions, scalaTag)
-        println("libgrid $libGrid")
+
         // dependencyMap key is name of dependency and value contains suggested correct dependency/ies
         def dependencyMap = libGrid.collectEntries { tuple ->
             new AbstractMap.SimpleEntry(tuple.first.dependency.name, tuple.second)

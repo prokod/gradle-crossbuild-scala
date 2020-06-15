@@ -23,7 +23,7 @@ class ArchiveNaming {
         this.name = name
         this.appendixPattern = appendixPattern
         this.eventStore = eventStore
-        this.scalaTag = scalaTag ?: '?'
+        this.scalaTag = scalaTag ?: '_?'
     }
 
     /**

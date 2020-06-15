@@ -48,16 +48,15 @@ class BuildResolver {
      */
     static ResolvedBuildAfterEvalLifeCycle resolveConfigPhaseBuild(ResolvedBuildConfigLifecycle build) {
         def resolvedAppendix = resolveAppendix(build)
-        //todo fix
-        def resolvedArchiveNaming = new ResolvedArchiveNaming(build.delegate.archive.appendixPattern, resolvedAppendix, '_?')
+
+        def resolvedArchiveNaming = new ResolvedArchiveNaming(build.delegate.archive.appendixPattern, resolvedAppendix, build.delegate.archive.scalaTag)
 
         new ResolvedBuildAfterEvalLifeCycle(build, resolvedArchiveNaming)
     }
 
     private static String resolveAppendix(ResolvedBuildConfigLifecycle build) {
         generateCrossArchivesNameAppndix(build.delegate.archive.appendixPattern,
-            build.scalaVersionInsights.artifactInlinedVersion,
-            build.delegate.archive.scalaTag)
+            build.scalaVersionInsights.artifactInlinedVersion)
     }
 
     /**
@@ -70,8 +69,7 @@ class BuildResolver {
      * @return Interpreted archivesBaseName
      */
     private static String generateCrossArchivesNameAppndix(String archiveAppendix,
-                                                           String artifactInlinedVersion,
-                                                           String scalaTag) {
-        CrossBuildPluginUtils.qmarkReplace(archiveAppendix, artifactInlinedVersion, scalaTag)
+                                                           String artifactInlinedVersion) {
+        CrossBuildPluginUtils.qmarkReplace(archiveAppendix, artifactInlinedVersion)
     }
 }
