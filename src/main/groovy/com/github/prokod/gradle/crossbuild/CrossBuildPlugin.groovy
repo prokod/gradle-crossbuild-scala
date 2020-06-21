@@ -15,6 +15,7 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.tasks.AbstractCrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildPomTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsReportTask
@@ -22,6 +23,9 @@ import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsClasspathResolvedCon
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights.ViewType
+import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 import com.github.prokod.gradle.crossbuild.utils.ScalaCompileTasks
@@ -55,6 +59,8 @@ class CrossBuildPlugin implements Plugin<Project> {
 
         project.afterEvaluate {
             updateSourceBuildSourceSets(extension)
+
+            flattenMainSourceSetConfigurations(extension)
         }
 
         project.gradle.projectsEvaluated {
@@ -82,6 +88,57 @@ class CrossBuildPlugin implements Plugin<Project> {
             extension.project.dependencies.add(sourceSet.compileConfigurationName,
                     "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
         }
+    }
+
+    private static void flattenMainSourceSetConfigurations(CrossBuildExtension extension) {
+        // Find main source set
+        def main = extension.crossBuildSourceSets.container.findByName('main')
+        // Find compile configuration
+        // todo (needs also to find others like Impl ..)
+        def config = extension.project.configurations.findByName(main.getCompileConfigurationName())
+        // Create scalaVersions to be used in parseByDependencyName
+        def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
+        // Iterate dependencies in compile configuration
+        // todo (also needs to iterate Impl. configuration ...) and find globbed ones
+        def globbedDeps = config.dependencies.findAll { dep ->
+            def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(dep.name, scalaVersions)
+            dependencyInsight.supposedScalaVersion == '?'
+        }
+
+        // Flatten globbed dependencies
+        globbedDeps.each { dep ->
+            def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(dep.name, scalaVersions)
+
+            // Add to crossbuild sourcesets
+            extension.resolvedBuilds.findAll { rb ->
+                def scalaVersionInsights = rb.scalaVersionInsights
+
+                def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
+
+                // todo sourceSet.compileName, implementationName ..
+                extension.project.dependencies.add(sourceSet.compileConfigurationName,
+                        "${dep.group}:${dependencyInsight.baseName}_${rb.scalaVersion}:${dep.version}")
+            }
+
+            // Add to main source set default version
+            def defaultScalaVersion = tryResolvingQMarkInTargetDependencyName(config, scalaVersions).head()
+            extension.project.dependencies.add(main.compileConfigurationName,
+                    "${dep.group}:${dependencyInsight.baseName}_${defaultScalaVersion}:${dep.version}")
+
+            // Remove original globbed dep
+            config.dependencies.remove(dep)
+        }
+    }
+
+    private static Set<String> tryResolvingQMarkInTargetDependencyName(Configuration configuration,
+                                                                ScalaVersions scalaVersions) {
+        def dependencySet = configuration.allDependencies
+
+        def scalaDeps = DependencyInsights.findScalaDependencies(dependencySet.toSet(), scalaVersions)
+
+        def versions = scalaDeps*.supposedScalaVersion.toSet()
+
+        versions
     }
 
     private static void assignCrossBuildDependencyResolutionStrategy(CrossBuildExtension extension) {

@@ -77,7 +77,7 @@ This is especially true for multi module projects but not just.<br/>
    > apply plugin: 'com.github.prokod.gradle-crossbuild'
    >
    > crossBuild {
-   >     builds 
+   >     builds {
    >         scala {
    >             scalaVersions = ['2.11', '2.12']
    >         }
