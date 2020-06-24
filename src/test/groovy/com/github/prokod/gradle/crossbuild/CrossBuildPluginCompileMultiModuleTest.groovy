@@ -195,7 +195,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
                 '4.10.3'| '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
                 '5.6.4' | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-                '6.0.1' | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
+                '6.5'   | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
     }
 
     /**
@@ -370,7 +370,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.10'
         '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        '6.5'           | '2.11'
     }
 
     /**
@@ -529,7 +529,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.12'
         '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        '6.5'           | '2.11'
     }
 
     @Unroll
@@ -730,7 +730,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.10'
         '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        '6.5'           | '2.11'
     }
 
 
@@ -863,7 +863,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.12'
         '5.6.4'         | '2.11'
-        '6.0.1'         | '2.11'
+        '6.5'           | '2.11'
     }
 
 
@@ -978,6 +978,6 @@ dependencies {
         gradleVersion | defaultScalaVersion
         '4.10.3'      | '2.12'
         '5.6.4'       | '2.12'
-        '6.0.1'       | '2.12'
+        '6.5'         | '2.12'
     }
 }

@@ -352,7 +352,7 @@ dependencies {
         gradleVersion | defaultScalaVersion
         '4.10.3'      | '2.12'
         '5.6.4'       | '2.11'
-        '6.0.1'       | '2.12'
+        '6.5'         | '2.12'
     }
 
     /**
@@ -594,6 +594,6 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.0.1'         | '2.12'
+        '6.5'           | '2.12'
     }
 }

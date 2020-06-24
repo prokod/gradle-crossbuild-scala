@@ -90,7 +90,6 @@ class ResolutionStrategyConfigurer {
                                    ViewType referenceView) {
         def insightsView = new SourceSetInsightsView(sourceSetInsights, referenceView)
         def crossBuildConfiguration = insightsView.configurations.crossBuild
-        def parentConfiguration = insightsView.configurations.main
 
         def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
