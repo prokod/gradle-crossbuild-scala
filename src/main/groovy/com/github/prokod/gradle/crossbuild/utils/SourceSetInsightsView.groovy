@@ -8,20 +8,20 @@ import org.gradle.api.artifacts.DependencySet
 
 /**
  * A wrapper on top of {@link SourceSetInsights} giving a limited more detailed view on a specific config type
- * see {@link SourceSetInsights.ViewType}
+ * see {@link ViewType}
  */
 class SourceSetInsightsView {
     private final SourceSetInsights sourceSetInsights
-    private final SourceSetInsights.ViewType viewType
+    private final ViewType viewType
 
     SourceSetInsightsView(SourceSetInsights sourceSetInsights,
-                          SourceSetInsights.ViewType viewType) {
+                          ViewType viewType) {
         this.sourceSetInsights = sourceSetInsights
         this.viewType = viewType
     }
 
     static SourceSetInsightsView from(Configuration configuration, SourceSetInsights sourceSetInsights) {
-        def view = SourceSetInsights.ViewType.from(configuration.name)
+        def view = ViewType.from(configuration.name)
         new SourceSetInsightsView(sourceSetInsights, view)
     }
 
@@ -34,8 +34,8 @@ class SourceSetInsightsView {
      */
     SourceSetInsightsView switchTo(Project project) {
         def container = CrossBuildSourceSets.getSourceSetContainer(project)
-        def newCrossBuild = container.getByName(this.sourceSetInsights.crossBuild.name)
-        def newMain = container.getByName(this.sourceSetInsights.main.name)
+        def newCrossBuild = container.getByName(this.sourceSetInsights.crossBuild.sourceSet.name)
+        def newMain = container.getByName(this.sourceSetInsights.main.sourceSet.name)
         def newSourceSetInsights = new SourceSetInsights(newCrossBuild, newMain, project)
         new SourceSetInsightsView(newSourceSetInsights, this.viewType)
     }
@@ -68,7 +68,7 @@ class SourceSetInsightsView {
         sourceSetInsights.project
     }
 
-    SourceSetInsights.ViewType getViewType() {
+    ViewType getViewType() {
         this.viewType
     }
 

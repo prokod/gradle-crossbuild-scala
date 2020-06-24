@@ -21,11 +21,11 @@ import com.github.prokod.gradle.crossbuild.tasks.CrossBuildPomTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsClasspathResolvedConfigurationReportTask
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
+import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
-import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights.ViewType
-import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView
+import com.github.prokod.gradle.crossbuild.utils.ViewType
+import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsights
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 import com.github.prokod.gradle.crossbuild.utils.ScalaCompileTasks
@@ -60,7 +60,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         project.afterEvaluate {
             updateSourceBuildSourceSets(extension)
 
-            flattenMainSourceSetConfigurations(extension)
+            globDependencyTranslationForMainSourceSetsConfigurations(extension)
         }
 
         project.gradle.projectsEvaluated {
@@ -90,48 +90,85 @@ class CrossBuildPlugin implements Plugin<Project> {
         }
     }
 
-    private static void flattenMainSourceSetConfigurations(CrossBuildExtension extension) {
+    private static void globDependencyTranslationForMainSourceSetsConfigurations(CrossBuildExtension extension) {
         // Find main source set
         def main = extension.crossBuildSourceSets.container.findByName('main')
-        // Find compile configuration
-        // todo (needs also to find others like Impl ..)
-        def config = extension.project.configurations.findByName(main.getCompileConfigurationName())
-        // Create scalaVersions to be used in parseByDependencyName
-        def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
-        // Iterate dependencies in compile configuration
-        // todo (also needs to iterate Impl. configuration ...) and find globbed ones
-        def globbedDeps = config.dependencies.findAll { dep ->
-            def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(dep.name, scalaVersions)
-            dependencyInsight.supposedScalaVersion == '?'
-        }
 
-        // Flatten globbed dependencies
-        globbedDeps.each { dep ->
-            def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(dep.name, scalaVersions)
+        def mainSourceSetInsights = new UniSourceSetInsights(main, extension.project)
 
-            // Add to crossbuild sourcesets
-            extension.resolvedBuilds.findAll { rb ->
-                def scalaVersionInsights = rb.scalaVersionInsights
+        def allNonTestRelatedUserFacingViews =
+                ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') }, { tags -> !tags.contains('test') })
+        ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') })
+                .each { viewType ->
+                    def mainConfig = mainSourceSetInsights.getConfigurationFor(viewType)
+                    // Create scalaVersions to be used in parseByDependencyName
+                    def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
+                    // Iterate dependencies in compile configuration
+                    def globTypeDeps = mainConfig.dependencies.findAll { dep ->
+                        def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(dep.name, scalaVersions)
+                        dependencyInsight.supposedScalaVersion == '?'
+                    }
 
-                def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
+                    // Flatten each glob type dependency
+                    globTypeDeps.each { dep ->
+                        def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(dep.name, scalaVersions)
 
-                // todo sourceSet.compileName, implementationName ..
-                extension.project.dependencies.add(sourceSet.compileConfigurationName,
-                        "${dep.group}:${dependencyInsight.baseName}_${rb.scalaVersion}:${dep.version}")
-            }
+                        def origDepConfiguration =
+                                "${dep.group}:${dep.name}:${dep.version}"
 
-            // Add to main source set default version
-            def defaultScalaVersion = tryResolvingQMarkInTargetDependencyName(config, scalaVersions).head()
-            extension.project.dependencies.add(main.compileConfigurationName,
-                    "${dep.group}:${dependencyInsight.baseName}_${defaultScalaVersion}:${dep.version}")
+                        // For each cross build version (for non test related configurations)
+                        if (allNonTestRelatedUserFacingViews.contains(viewType)) {
+                            extension.resolvedBuilds.each { rb ->
+                                def (String sourceSetId, SourceSet crossBuild) = extension.crossBuildSourceSets.findByName(rb.name)
 
-            // Remove original globbed dep
-            config.dependencies.remove(dep)
-        }
+                                def crossBuildSourceSetInsights = new UniSourceSetInsights(crossBuild, extension.project)
+                                def crossBuildConfig = crossBuildSourceSetInsights.getConfigurationFor(viewType)
+
+                                def translatedDepConfiguration = crossBuildConfig.name
+                                def translatedDepNotation =
+                                        "${dep.group}:${dependencyInsight.baseName}_${rb.scalaVersion}:${dep.version}"
+
+                                // Add explicit dependency to crossbuild sourcesets
+                                extension.project.dependencies.add(translatedDepConfiguration, translatedDepNotation)
+
+                                extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
+                                        lifecycle: 'afterEvaluate',
+                                        parentConfiguration: mainConfig.name,
+                                        configuration: crossBuildConfig.name,
+                                        msg: "Glob type depenency translation | glob '?' type dependency" +
+                                                " ${origDepConfiguration} partially translated to: " +
+                                                "[${translatedDepConfiguration} ${translatedDepNotation}]"
+                                ))
+                            }
+                        }
+
+                        // Add explicit dependency to main source set default version
+                        def defaultScalaVersion =
+                                tryResolvingQMarkBasedOnProvidedScalaLibDependency(mainConfig, scalaVersions).head()
+
+                        def translatedDepConfiguration = mainConfig.name
+                        def translatedDepNotation =
+                                "${dep.group}:${dependencyInsight.baseName}_${defaultScalaVersion}:${dep.version}"
+
+                        extension.project.dependencies.add(mainConfig.name,
+                                "${dep.group}:${dependencyInsight.baseName}_${defaultScalaVersion}:${dep.version}")
+
+                        extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
+                                lifecycle: 'afterEvaluate',
+                                parentConfiguration: mainConfig.name,
+                                msg: "Glob type depenency translation | glob '?' type dependency " +
+                                        "${origDepConfiguration} partially translated to: " +
+                                        "[${translatedDepConfiguration} ${translatedDepNotation}]"
+                        ))
+
+                        // Remove original glob type dep
+                        mainConfig.dependencies.remove(dep)
+                    }
+                }
     }
 
-    private static Set<String> tryResolvingQMarkInTargetDependencyName(Configuration configuration,
-                                                                ScalaVersions scalaVersions) {
+    private static Set<String> tryResolvingQMarkBasedOnProvidedScalaLibDependency(Configuration configuration,
+                                                                                  ScalaVersions scalaVersions) {
         def dependencySet = configuration.allDependencies
 
         def scalaDeps = DependencyInsights.findScalaDependencies(dependencySet.toSet(), scalaVersions)
@@ -159,11 +196,6 @@ class CrossBuildPlugin implements Plugin<Project> {
                     ViewType.COMPILE_ONLY,
                     ViewType.RUNTIME,
                     ViewType.RUNTIME_ONLY)
-
-            //TODO: add tests to cover adding external configurations scenarios
-            def configs = extension.project.configurations.findAll { it.name.startsWith('test') } +
-                    extension.configurations
-            configurer.applyFor(configs)
         }
     }
 
