@@ -15,7 +15,7 @@ import org.gradle.api.plugins.JavaPlugin
  *     <li>canBeConsumed, canBeResolved - legacy configurations like compile</li>
  * </ul>
  */
-@SuppressWarnings(['ThisReferenceEscapesConstructor', 'PrivateFieldCouldBeFinal'])
+@SuppressWarnings(['ThisReferenceEscapesConstructor', 'PrivateFieldCouldBeFinal', 'LineLength', 'DuplicateListLiteral'])
 enum ViewType {
     COMPILE(JavaPlugin.COMPILE_CONFIGURATION_NAME, ['canBeConsumed', 'canBeResolved']),
     COMPILE_ONLY(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, ['canBeConsumed']),
@@ -67,8 +67,6 @@ enum ViewType {
 
         views.groupBy { view -> view }.findAll { entry ->
             entry.value.size() == tagsPredicates.length
-        }.collect { entry ->
-            entry.key
-        }
+        }*.key
     }
 }

@@ -22,7 +22,7 @@ class SourceSetInsights {
 
     SourceSetInsights(SourceSet crossBuild, SourceSet main, Project project) {
         this.crossBuild = new UniSourceSetInsights(crossBuild, project)
-        this.main = new UniSourceSetInsights(main,project)
+        this.main = new UniSourceSetInsights(main, project)
         this.project = project
     }
 

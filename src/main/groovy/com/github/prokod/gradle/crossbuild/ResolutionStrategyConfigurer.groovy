@@ -137,9 +137,9 @@ class ResolutionStrategyConfigurer {
                 tryCorrectingTargetDependencyName(details, scalaVersionInsights.artifactInlinedVersion, insightsView)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
-                        lifecycle: 'afterEvaluate',
-                        configuration: crossBuildConfigurationName,
-                        msg: 'Dependency Scan ' +
+                        lifecycle:'afterEvaluate',
+                        configuration:crossBuildConfigurationName,
+                        msg:'Dependency Scan ' +
                                 "| Found polluting dependency ${requested.name}:${requested.version}. Replacing all " +
                                 "together with [${details.target.name}:${details.target.version}]"
                 ))
