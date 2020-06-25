@@ -77,7 +77,7 @@ This is especially true for multi module projects but not just.<br/>
    > apply plugin: 'com.github.prokod.gradle-crossbuild'
    >
    > crossBuild {
-   >     builds 
+   >     builds {
    >         scala {
    >             scalaVersions = ['2.11', '2.12']
    >         }
@@ -443,6 +443,7 @@ subprojects {
 ## Supported Gradle versions
 |plugin version | Tested Gradle versions |
 |---------------|------------------------|
+|0.11.x         | 4.10.3, 5.6.4, 6.5     |
 |0.10.x         | 4.10.3, 5.6.4, 6.0.1   |
 |0.9.x          | 4.2, 4.10.3, 5.4.1     |
 |0.4.x          | 2.14, 3.0, 4.1         |

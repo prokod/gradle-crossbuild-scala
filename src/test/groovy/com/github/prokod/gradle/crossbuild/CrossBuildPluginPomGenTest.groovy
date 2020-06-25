@@ -169,7 +169,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.10'
-        '6.0.1'         | '2.11'
+        '6.5'         | '2.11'
     }
 
     @Unroll
@@ -329,6 +329,6 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.10'
-        '6.0.1'         | '2.11'
+        '6.5'         | '2.11'
     }
 }

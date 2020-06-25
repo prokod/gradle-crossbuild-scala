@@ -401,7 +401,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.0.1'         | '2.12'
+        '6.5'           | '2.12'
     }
 
     @Unroll
@@ -653,7 +653,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.0.1'         | '2.12'
+        '6.5'           | '2.12'
     }
 
     /**
@@ -886,10 +886,10 @@ dependencies {
         gradleVersion   | defaultScalaVersion | scalazQmarked
         '4.10.3'        | '2.11'              | false
         '5.6.4'         | '2.12'              | false
-        '6.0.1'         | '2.12'              | false
+        '6.5'           | '2.12'              | false
         '4.10.3'        | '2.11'              | true
         '5.6.4'         | '2.12'              | true
-        '6.0.1'         | '2.12'              | true
+        '6.5'           | '2.12'              | true
     }
 
     @Unroll
@@ -1131,7 +1131,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.0.1'         | '2.12'
+        '6.5'           | '2.12'
     }
 
     /**
@@ -1390,7 +1390,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.0.1'         | '2.12'
+        '6.5'           | '2.12'
     }
 
     /**
@@ -1783,7 +1783,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.0.1'         | '2.12'
+        '6.5'           | '2.12'
     }
 
     /**
@@ -2094,6 +2094,6 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.0.1'         | '2.12'
+        '6.5'           | '2.12'
     }
 }
