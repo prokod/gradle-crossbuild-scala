@@ -176,7 +176,7 @@ publishing {
         given:
         buildFile << """
 plugins {
-    id 'com.github.prokod.gradle-crossbuild'
+    id "$pluginId"
 }
 
 crossBuild {
@@ -203,7 +203,10 @@ crossBuild {
         result.task(":crossBuildV212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion   | pluginId
+        '4.10.3'        | 'com.github.prokod.gradle-crossbuild'
+        '5.6.4'         | 'com.github.prokod.gradle-crossbuild-scala'
+        '6.5'           | 'com.github.prokod.gradle-crossbuild-scala'
     }
 
     @Unroll
