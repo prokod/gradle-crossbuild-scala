@@ -39,6 +39,6 @@ class LoggerUtils {
         def sset = sourceset
         def cset = "${c ?: ''}${sset != null ? "($sset)" : ''}"
 
-        "[$ppath($lc)${cset.isEmpty() ? '' : "|$cset"}]"
+        "[$ppath($lc)${cset.isEmpty() ?: "|$cset"}]"
     }
 }

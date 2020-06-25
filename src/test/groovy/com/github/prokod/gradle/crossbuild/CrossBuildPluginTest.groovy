@@ -73,7 +73,7 @@ crossBuildResolvedDsl - Summary report for cross building resolved Dsl
         result.output.contains('_2.12]')
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -114,7 +114,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -168,7 +168,7 @@ publishing {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -176,7 +176,7 @@ publishing {
         given:
         buildFile << """
 plugins {
-    id "$pluginId"
+    id 'com.github.prokod.gradle-crossbuild'
 }
 
 crossBuild {
@@ -203,10 +203,7 @@ crossBuild {
         result.task(":crossBuildV212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion   | pluginId
-        '4.10.3'        | 'com.github.prokod.gradle-crossbuild'
-        '5.6.4'         | 'com.github.prokod.gradle-crossbuild-scala'
-        '6.5'           | 'com.github.prokod.gradle-crossbuild-scala'
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -247,7 +244,7 @@ crossBuild {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -296,7 +293,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -384,7 +381,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildSpark24_212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -454,7 +451,7 @@ crossBuildV213Jar - Assembles a jar archive containing 213 classes
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -513,7 +510,7 @@ publishing {
         result.task(":publishCrossBuildV211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -594,7 +591,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -629,7 +626,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 
     @Unroll
@@ -664,6 +661,6 @@ crossBuild {
         result.task(":crossBuildV213Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+        gradleVersion << ['4.10.3', '5.6.4', '6.0.1']
     }
 }

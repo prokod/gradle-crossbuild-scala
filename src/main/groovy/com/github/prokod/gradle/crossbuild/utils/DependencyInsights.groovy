@@ -5,6 +5,7 @@ import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import com.github.prokod.gradle.crossbuild.model.DependencyInsight
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView.DependencySetType
+import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights.ViewType
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -123,9 +124,9 @@ class DependencyInsights {
         projectLibDependencies.each { dependency ->
             def subProject = dependency.dependencyProject
 
-            def targetTask = subProject.tasks[sourceSetInsights.crossBuild.sourceSet.jarTaskName]
+            def targetTask = subProject.tasks[sourceSetInsights.crossBuild.jarTaskName]
 
-            def producerConfigurationName = "${sourceSetInsights.crossBuild.sourceSet.name}Producer"
+            def producerConfigurationName = "${sourceSetInsights.crossBuild.name}Producer"
 
             def alreadyCreatedProducerConfiguration = subProject.configurations.findByName(producerConfigurationName)
             def producerConfiguration =
@@ -141,7 +142,7 @@ class DependencyInsights {
             project.dependencies.attributesSchema.with {
                 // Added to support correct Dependency resolution for Gradle 4.X
                 attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules.add(DisRule) {
-                    it.params(sourceSetInsights.crossBuild.sourceSet.name)
+                    it.params(sourceSetInsights.crossBuild.name)
                 }
             }
 

@@ -195,7 +195,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
                 '4.10.3'| '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
                 '5.6.4' | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-                '6.5'   | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
+                '6.0.1' | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
     }
 
     /**
@@ -370,7 +370,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.10'
         '5.6.4'         | '2.11'
-        '6.5'           | '2.11'
+        '6.0.1'         | '2.11'
     }
 
     /**
@@ -529,7 +529,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.12'
         '5.6.4'         | '2.11'
-        '6.5'           | '2.11'
+        '6.0.1'         | '2.11'
     }
 
     @Unroll
@@ -730,7 +730,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.10'
         '5.6.4'         | '2.11'
-        '6.5'           | '2.11'
+        '6.0.1'         | '2.11'
     }
 
 
@@ -863,121 +863,6 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.12'
         '5.6.4'         | '2.11'
-        '6.5'           | '2.11'
-    }
-
-
-    @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] setting a scala version as a scalaTag should allow a project without crossbuild plugin to resolve the right dependencies"() {
-        given:
-        // root project settings.gradle
-        settingsFile << """
-include 'lib'
-include 'app'
-"""
-
-        buildFile << """
-plugins {
-    id 'com.github.prokod.gradle-crossbuild' apply false
-}
-
-allprojects {
-    group = 'com.github.prokod.it'
-    version = '1.0-SNAPSHOT'
-    
-    repositories {
-        mavenCentral()
-    }
-}
-
-"""
-
-        libScalaFile << """
-import org.scalatest._
-
-trait HelloWorldLibApi {
-   def greet()
-}
-"""
-
-        libJavaFile << """
-
-public class HelloWorldLibImpl implements HelloWorldLibApi {
-   public void greet() {
-      System.out.println("Hello, world!");
-   }
-}
-"""
-
-        libBuildFile << """
-apply plugin: 'com.github.prokod.gradle-crossbuild'
-
-sourceSets {
-    main {
-        scala {
-            srcDirs = ['src/main/scala', 'src/main/java']
-        }
-        java {
-            srcDirs = []
-        }
-    }
-}
-
-crossBuild {
-    //scalaTag = _$defaultScalaVersion
-    builds {
-        v211 
-        v212
-    }
-}
-
-dependencies {
-    compile "org.scalatest:scalatest_?:3.0.1"
-    //compile "org.scalatest:scalatest_$defaultScalaVersion:3.0.1"
-    //crossBuildV211Compile "org.scalatest:scalatest_2.11:3.0.1"
-    //crossBuildV212Compile "org.scalatest:scalatest_2.12:3.0.1"
-    compile "com.google.guava:guava:18.0"
-    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
-}
-"""
-
-        appScalaFile << """
-import HelloWorldLibImpl._
-
-object HelloWorldApp {
-   def main(args: Array[String]) {
-      new HelloWorldLibImpl().greet()
-   }
-}
-"""
-
-        appBuildFile << """
-apply plugin: 'scala'
-
-dependencies {
-    compile project(':lib')
-}
-"""
-
-        when:
-        Assume.assumeTrue(testMavenCentralAccess())
-        def result = GradleRunner.create()
-            .withGradleVersion(gradleVersion)
-            .withProjectDir(dir.root)
-            .withPluginClasspath()
-            .withDebug(true)
-            .withArguments('crossBuildV212Jar', 'crossBuildV211Jar', 'build', '--info', '--stacktrace')
-            .build()
-
-        then:
-        result.task(":lib:crossBuildV212Jar").outcome == SUCCESS
-        result.task(":lib:crossBuildV211Jar").outcome == SUCCESS
-        result.task(":lib:build").outcome == SUCCESS
-        result.task(":app:build").outcome == SUCCESS
-        where:
-        gradleVersion | defaultScalaVersion
-        '4.10.3'      | '2.12'
-        '5.6.4'       | '2.12'
-        '6.5'         | '2.12'
+        '6.0.1'         | '2.11'
     }
 }
