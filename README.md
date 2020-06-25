@@ -57,7 +57,7 @@ This is especially true for multi module projects but not just.<br/>
 ### Multi-module projects and applying cross build plugin only for some
 From version 0.11.x the plugin support multi-module projects where **only** some of the modules have cross build plugin applied to.<br>
 This helps with cases where some of the modules depend on legacy plugins that do not play nicely with the cross build plugin like legacy `play` plugin for instance :)<br>
-Thanks @borissmidt for the collaboration on that.
+Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that.
 
 ### <a name="basic_plugin_configuration"></a>cross building - basic plugin configuration
 #### applying the plugin
