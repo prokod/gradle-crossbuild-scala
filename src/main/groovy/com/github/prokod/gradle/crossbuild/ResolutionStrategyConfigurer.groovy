@@ -5,7 +5,7 @@ import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
-import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights.ViewType
+import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView.DependencySetType
 import org.gradle.api.Project
@@ -90,7 +90,6 @@ class ResolutionStrategyConfigurer {
                                    ViewType referenceView) {
         def insightsView = new SourceSetInsightsView(sourceSetInsights, referenceView)
         def crossBuildConfiguration = insightsView.configurations.crossBuild
-        def parentConfiguration = insightsView.configurations.main
 
         def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
@@ -100,8 +99,6 @@ class ResolutionStrategyConfigurer {
             def supposedScalaVersion = dependencyInsight.supposedScalaVersion
             if (targetConfiguration.name == crossBuildConfigurationName) {
                 strategyForCrossBuildConfiguration(details, supposedScalaVersion, insightsView)
-            } else if (targetConfiguration.name == parentConfiguration.name) {
-                strategyForNonCrossBuildConfiguration(details, supposedScalaVersion, insightsView)
             }
         }
     }
@@ -122,16 +119,17 @@ class ResolutionStrategyConfigurer {
             }
         }
         // A cross built dependency - globbed (implicit)
-        else if (supposedScalaVersion == '?') {
-            resolveQMarkDep(details, scalaVersionInsights.artifactInlinedVersion)
-            project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle:'afterEvaluate',
-                    configuration:crossBuildConfigurationName,
-                    msg:"Dependency Scan | Found crossbuild glob '?' in dependency name ${requested.name}. " +
-                            "Subtituted with [${details.target.name}]"
-            ))
-            // Replace 3d party scala dependency which ends with '_?' in cross build config scope
-        } else {
+//        else if (supposedScalaVersion == '?') {
+//            resolveQMarkDep(details, scalaVersionInsights.artifactInlinedVersion)
+//            project.logger.info(LoggerUtils.logTemplate(project,
+//                    lifecycle: 'afterEvaluate',
+//                    configuration: crossBuildConfigurationName,
+//                    msg: "Dependency Scan | Found crossbuild glob '?' in dependency name ${requested.name}. " +
+//                            "Subtituted with [${details.target.name}]"
+//            ))
+//        }
+        // Replace 3d party scala dependency which ends with '_?' in cross build config scope
+        else {
             // A cross built dependency - explicit
             // Try correcting offending target dependency only if contains wrong scala version
             // and only in cross build config context.
@@ -149,6 +147,7 @@ class ResolutionStrategyConfigurer {
         }
     }
 
+    @Deprecated
     private void strategyForNonCrossBuildConfiguration(DependencyResolveDetails details,
                                                        String supposedScalaVersion,
                                                        SourceSetInsightsView insightsView) {
@@ -184,7 +183,9 @@ class ResolutionStrategyConfigurer {
      *
      * @param project Project space {@link Project}
      * @param scalaVersions Scala version catalog
+     *
      */
+    @Deprecated
     void applyFor(Set<Configuration> configurations) {
         def project = sourceSetInsights.project
 
