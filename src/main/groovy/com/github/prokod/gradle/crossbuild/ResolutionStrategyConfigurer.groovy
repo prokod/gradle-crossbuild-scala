@@ -223,7 +223,7 @@ class ResolutionStrategyConfigurer {
      */
     private static void resolveQMarkDep(DependencyResolveDetails details, String replacementScalaVersion) {
         def requested = details.requested
-        def resolvedName = requested.name.replace('_?', "_$replacementScalaVersion")
+        def resolvedName = requested.name.replaceFirst('_(\\?|2.11|2.12|2.13)', "_$replacementScalaVersion")
         details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
     }
 
@@ -308,15 +308,19 @@ class ResolutionStrategyConfigurer {
 
         def correctDependencies = dependencyMap[requested.name]
 
-        assert correctDependencies.size() == 1 : 'There should be one candidate to replace offending dependency ' +
+        assert correctDependencies.size() <= 1 : 'There should be one candidate to replace offending dependency ' +
                 "'$requested.group:$requested.name' for target scala version $targetScalaVersion : " +
                 "[${correctDependencies*.dependency.collect { "$it.name:$it.version" }.join(', ')}]"
 
-        def correctDependencyInsight = correctDependencies.head()
-        def correctDependency = correctDependencyInsight.dependency
+        if(correctDependencies.size() == 1) {
+            def correctDependencyInsight = correctDependencies.head()
+            def correctDependency = correctDependencyInsight.dependency
 
-        // Assuming group is staying the same ...
-        offenderDetails.useTarget requested.group + ':' + correctDependency.name + ':' + correctDependency.version
+            // Assuming group is staying the same ...
+            offenderDetails.useTarget requested.group + ':' + correctDependency.name + ':' + correctDependency.version
+        } else {
+            offenderDetails.useTarget requested.group + ':' + requested.name.replaceFirst("(_2.11|_2.12|_2.13)",  "_${targetScalaVersion}") + ':' + requested.version
+        }
     }
 
     /**
