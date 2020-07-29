@@ -868,7 +868,7 @@ dependencies {
 
 
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] setting a scala version as a scalaTag should allow a project without crossbuild plugin to resolve the right dependencies"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] should allow a project without crossbuild plugin to resolve the right dependencies"() {
         given:
         // root project settings.gradle
         settingsFile << """
@@ -924,7 +924,6 @@ sourceSets {
 }
 
 crossBuild {
-    //scalaTag = _$defaultScalaVersion
     builds {
         v211 
         v212
@@ -933,9 +932,6 @@ crossBuild {
 
 dependencies {
     compile "org.scalatest:scalatest_?:3.0.1"
-    //compile "org.scalatest:scalatest_$defaultScalaVersion:3.0.1"
-    //crossBuildV211Compile "org.scalatest:scalatest_2.11:3.0.1"
-    //crossBuildV212Compile "org.scalatest:scalatest_2.12:3.0.1"
     compile "com.google.guava:guava:18.0"
     compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
@@ -977,7 +973,7 @@ dependencies {
         where:
         gradleVersion | defaultScalaVersion
         '4.10.3'      | '2.12'
-        '5.6.4'       | '2.12'
+        '5.6.4'       | '2.11'
         '6.5'         | '2.12'
     }
 }

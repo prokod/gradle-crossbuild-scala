@@ -7,22 +7,22 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 
 /**
- * A wrapper on top of {@link SourceSetInsights} giving a limited more detailed view on a specific config type
+ * A wrapper on top of {@link UniSourceSetInsights} giving a limited more detailed view on a specific config type
  * see {@link ViewType}
  */
-class SourceSetInsightsView {
-    private final SourceSetInsights sourceSetInsights
+class UniSourceSetInsightsView {
+    private final UniSourceSetInsights sourceSetInsights
     private final ViewType viewType
 
-    SourceSetInsightsView(SourceSetInsights sourceSetInsights,
-                          ViewType viewType) {
+    UniSourceSetInsightsView(UniSourceSetInsights sourceSetInsights,
+                             ViewType viewType) {
         this.sourceSetInsights = sourceSetInsights
         this.viewType = viewType
     }
 
-    static SourceSetInsightsView from(Configuration configuration, SourceSetInsights sourceSetInsights) {
+    static UniSourceSetInsightsView from(Configuration configuration, UniSourceSetInsights sourceSetInsights) {
         def view = ViewType.from(configuration.name)
-        new SourceSetInsightsView(sourceSetInsights, view)
+        new UniSourceSetInsightsView(sourceSetInsights, view)
     }
 
     /**
@@ -32,26 +32,25 @@ class SourceSetInsightsView {
      *
      * @throws AssertionError in case sourceSet container is not present for the project
      */
-    SourceSetInsightsView switchTo(Project project) {
+    UniSourceSetInsightsView switchTo(Project project) {
         def container = CrossBuildSourceSets.getSourceSetContainer(project)
-        def newCrossBuild = container.getByName(this.sourceSetInsights.crossBuild.sourceSet.name)
-        def newMain = container.getByName(this.sourceSetInsights.main.sourceSet.name)
-        def newSourceSetInsights = new SourceSetInsights(newCrossBuild, newMain, project)
-        new SourceSetInsightsView(newSourceSetInsights, this.viewType)
+        def newSourceSet = container.getByName(this.sourceSetInsights.sourceSet.name)
+        def newSourceSetInsights = new UniSourceSetInsights(newSourceSet, project)
+        new UniSourceSetInsightsView(newSourceSetInsights, this.viewType)
     }
 
     SourceSetInsight<String, String> getNames() {
-        def rawInsight = sourceSetInsights.getNamesFor(viewType)
+        def rawInsight = sourceSetInsights.getNameFor(viewType)
         new SourceSetInsight<String, String>(rawInsight, { String name -> [name] })
     }
 
     SourceSetInsight<Configuration, Configuration> getConfigurations() {
-        def rawInsight = sourceSetInsights.getConfigurationsFor(viewType)
+        def rawInsight = sourceSetInsights.getConfigurationFor(viewType)
         new SourceSetInsight<Configuration, Configuration>(rawInsight, { c -> [c] })
     }
 
     SourceSetInsight<DependencySet, Dependency> getDependencySets(DependencySetType dependencySetType) {
-        def rawInsight = sourceSetInsights.getDependencySetsFor(viewType, dependencySetType)
+        def rawInsight = sourceSetInsights.getDependencySetFor(viewType, dependencySetType)
         new SourceSetInsight<DependencySet, Dependency>(rawInsight, { DependencySet dset -> dset.toList() })
     }
 
