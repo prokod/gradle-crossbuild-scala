@@ -22,7 +22,7 @@ import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsClasspathResolvedConfigurationReportTask
 import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsightsNew
+import com.github.prokod.gradle.crossbuild.utils.DependencyInsights1
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsightsView
@@ -196,7 +196,7 @@ class CrossBuildPlugin implements Plugin<Project> {
 
         def dependencySet = [configuration.allDependencies]
 
-        def di = new DependencyInsightsNew(sourceSetInsights)
+        def di = new DependencyInsights1(sourceSetInsights)
 
         def configurationNames = [configuration.name] as Set
         def crossBuildProjectDependencySet =

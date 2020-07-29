@@ -8,11 +8,11 @@ import org.gradle.api.artifacts.ProjectDependency
  * A collection of Dependency related methods
  *
  */
-class DependencyInsightsNew {
+class DependencyInsights1 {
 
     final UniSourceSetInsights sourceSetInsights
 
-    DependencyInsightsNew(UniSourceSetInsights sourceSetInsights) {
+    DependencyInsights1(UniSourceSetInsights sourceSetInsights) {
         this.sourceSetInsights = sourceSetInsights
     }
 
