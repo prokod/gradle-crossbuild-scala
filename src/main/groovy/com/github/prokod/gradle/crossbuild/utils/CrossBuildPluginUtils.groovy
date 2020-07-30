@@ -23,7 +23,6 @@ class CrossBuildPluginUtils {
      *
      */
     // todo find a way to achieve the same result in a stable way from {@code project.afterEvaluate {}} block
-    // todo insightView is needed only because of logging. Consider for removal.
     static Set<Project> findAllCrossBuildPluginAppliedProjects(SourceSetInsightsView insightsView) {
         def project = insightsView.project
         def names = insightsView.names
@@ -35,6 +34,15 @@ class CrossBuildPluginUtils {
                 lifecycle:'afterEvaluate',
                 configuration:configurationName,
                 parentConfiguration:parentConfigurationName,
+                msg:"Found the following crossbuild modules ${moduleNames.join(', ')}."))
+        moduleNames
+    }
+
+    static Set<Project> findAllCrossBuildPluginAppliedProjectsFor(Project project) {
+        def moduleNames = project.gradle.rootProject.allprojects.findAll { it.plugins.hasPlugin(CrossBuildPlugin) }
+
+        project.logger.debug(LoggerUtils.logTemplate(project,
+                lifecycle:'afterEvaluate',
                 msg:"Found the following crossbuild modules ${moduleNames.join(', ')}."))
         moduleNames
     }

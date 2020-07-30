@@ -7,7 +7,7 @@ import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView
-import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView.DependencySetType
+import com.github.prokod.gradle.crossbuild.utils.DependencySetType
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolveDetails

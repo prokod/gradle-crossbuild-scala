@@ -80,7 +80,6 @@ allprojects {
     
     repositories {
         mavenCentral()
-        maven { url 'https://artifactory.srv.int.avast.com/artifactory/maven' }
     }
 }
 
@@ -384,7 +383,6 @@ allprojects {
     
     repositories {
         mavenCentral()
-        maven { url 'https://artifactory.srv.int.avast.com/artifactory/maven' }
     }
 }
 

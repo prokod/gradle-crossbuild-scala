@@ -1,6 +1,5 @@
 package com.github.prokod.gradle.crossbuild.utils
 
-import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView.DependencySetType
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
