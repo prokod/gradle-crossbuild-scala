@@ -17,18 +17,18 @@
 - *No support for java-library plugin* java-library `api`, `apiComponents` and `runtimeComponents` configurations are not supported yet. 
 
 ## <a name="getting_plugin"></a>Getting the plugin
-#### Using the plugin DSL:
+#### Using the `plugins` DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version "0.10.0"
+    id "com.github.prokod.gradle-crossbuild-scala" version "0.11.0"
 }
 ```  
     
-#### Using legacy plugin application
+#### Using legacy `buildscript`
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.10.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.11.0")
     }
 }
 ```
@@ -54,6 +54,11 @@ This is especially true for multi module projects but not just.<br/>
 
   > **_NOTE:_** Look under ~/.m2/repository/... to assert the end result is the one you have wished for.<br/>
         
+### Multi-module projects and applying cross build plugin only for some
+From version **`0.11.x`** the plugin support multi-module projects where **only** some of the modules have cross build plugin applied to.<br>
+This helps with cases where some of the modules depend on legacy plugins that do not play nicely with the cross build plugin like legacy `play` plugin for instance :)<br>
+Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that.
+
 ### <a name="basic_plugin_configuration"></a>cross building - basic plugin configuration
 #### applying the plugin
 1. Apply the plugin and use the provided DSL. For example:
@@ -61,7 +66,7 @@ This is especially true for multi module projects but not just.<br/>
     ```groovy
     archivesBaseName = 'lib'
 
-    apply plugin: 'com.github.prokod.gradle-crossbuild'
+    apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 
     crossBuild {
         builds {
@@ -74,7 +79,7 @@ This is especially true for multi module projects but not just.<br/>
    > ```groovy
    > archivesBaseName = 'lib'
    > 
-   > apply plugin: 'com.github.prokod.gradle-crossbuild'
+   > apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
    >
    > crossBuild {
    >     builds {
@@ -151,7 +156,7 @@ This is especially true for multi module projects but not just.<br/>
 1. Apply the plugin and add maven-publish plugin. For example:
 
     ```groovy
-    apply plugin: 'com.github.prokod.gradle-crossbuild'
+    apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
     apply plugin: 'maven-publish'
     
     group = 'x.y.z'
@@ -264,7 +269,7 @@ In this example, we override default behaviour, dropping provided scope dependen
 `targetVersionItem.archiveAppendix`, `crossBuild.scalaVersionsCatalog`, <code>crossBuild211*XYZ*</code> pre defined configurations
 
 ```groovy
-apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 
 crossBuild {
     scalaVersionsCatalog = ['2.10': '2.10.6', '2.11': '2.11.12', '2.12':'2.12.8' ...]
@@ -345,7 +350,7 @@ To apply cross building to a multi-module project use one of the following sugge
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version '0.10.0' apply false
+    id "com.github.prokod.gradle-crossbuild-scala" version '0.11.0' apply false
 }
 
 allprojects {
@@ -357,7 +362,7 @@ allprojects {
         mavenCentral()
     }
 
-    pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
+    pluginManager.withPlugin('com.github.prokod.gradle-crossbuild-scala') {
         crossBuild {
 
             scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
@@ -385,7 +390,7 @@ allprojects {
 ```
 - In sub projects' build.gradle:
 ```groovy
-apply plugin: 'com.github.prokod.gradle-crossbuild'
+apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 ...
 ```
 
@@ -393,7 +398,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild" version '0.10.0' apply false
+    id "com.github.prokod.gradle-crossbuild-scala" version '0.11.0' apply false
 }
 
 allprojects {
@@ -406,7 +411,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'com.github.prokod.gradle-crossbuild'
+    apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
     apply plugin: 'maven-publish'
 
     crossBuild {
