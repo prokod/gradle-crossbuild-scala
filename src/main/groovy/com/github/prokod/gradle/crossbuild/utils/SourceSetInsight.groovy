@@ -1,5 +1,10 @@
 package com.github.prokod.gradle.crossbuild.utils
 
+/**
+ * DAO as return object from {@link SourceSetInsightsView}
+ * @param <R> Collection type
+ * @param <S> Item type in collection
+ */
 class SourceSetInsight<R, S> {
     private final Tuple2<R, R> rawInsight
     private final Closure<Collection<S>> flatMapFunc
