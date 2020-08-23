@@ -1,0 +1,475 @@
+[[{
+  "configuration": {
+    "allDependencies": [
+      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+      "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+    ],
+    "name": "crossBuildSpark233_211Compile"
+  },
+  "sourceSet": "crossBuildSpark233_211",
+  "resolvedConfiguration": {
+    "hasError": false,
+    "resolvedArtifacts": [
+      "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+      "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
+    ],
+    "files": [
+      "scalaz-core_2.11-7.2.30.jar",
+      "scala-library-2.11.12.jar"
+    ],
+    "firstLevelModuleDependencies": [
+      "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+      "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+    ]
+  }
+},
+  {
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      ],
+      "name": "crossBuildSpark233_211Implementation"
+    },
+    "sourceSet": "crossBuildSpark233_211",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": null,
+      "files": null,
+      "firstLevelModuleDependencies": null
+    }
+  },
+  {
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      ],
+      "name": "crossBuildSpark233_211CompileClasspath"
+    },
+    "sourceSet": "crossBuildSpark233_211",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
+      ],
+      "files": [
+        "scalaz-core_2.11-7.2.30.jar",
+        "scala-library-2.11.12.jar"
+      ],
+      "firstLevelModuleDependencies": [
+        "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
+        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrCompile@"
+      ]
+    }
+  },
+  {
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      ],
+      "name": "crossBuildSpark233_211RuntimeClasspath"
+    },
+    "sourceSet": "crossBuildSpark233_211",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
+      ],
+      "files": [
+        "scalaz-core_2.11-7.2.30.jar",
+        "scala-library-2.11.12.jar"
+      ],
+      "firstLevelModuleDependencies": [
+        "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+      ]
+    }
+  }],
+  [{
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      ],
+      "name": "crossBuildSpark242_212Compile"
+    },
+    "sourceSet": "crossBuildSpark242_212",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+        "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+      ],
+      "files": [
+        "scalaz-core_2.12-7.2.30.jar",
+        "scala-library-2.12.10.jar"
+      ],
+      "firstLevelModuleDependencies": [
+        "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
+        "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+      ]
+    }
+  },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark242_212Implementation"
+      },
+      "sourceSet": "crossBuildSpark242_212",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": null,
+        "files": null,
+        "firstLevelModuleDependencies": null
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark242_212CompileClasspath"
+      },
+      "sourceSet": "crossBuildSpark242_212",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+        ],
+        "files": [
+          "scalaz-core_2.12-7.2.30.jar",
+          "scala-library-2.12.10.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrCompile@",
+          "org.scala-lang:scala-library:2.12.10;@defaultOrCompile@"
+        ]
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark242_212RuntimeClasspath"
+      },
+      "sourceSet": "crossBuildSpark242_212",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+        ],
+        "files": [
+          "scalaz-core_2.12-7.2.30.jar",
+          "scala-library-2.12.10.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
+          "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+        ]
+      }
+    }],
+  [{
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      ],
+      "name": "crossBuildSpark243_211Compile"
+    },
+    "sourceSet": "crossBuildSpark243_211",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
+      ],
+      "files": [
+        "scalaz-core_2.11-7.2.30.jar",
+        "scala-library-2.11.12.jar"
+      ],
+      "firstLevelModuleDependencies": [
+        "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+      ]
+    }
+  },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark243_211Implementation"
+      },
+      "sourceSet": "crossBuildSpark243_211",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": null,
+        "files": null,
+        "firstLevelModuleDependencies": null
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark243_211CompileClasspath"
+      },
+      "sourceSet": "crossBuildSpark243_211",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
+        ],
+        "files": [
+          "scalaz-core_2.11-7.2.30.jar",
+          "scala-library-2.11.12.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
+          "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrCompile@"
+        ]
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark243_211RuntimeClasspath"
+      },
+      "sourceSet": "crossBuildSpark243_211",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
+        ],
+        "files": [
+          "scalaz-core_2.11-7.2.30.jar",
+          "scala-library-2.11.12.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+          "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+        ]
+      }
+    }],
+  [{
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      ],
+      "name": "crossBuildSpark243_212Compile"
+    },
+    "sourceSet": "crossBuildSpark243_212",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+        "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+      ],
+      "files": [
+        "scalaz-core_2.12-7.2.30.jar",
+        "scala-library-2.12.10.jar"
+      ],
+      "firstLevelModuleDependencies": [
+        "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
+        "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+      ]
+    }
+  },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark243_212Implementation"
+      },
+      "sourceSet": "crossBuildSpark243_212",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": null,
+        "files": null,
+        "firstLevelModuleDependencies": null
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark243_212CompileClasspath"
+      },
+      "sourceSet": "crossBuildSpark243_212",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+        ],
+        "files": [
+          "scalaz-core_2.12-7.2.30.jar",
+          "scala-library-2.12.10.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrCompile@",
+          "org.scala-lang:scala-library:2.12.10;@defaultOrCompile@"
+        ]
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildSpark243_212RuntimeClasspath"
+      },
+      "sourceSet": "crossBuildSpark243_212",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+        ],
+        "files": [
+          "scalaz-core_2.12-7.2.30.jar",
+          "scala-library-2.12.10.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
+          "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+        ]
+      }
+    }],
+  [{
+    "configuration": {
+      "allDependencies": [
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.10.6', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      ],
+      "name": "crossBuildV210Compile"
+    },
+    "sourceSet": "crossBuildV210",
+    "resolvedConfiguration": {
+      "hasError": false,
+      "resolvedArtifacts": [
+        "scalaz-core_2.10@_7_2_30_@.jar (org.scalaz:scalaz-core_2.10:7.2.30)",
+        "scala-library@_2_10_7_@.jar (org.scala-lang:scala-library:2.10.7)"
+      ],
+      "files": [
+        "scalaz-core_2.10-7.2.30.jar",
+        "scala-library-2.10.7.jar"
+      ],
+      "firstLevelModuleDependencies": [
+        "org.scalaz:scalaz-core_2.10:7.2.30;@defaultOrRuntime@",
+        "org.scala-lang:scala-library:2.10.7;@defaultOrRuntime@"
+      ]
+    }
+  },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.10.6', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildV210Implementation"
+      },
+      "sourceSet": "crossBuildV210",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": null,
+        "files": null,
+        "firstLevelModuleDependencies": null
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.10.6', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildV210CompileClasspath"
+      },
+      "sourceSet": "crossBuildV210",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.10@_7_2_30_@.jar (org.scalaz:scalaz-core_2.10:7.2.30)",
+          "scala-library@_2_10_7_@.jar (org.scala-lang:scala-library:2.10.7)"
+        ],
+        "files": [
+          "scalaz-core_2.10-7.2.30.jar",
+          "scala-library-2.10.7.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scalaz:scalaz-core_2.10:7.2.30;@defaultOrCompile@",
+          "org.scala-lang:scala-library:2.10.7;@defaultOrCompile@"
+        ]
+      }
+    },
+    {
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.10.6', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        ],
+        "name": "crossBuildV210RuntimeClasspath"
+      },
+      "sourceSet": "crossBuildV210",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": [
+          "scalaz-core_2.10@_7_2_30_@.jar (org.scalaz:scalaz-core_2.10:7.2.30)",
+          "scala-library@_2_10_7_@.jar (org.scala-lang:scala-library:2.10.7)"
+        ],
+        "files": [
+          "scalaz-core_2.10-7.2.30.jar",
+          "scala-library-2.10.7.jar"
+        ],
+        "firstLevelModuleDependencies": [
+          "org.scalaz:scalaz-core_2.10:7.2.30;@defaultOrRuntime@",
+          "org.scala-lang:scala-library:2.10.7;@defaultOrRuntime@"
+        ]
+      }
+    }]]

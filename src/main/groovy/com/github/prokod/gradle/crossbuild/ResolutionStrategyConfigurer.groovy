@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016-2020 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
@@ -8,7 +23,6 @@ import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView
 import com.github.prokod.gradle.crossbuild.utils.DependencySetType
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.DependencySet
@@ -118,16 +132,6 @@ class ResolutionStrategyConfigurer {
                 details.useVersion(scalaVersionInsights.compilerVersion)
             }
         }
-        // A cross built dependency - globbed (implicit)
-//        else if (supposedScalaVersion == '?') {
-//            resolveQMarkDep(details, scalaVersionInsights.artifactInlinedVersion)
-//            project.logger.info(LoggerUtils.logTemplate(project,
-//                    lifecycle: 'afterEvaluate',
-//                    configuration: crossBuildConfigurationName,
-//                    msg: "Dependency Scan | Found crossbuild glob '?' in dependency name ${requested.name}. " +
-//                            "Subtituted with [${details.target.name}]"
-//            ))
-//        }
         // Replace 3d party scala dependency which ends with '_?' in cross build config scope
         else {
             // A cross built dependency - explicit
@@ -147,73 +151,6 @@ class ResolutionStrategyConfigurer {
         }
     }
 
-    @Deprecated
-    private void strategyForNonCrossBuildConfiguration(DependencyResolveDetails details,
-                                                       String supposedScalaVersion,
-                                                       SourceSetInsightsView insightsView) {
-        def project = sourceSetInsights.project
-
-        def parentConfiguration = insightsView.configurations.main
-        def requested = details.requested
-
-        // Replace 3d party scala dependency which ends with '_?' in parent configuration scope
-        if (supposedScalaVersion == '?') {
-            if (tryResolvingQMarkInTargetDependencyName(details, parentConfiguration, scalaVersions, insightsView)) {
-                project.logger.info(LoggerUtils.logTemplate(project,
-                        lifecycle:'afterEvaluate',
-                        configuration:parentConfiguration.name,
-                        msg:"Found crossbuild glob '?' in dependency name ${requested.name}." +
-                                " Subtituted with [${details.target.name}]"
-                ))
-            } else {
-                project.logger.info(LoggerUtils.logTemplate(project,
-                        lifecycle:'afterEvaluate',
-                        configuration:parentConfiguration.name,
-                        msg:'Could not infer Scala version to be applied to dependency ' +
-                                "'$requested.group:$requested.name'. " +
-                                'Reason: scala-library dependency version not found or multiple versions'
-                ))
-                resolveQMarkInTargetDependencyName(details, parentConfiguration, scalaVersions, insightsView)
-            }
-        }
-    }
-
-    /**
-     * Resolve dependencies with place holder scala version '?' for testCompile configuration.
-     *
-     * @param project Project space {@link Project}
-     * @param scalaVersions Scala version catalog
-     *
-     */
-    @Deprecated
-    void applyFor(Set<Configuration> configurations) {
-        def project = sourceSetInsights.project
-
-        project.configurations.all { Configuration c ->
-            if (configurations.contains(c)) {
-                c.resolutionStrategy.eachDependency { details ->
-                    def requested = details.requested
-                    // Replace 3d party scala dependency which contains '_?'
-                    def dependencyInsight =
-                            DependencyLimitedInsight.parseByDependencyName(requested.name, scalaVersions)
-                    def probableScalaVersion = dependencyInsight.supposedScalaVersion
-                    if (probableScalaVersion == '?') {
-                        // We do not have plugin generated cross build configurations specifically dependent on test
-                        // configurations like `testCompile`, `testCompileOnly`, `testImplementation` ...
-                        def insightsView =  SourceSetInsightsView.from(c, sourceSetInsights)
-                        strategyForNonCrossBuildConfiguration(details, probableScalaVersion, insightsView)
-                        project.logger.info(LoggerUtils.logTemplate(project,
-                                lifecycle:'afterEvaluate',
-                                configuration:c.name,
-                                msg:"Found crossbuild glob '?' in dependency name ${requested.name}. " +
-                                        "Subtituted with [${details.target.name}]"
-                        ))
-                    }
-                }
-            }
-        }
-    }
-
     /**
      * Resolve dependency names containing question mark to the actual scala version,
      * based on {@link ScalaVersionInsights} provided.
@@ -221,9 +158,10 @@ class ResolutionStrategyConfigurer {
      * @param details {@link org.gradle.api.artifacts.DependencyResolveDetails} from resolution strategy
      * @param scalaVersionInsights Holds all version permutations for a specific Scala version
      */
+    @Deprecated
     private static void resolveQMarkDep(DependencyResolveDetails details, String replacementScalaVersion) {
         def requested = details.requested
-        def resolvedName = requested.name.replaceFirst('_(\\?|2.11|2.12|2.13)', "_$replacementScalaVersion")
+        def resolvedName = requested.name.replace('_?', "_$replacementScalaVersion")
         details.useTarget requested.group + ':' + resolvedName + ':' + requested.version
     }
 
@@ -236,6 +174,8 @@ class ResolutionStrategyConfigurer {
      * @param configuration Specified configuration to retrieve all dependencies from.
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      */
+    @Deprecated
+    @SuppressWarnings(['UnusedPrivateMethod'])
     private boolean tryResolvingQMarkInTargetDependencyName(DependencyResolveDetails details,
                                                             Configuration configuration,
                                                             ScalaVersions scalaVersions,
@@ -312,14 +252,18 @@ class ResolutionStrategyConfigurer {
                 "'$requested.group:$requested.name' for target scala version $targetScalaVersion : " +
                 "[${correctDependencies*.dependency.collect { "$it.name:$it.version" }.join(', ')}]"
 
-        if(correctDependencies.size() == 1) {
+        if (correctDependencies.size() == 1) {
             def correctDependencyInsight = correctDependencies.head()
             def correctDependency = correctDependencyInsight.dependency
 
             // Assuming group is staying the same ...
             offenderDetails.useTarget requested.group + ':' + correctDependency.name + ':' + correctDependency.version
-        } else {
-            offenderDetails.useTarget requested.group + ':' + requested.name.replaceFirst("(_2.11|_2.12|_2.13)",  "_${targetScalaVersion}") + ':' + requested.version
+        }
+        else {
+            def preRegex = scalaVersions.mkRefTargetVersions().collect { '_' + it }.join('|')
+            def regex = "($preRegex)"
+            offenderDetails.useTarget requested.group + ':' +
+                    requested.name.replaceFirst(regex,  "_${targetScalaVersion}") + ':' + requested.version
         }
     }
 
@@ -334,6 +278,8 @@ class ResolutionStrategyConfigurer {
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      * @throws AssertionError if Scala version cannot be inferred
      */
+    @Deprecated
+    @SuppressWarnings(['UnusedPrivateMethod'])
     private void resolveQMarkInTargetDependencyName(DependencyResolveDetails details,
                                                     Configuration configuration,
                                                     ScalaVersions scalaVersions,

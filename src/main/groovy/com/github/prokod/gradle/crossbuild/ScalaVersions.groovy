@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors
+ * Copyright 2016-2020 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package com.github.prokod.gradle.crossbuild
  */
 class ScalaVersions {
     private static final Map<String, String> DEFAULT_CATALOG =
-            ['2.9':'2.9.3', '2.10':'2.10.6', '2.11':'2.11.12', '2.12':'2.12.8', '2.13':'2.13.0']
+            ['2.9':'2.9.3', '2.10':'2.10.6', '2.11':'2.11.12', '2.12':'2.12.12', '2.13':'2.13.3']
 
     static final ScalaVersions DEFAULT_SCALA_VERSIONS = new ScalaVersions(DEFAULT_CATALOG)
 

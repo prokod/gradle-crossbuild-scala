@@ -20,7 +20,7 @@
 #### Using the `plugins` DSL:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version "0.11.0"
+    id "com.github.prokod.gradle-crossbuild-scala" version "0.12.0"
 }
 ```  
     
@@ -28,7 +28,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.11.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.12.0")
     }
 }
 ```
@@ -45,17 +45,18 @@ This is especially true for multi module projects but not just.<br/>
     You see, the plugin is designed in such a way that it borrows from the state of the project's dependency tree already in place without changing it and then it adds a somewhat parallel dependency tree for each of the cross building variants. 
 - To configure the plugin efficiently please see recommended [multi module projects apply patterns](#multi_module_apply_patterns).
 
-  > **_NOTE:_** Use the '?' question mark to express cross build dependency for `implementation`/`compile`/`runtime`/`...` configurations - the plugin will add a correct dependency resolution according to the provided `crossBuild {}` block.<br/>
+  > **_NOTE:_** From version 0.12.x there is no need to have any special glob pattern to express cross build dependency for `implementation`/`compile`/`runtime`/`...` configurations - the plugin will add a correct dependency resolution according to the provided `crossBuild {}` plugin dsl block.<br/>
+    Up to version 0.11.x (inclusive) use the '?' question mark to express cross build dependency inside `implementation`/`compile`/`runtime`/`...` configurations.<br/>
     Use the provided explicit <code>crossBuild*XYZ*</code>`Implementation`/`Compile`/`Runtime`/`...` configuration when you need a finer granularity in expressing the cross build dependencies
 - Publish cross building artifacts, for that please have a look [here](#publishing)
 
-  > **_NOTE:_** cross build artifact naming is governed by `archive.appendixPattern` which by default is `_?` meaning module `lib` will be resolved a cross build to `lib_2.11`/`_2.12`/`...` 
+  > **_NOTE:_** cross build artifact naming is governed by `archive.appendixPattern` which by default is `_?` meaning for example, that module `lib` will be resolved to `lib_2.11`/`_2.12`/`...` according to the correlating `crossBuild {}` plugin dsl block
 - To test that everything works as expected, both `gradle build` (which also runs the tests) and `gradle publishToMavenLocal` (which goes from cross building, artifact creation and publishing) should succeed.
 
   > **_NOTE:_** Look under ~/.m2/repository/... to assert the end result is the one you have wished for.<br/>
         
 ### Multi-module projects and applying cross build plugin only for some
-From version **`0.11.x`** the plugin support multi-module projects where **only** some of the modules have cross build plugin applied to.<br>
+From version **`0.11.x`** the plugin supports multi-module projects where **only** some of the modules have cross build plugin applied to.<br>
 This helps with cases where some of the modules depend on legacy plugins that do not play nicely with the cross build plugin like legacy `play` plugin for instance :)<br>
 Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that.
 
@@ -94,10 +95,21 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
     dependencies {
         compile ("com.google.protobuf:protobuf-java:$protobufVersion")
         compile ("joda-time:joda-time:$jodaVersion")
-        // The question mark is being replaced based on the scala version being built
-        compile ("org.scalaz:scalaz_?:$scalazVersion")
+        // Scala 2.12 is the default cross built Scala version
+        // the plugin replaces the default based on the Scala version being built
+        compile ("org.scalaz:scalaz_2.12:$scalazVersion")
     }
     ```
+   > **_NOTE:_** Up to version 0.11.x (inclusive) 3rd party Scala lib dependencies are expressed using '?'
+   >             question mark (implicit pattern)
+   > ```groovy
+   > dependencies {
+   >     compile ("com.google.protobuf:protobuf-java:$protobufVersion")
+   >     compile ("joda-time:joda-time:$jodaVersion")
+   >     // The question mark is being replaced based on the Scala version being built
+   >     compile ("org.scalaz:scalaz_?:$scalazVersion")
+   > }
+   > ```
 
 1. `gradle tasks`
 
@@ -146,10 +158,8 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
 > -  <a name="builds_dsl_short_hand"></a>When defining `builds {}` block, a short hand convention can be used for default values.<br/>
   To be able to use that, `build` item should be named by the following convention, for example:<br/>
   `xyz211` is translated to `{ "build": { "scalaVersions": ["2.11"], "name": "xyz211" ... }`
-> - When using a dependency with '?' in `compile/implementation` configuration i.e `compile ("org.scalaz:scalaz_?:$scalazVersion")`, the plugin will replace this placeholder with the scala version defined in `builds {}` block according to the requested cross build variant/s.
-> - `test/check` tasks are not being cross compiled and they use the default scala version.<br/>
-  However, `compile/implementation` scala dependencies with '?' are being resolved according to the explicit neighbour `scala-library` dependency.<br/>
-  If a user would like to run tests with different scala versions, he needs to change the relevant scala library version and neighbouring 3rd party scala dependencies in build.gradle
+> - `test/check` tasks are not being cross compiled and they use the default Scala version.<br/>
+  If a user would like to run tests with different Scala versions, he needs to change the relevant `scala-library` library version and neighbouring 3rd party scala dependencies in build.gradle
 
 ### <a name="publishing"></a>cross building with publishing  
 #### leveraging gradle maven-publish plugin
@@ -292,9 +302,8 @@ crossBuild {
 dependencies {
     compile ("com.google.protobuf:protobuf-java:$protobufVersion") 
     compile ("joda-time:joda-time:$jodaVersion")
-    // The question mark is being replaced based on the scala version being built
-    compile ("org.scalaz:scalaz_?:$scalazVersion")
-    compile ('org.scala-lang:scala-library:2.11.12')                        // 'default' building flavour scala library needed for test/check tasks in case '?' dependencies are declared
+    compile ("org.scalaz:scalaz_2.11:$scalazVersion")                       // 'default' building flavour Scala version
+    compile ('org.scala-lang:scala-library:2.11.12')
     
     compileOnly ('org.apache.spark:spark-sql_2.11:2.2.1')                   // 'default' building flavour (when calling gradle build)
     crossBuildV210CompileOnly ('org.apache.spark:spark-sql_2.10:1.6.3')     // A configuration auto generated by the plugin
@@ -303,8 +312,10 @@ dependencies {
 ```
 
 #### Notes
+> - **Backward compatibility**: dependency with question mark Scala tag e.g. `org.scalaz:scalaz_?:$scalazVersion` is being replaced based on the Scala version being built
+> - **Backward compatibility**: `scala-library` library is needed for test/check tasks in case '?' dependencies are declared
 > - If `crossBuild.scalaVersionsCatalog` is not defined, a default one will be used (might get outdated).
-> - Per build item in `builds {}` block, Scala version(s) is set either by explicitly setting `build.scalaVersions` or implicitly through `build.name`.<br/>
+> - Per build item in `builds {}` block, Scala version(s) is set either by explicitly setting a build `scalaVersions` or implicitly through a build `name`.<br/>
   See the different [build scenarios](#build_scenarios) for more details
 > - **Declaring cross building dependencies explicitly**:
   ```groovy
@@ -350,7 +361,7 @@ To apply cross building to a multi-module project use one of the following sugge
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version '0.11.0' apply false
+    id "com.github.prokod.gradle-crossbuild-scala" version '0.12.0' apply false
 }
 
 allprojects {
@@ -398,7 +409,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 - In the root project build.gradle:
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version '0.11.0' apply false
+    id "com.github.prokod.gradle-crossbuild-scala" version '0.12.0' apply false
 }
 
 allprojects {
@@ -448,6 +459,7 @@ subprojects {
 ## Supported Gradle versions
 |plugin version | Tested Gradle versions |
 |---------------|------------------------|
+|0.12.x         | 4.10.3, 5.6.4, 6.5     |
 |0.11.x         | 4.10.3, 5.6.4, 6.5     |
 |0.10.x         | 4.10.3, 5.6.4, 6.0.1   |
 |0.9.x          | 4.2, 4.10.3, 5.4.1     |
