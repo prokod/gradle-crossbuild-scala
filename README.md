@@ -5,10 +5,10 @@
 [![Gradle Plugin Portal](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/github/prokod/gradle-crossbuild/com.github.prokod.gradle-crossbuild.gradle.plugin/maven-metadata.xml.svg?colorB=007ec6&label=gradle%20plugin)](https://plugins.gradle.org/plugin/com.github.prokod.gradle-crossbuild)
 
 ## Features
-- **Multi-module projects support** Supports both simple projects and multi-module projects.<br>In multi-module projects support mixed cases where only some of the modules needs cross compiling.
-- **Powerful DSL** Plugin DSL can be written once for all sub projects using `subprojects {}` block.<br>Specific DSL definition can be afterwards added to individual sub projects.<br>It supports shorthands to avoid repetitions.<br>Operates in both eager and lazy (wrapped in `pluginManager.withPlugin {}` block) `apply` modes.
+- **Multi-module projects support** Supports both simple projects and multi-module projects.<br/>In multi-module projects support mixed cases where only some of the modules needs cross compiling.
+- **Powerful DSL** Plugin DSL can be written once for all sub projects using `subprojects {}` block.<br/>Specific DSL definition can be afterwards added to individual sub projects.<br/>It supports shorthands to avoid repetitions.<br/>Operates in both eager and lazy (wrapped in `pluginManager.withPlugin {}` block) `apply` modes.
 - **Integrates with maven-publish plugin** When used, can be leveraged to publish cross building artifacts.
-- **Implicit/Explicit scala lib dependency declaration** Supports declaring both<br>simple case implicit `compile 3rd-party-scala-lib_?` type of dependencies<br>and also more complex explicit `crossBuild212Compile 3rd-party-platform-scala-lib-x-y-z_2.12` platform type of dependencies.
+- **Implicit/Explicit scala lib dependency declaration** Supports declaring both<br/>simple case implicit `compile 3rd-party-scala-lib_2.12` type of dependencies<br/>and also finer granular explicit `crossBuildSpark24_212Compile spark-streaming-kafka-0-10_2.12` type of dependencies.
 - **Applied easily on existing projects** As the plugin maintains a strict separation between `main` source set configurations and <code>crossBuild*XYZ*</code> ones, a simple non cross build project can be easily and gradually transformed to a cross build one.
 - **Testing support**  As mentioned above strict separation of source sets, keeps `main` source set test configurations intact.
 
@@ -56,8 +56,8 @@ This is especially true for multi module projects but not just.<br/>
   > **_NOTE:_** Look under ~/.m2/repository/... to assert the end result is the one you have wished for.<br/>
         
 ### Multi-module projects and applying cross build plugin only for some
-From version **`0.11.x`** the plugin supports multi-module projects where **only** some of the modules have cross build plugin applied to.<br>
-This helps with cases where some of the modules depend on legacy plugins that do not play nicely with the cross build plugin like legacy `play` plugin for instance :)<br>
+From version **`0.11.x`** the plugin supports multi-module projects where **only** some of the modules have cross build plugin applied to.<br/>
+This helps with cases where some of the modules depend on legacy plugins that do not play nicely with the cross build plugin like legacy `play` plugin for instance :)<br/>
 Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that.
 
 ### <a name="basic_plugin_configuration"></a>cross building - basic plugin configuration
@@ -237,7 +237,7 @@ The transformation from Gradle's own Configurations to Maven's Scopes is done us
 Where `GCC` is Gradle's CompileClasspath dependency set; `GRC`is Gradle's RuntimeClasspath dependency set
 
 #### overriding plugin's internal pom.withXml
-The plugin as seen above handles pom generation in an opinionated way. If one wants to override this behavior, he can do that by providing his own `pom.withXml` handler for the relevant publications.<br>
+The plugin as seen above handles pom generation in an opinionated way. If one wants to override this behavior, he can do that by providing his own `pom.withXml` handler for the relevant publications.<br/>
 When the plugin detects custom `pom.withXml` handler, the internal handler is skipped altogether.
 
 An example for a custom `pom.withXml` handler:
@@ -272,7 +272,7 @@ In this example, we override default behaviour, dropping provided scope dependen
 > - Behind the scenes Configurations <code>crossBuild*XYZ*MavenCompileScope</code>, <code>crossBuild*XYZ*MavenRuntimeScope</code> are being populated from corresponding <code>crossBuild*XYZ*CompileClasspath</code>, <code>crossBuild*XYZ*RuntimeClasspath</code> and afterwards being used within `pom.withXml {}` block.<br/>
     It follows a similar line of thought as `conf2ScopeMappings.addMapping()` in Gradle's maven plugin.<br/>
     Beware, Behind the scenes the jars and the publications are decoupled, the logical linkage between a cross built Jar and the publication is made by giving the publication item a name of the following convention <code>crossBuild*XYZ*(MavenPublication)</code> where XYZ is the build name from `builds {}` block following the pattern examples in [table](#build_scenarios) under **SourceSet/s** column.
-> - For Gradle 5.x beware that `publishing {}` block does not support deferred configuration anymore and in that case `artifact crossBuild211Jar` should be wrapped in `afterEvaluate {}` block<br>
+> - For Gradle 5.x beware that `publishing {}` block does not support deferred configuration anymore and in that case `artifact crossBuild211Jar` should be wrapped in `afterEvaluate {}` block<br/>
     Please see Gradle documentation [here](https://docs.gradle.org/current/userguide/publishing_maven.html#publishing_maven:deferred_configuration)
 
 ### <a name="plugin_configuration_options"></a>cross building - configuration options
