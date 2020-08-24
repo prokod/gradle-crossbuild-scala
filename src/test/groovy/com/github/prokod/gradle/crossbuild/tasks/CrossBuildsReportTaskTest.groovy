@@ -25,7 +25,7 @@ plugins {
 }
 
 crossBuild {
-    scalaVersionsCatalog = ['2.13':'2.13.0']
+    scalaVersionsCatalog = ['2.12':'2.12.8', '2.13':'2.13.0']
     builds {
         v210
         v211 {
