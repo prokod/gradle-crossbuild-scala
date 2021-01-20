@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.DependencySet
 
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Crossbuild Configuration resolution strategy configurer
@@ -126,7 +125,6 @@ class ResolutionStrategyConfigurer {
     private void strategyForCrossBuildConfiguration(DependencyResolveDetails details,
                                                     String supposedScalaVersion,
                                                     SourceSetInsightsView insightsView) {
-        def project = sourceSetInsights.project
 
         def crossBuildConfiguration = insightsView.configurations.crossBuild
         def crossBuildConfigurationName = crossBuildConfiguration.name
