@@ -17,7 +17,7 @@
       "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
       "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
       "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-      "scalaz-core_2.11@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+      "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
       "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
       "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
       "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -49,7 +49,7 @@
       "skuber_2.11-2.5.0.jar",
       "play-json_2.11-2.7.4.jar",
       "scala-reflect-2.11.12.jar",
-      "scalaz-core_2.11-7.2.30.jar",
+      "scalaz-core_2.11-@_scalaz_v_@.jar",
       "akka-http_2.11-10.1.11.jar",
       "akka-stream_2.11-2.5.29.jar",
       "akka-http-core_2.11-10.1.11.jar",
@@ -82,7 +82,7 @@
       "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
       "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
       "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-      "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+      "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@"
     ]
   }
 },
@@ -127,7 +127,7 @@
         "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
         "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
         "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scalaz-core_2.11@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
         "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
         "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
         "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -160,7 +160,7 @@
         "skuber_2.11-2.5.0.jar",
         "play-json_2.11-2.7.4.jar",
         "scala-reflect-2.11.12.jar",
-        "scalaz-core_2.11-7.2.30.jar",
+        "scalaz-core_2.11-@_scalaz_v_@.jar",
         "akka-http_2.11-10.1.11.jar",
         "akka-stream_2.11-2.5.29.jar",
         "akka-http-core_2.11-10.1.11.jar",
@@ -194,7 +194,7 @@
         "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
         "io.skuber:skuber_2.11:2.5.0;@defaultOrCompile@",
         "org.scala-lang:scala-reflect:2.11.12;@defaultOrCompile@",
-        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrCompile@",
+        "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrCompile@",
         "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark233_211Producer"
       ]
     }
@@ -219,7 +219,7 @@
         "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
         "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
         "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scalaz-core_2.11@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
         "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
         "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
         "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -252,7 +252,7 @@
         "skuber_2.11-2.5.0.jar",
         "play-json_2.11-2.7.4.jar",
         "scala-reflect-2.11.12.jar",
-        "scalaz-core_2.11-7.2.30.jar",
+        "scalaz-core_2.11-@_scalaz_v_@.jar",
         "akka-http_2.11-10.1.11.jar",
         "akka-stream_2.11-2.5.29.jar",
         "akka-http-core_2.11-10.1.11.jar",
@@ -286,7 +286,7 @@
         "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
         "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
         "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@",
+        "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@",
         "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark233_211Producer"
       ]
     }
@@ -310,7 +310,7 @@
         "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
         "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
         "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-        "scalaz-core_2.12@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+        "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
         "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
         "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
         "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -321,7 +321,7 @@
         "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
         "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
         "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-        "scala-library@_2_12_10_@.jar (org.scala-lang:scala-library:2.12.10)",
+        "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
         "lib3.jar (project :lib3)",
         "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
         "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
@@ -342,7 +342,7 @@
         "skuber_2.12-2.5.0.jar",
         "play-json_2.12-2.7.4.jar",
         "scala-reflect-2.12.8.jar",
-        "scalaz-core_2.12-7.2.30.jar",
+        "scalaz-core_2.12-@_scalaz_v_@.jar",
         "akka-http_2.12-10.1.11.jar",
         "akka-stream_2.12-2.5.29.jar",
         "akka-http-core_2.12-10.1.11.jar",
@@ -353,7 +353,7 @@
         "akka-parsing_2.12-10.1.11.jar",
         "scala-java8-compat_2.12-0.8.0.jar",
         "scala-parser-combinators_2.12-1.1.2.jar",
-        "scala-library-2.12.10.jar",
+        "scala-library-@_2_12_@.jar",
         "lib3-1.0-SNAPSHOT.jar",
         "commons-math3-3.6.1.jar",
         "snakeyaml-1.25.jar",
@@ -374,8 +374,8 @@
         "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
         "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
         "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+        "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
+        "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
       ]
     }
   },
@@ -420,7 +420,7 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -431,7 +431,7 @@
           "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
           "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
           "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-          "scala-library@_2_12_10_@.jar (org.scala-lang:scala-library:2.12.10)",
+          "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
           "lib3.jar (project :lib3)",
           "lib_2.12.jar (project :lib)",
           "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
@@ -453,7 +453,7 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-7.2.30.jar",
+          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -464,7 +464,7 @@
           "akka-parsing_2.12-10.1.11.jar",
           "scala-java8-compat_2.12-0.8.0.jar",
           "scala-parser-combinators_2.12-1.1.2.jar",
-          "scala-library-2.12.10.jar",
+          "scala-library-@_2_12_@.jar",
           "lib3-1.0-SNAPSHOT.jar",
           "lib_2.12-1.0-SNAPSHOT.jar",
           "commons-math3-3.6.1.jar",
@@ -486,9 +486,9 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrCompile@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrCompile@",
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrCompile@",
+          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrCompile@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark242_212Producer",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrCompile@"
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrCompile@"
         ]
       }
     },
@@ -512,7 +512,7 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -523,7 +523,7 @@
           "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
           "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
           "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-          "scala-library@_2_12_10_@.jar (org.scala-lang:scala-library:2.12.10)",
+          "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
           "lib3.jar (project :lib3)",
           "lib_2.12.jar (project :lib)",
           "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
@@ -545,7 +545,7 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-7.2.30.jar",
+          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -556,7 +556,7 @@
           "akka-parsing_2.12-10.1.11.jar",
           "scala-java8-compat_2.12-0.8.0.jar",
           "scala-parser-combinators_2.12-1.1.2.jar",
-          "scala-library-2.12.10.jar",
+          "scala-library-@_2_12_@.jar",
           "lib3-1.0-SNAPSHOT.jar",
           "lib_2.12-1.0-SNAPSHOT.jar",
           "commons-math3-3.6.1.jar",
@@ -578,9 +578,9 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
+          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark242_212Producer",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
         ]
       }
     }],
@@ -603,7 +603,7 @@
         "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
         "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
         "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scalaz-core_2.11@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
         "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
         "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
         "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -635,7 +635,7 @@
         "skuber_2.11-2.5.0.jar",
         "play-json_2.11-2.7.4.jar",
         "scala-reflect-2.11.12.jar",
-        "scalaz-core_2.11-7.2.30.jar",
+        "scalaz-core_2.11-@_scalaz_v_@.jar",
         "akka-http_2.11-10.1.11.jar",
         "akka-stream_2.11-2.5.29.jar",
         "akka-http-core_2.11-10.1.11.jar",
@@ -668,7 +668,7 @@
         "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
         "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
         "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+        "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@"
       ]
     }
   },
@@ -713,7 +713,7 @@
           "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
           "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
           "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scalaz-core_2.11@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+          "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
           "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
           "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
           "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -746,7 +746,7 @@
           "skuber_2.11-2.5.0.jar",
           "play-json_2.11-2.7.4.jar",
           "scala-reflect-2.11.12.jar",
-          "scalaz-core_2.11-7.2.30.jar",
+          "scalaz-core_2.11-@_scalaz_v_@.jar",
           "akka-http_2.11-10.1.11.jar",
           "akka-stream_2.11-2.5.29.jar",
           "akka-http-core_2.11-10.1.11.jar",
@@ -780,7 +780,7 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
           "io.skuber:skuber_2.11:2.5.0;@defaultOrCompile@",
           "org.scala-lang:scala-reflect:2.11.12;@defaultOrCompile@",
-          "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrCompile@",
+          "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrCompile@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
         ]
       }
@@ -805,7 +805,7 @@
           "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
           "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
           "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scalaz-core_2.11@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+          "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
           "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
           "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
           "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -838,7 +838,7 @@
           "skuber_2.11-2.5.0.jar",
           "play-json_2.11-2.7.4.jar",
           "scala-reflect-2.11.12.jar",
-          "scalaz-core_2.11-7.2.30.jar",
+          "scalaz-core_2.11-@_scalaz_v_@.jar",
           "akka-http_2.11-10.1.11.jar",
           "akka-stream_2.11-2.5.29.jar",
           "akka-http-core_2.11-10.1.11.jar",
@@ -872,7 +872,7 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
           "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
           "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-          "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@",
+          "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
         ]
       }
@@ -896,7 +896,7 @@
         "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
         "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
         "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-        "scalaz-core_2.12@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+        "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
         "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
         "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
         "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -907,7 +907,7 @@
         "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
         "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
         "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-        "scala-library@_2_12_10_@.jar (org.scala-lang:scala-library:2.12.10)",
+        "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
         "lib3.jar (project :lib3)",
         "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
         "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
@@ -928,7 +928,7 @@
         "skuber_2.12-2.5.0.jar",
         "play-json_2.12-2.7.4.jar",
         "scala-reflect-2.12.8.jar",
-        "scalaz-core_2.12-7.2.30.jar",
+        "scalaz-core_2.12-@_scalaz_v_@.jar",
         "akka-http_2.12-10.1.11.jar",
         "akka-stream_2.12-2.5.29.jar",
         "akka-http-core_2.12-10.1.11.jar",
@@ -939,7 +939,7 @@
         "akka-parsing_2.12-10.1.11.jar",
         "scala-java8-compat_2.12-0.8.0.jar",
         "scala-parser-combinators_2.12-1.1.2.jar",
-        "scala-library-2.12.10.jar",
+        "scala-library-@_2_12_@.jar",
         "lib3-1.0-SNAPSHOT.jar",
         "commons-math3-3.6.1.jar",
         "snakeyaml-1.25.jar",
@@ -960,8 +960,8 @@
         "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
         "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
         "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+        "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
+        "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
       ]
     }
   },
@@ -1006,7 +1006,7 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -1017,7 +1017,7 @@
           "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
           "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
           "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-          "scala-library@_2_12_10_@.jar (org.scala-lang:scala-library:2.12.10)",
+          "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
           "lib3.jar (project :lib3)",
           "lib-2-4-3_2.12.jar (project :lib)",
           "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
@@ -1039,7 +1039,7 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-7.2.30.jar",
+          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -1050,7 +1050,7 @@
           "akka-parsing_2.12-10.1.11.jar",
           "scala-java8-compat_2.12-0.8.0.jar",
           "scala-parser-combinators_2.12-1.1.2.jar",
-          "scala-library-2.12.10.jar",
+          "scala-library-@_2_12_@.jar",
           "lib3-1.0-SNAPSHOT.jar",
           "lib-2-4-3_2.12-1.0-SNAPSHOT.jar",
           "commons-math3-3.6.1.jar",
@@ -1072,9 +1072,9 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrCompile@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrCompile@",
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrCompile@",
+          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrCompile@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_212Producer",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrCompile@"
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrCompile@"
         ]
       }
     },
@@ -1098,7 +1098,7 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
+          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -1109,7 +1109,7 @@
           "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
           "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
           "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-          "scala-library@_2_12_10_@.jar (org.scala-lang:scala-library:2.12.10)",
+          "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
           "lib3.jar (project :lib3)",
           "lib-2-4-3_2.12.jar (project :lib)",
           "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
@@ -1131,7 +1131,7 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-7.2.30.jar",
+          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -1142,7 +1142,7 @@
           "akka-parsing_2.12-10.1.11.jar",
           "scala-java8-compat_2.12-0.8.0.jar",
           "scala-parser-combinators_2.12-1.1.2.jar",
-          "scala-library-2.12.10.jar",
+          "scala-library-@_2_12_@.jar",
           "lib3-1.0-SNAPSHOT.jar",
           "lib-2-4-3_2.12-1.0-SNAPSHOT.jar",
           "commons-math3-3.6.1.jar",
@@ -1164,9 +1164,9 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
+          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_212Producer",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
         ]
       }
     }]]

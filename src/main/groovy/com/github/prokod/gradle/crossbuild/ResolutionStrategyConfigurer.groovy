@@ -16,7 +16,7 @@
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
-import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
+//import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
@@ -85,20 +85,15 @@ class ResolutionStrategyConfigurer {
             }
             def di = new DependencyInsights(sourceSetInsights)
 
-
             def projectDependencies =
                 di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([configs.main.name] as Set, view)
             def unionOfAllDependencies = allDependencies + projectDependencies
             def unionOfAllDependenciesAsDisplayNameSet =
                 unionOfAllDependencies.collect { dep -> "${dep.group}:${dep.name}:${dep.version}" }.toSet()
 
-            project.configurations.each { Configuration c ->
-                    if (c.name.startsWith("crossBuild")){
-                        c.resolutionStrategy.eachDependency { details ->
-                            resolutionStrategyHandler(c, details, unionOfAllDependenciesAsDisplayNameSet, view)
-                    }
-
-                }
+            def targetConfiguration = project.configurations[crossBuildConfigurationName]
+            targetConfiguration.resolutionStrategy.eachDependency { details ->
+                resolutionStrategyHandler(targetConfiguration, details, unionOfAllDependenciesAsDisplayNameSet, view)
             }
         }
     }
