@@ -16,7 +16,6 @@
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
-//import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
