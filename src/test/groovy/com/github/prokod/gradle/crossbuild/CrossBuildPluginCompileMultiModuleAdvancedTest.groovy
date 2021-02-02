@@ -2636,7 +2636,7 @@ dependencies {
 
         when:
         Assume.assumeTrue(testMavenCentralAccess())
-        def result = GradleRunner.create().forwardOutput()
+        def result = GradleRunner.create()//.forwardOutput()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()

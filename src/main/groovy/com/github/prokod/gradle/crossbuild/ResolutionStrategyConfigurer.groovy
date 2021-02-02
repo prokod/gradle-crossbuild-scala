@@ -22,10 +22,10 @@ import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsightsView
 import com.github.prokod.gradle.crossbuild.utils.DependencySetType
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.DependencySet
-
 
 /**
  * Crossbuild Configuration resolution strategy configurer
@@ -34,7 +34,7 @@ class ResolutionStrategyConfigurer {
     private final SourceSetInsights sourceSetInsights
     private final ScalaVersions scalaVersions
     private final ScalaVersionInsights scalaVersionInsights
-    def project = sourceSetInsights.project
+    private final Project project
 
     ResolutionStrategyConfigurer(SourceSetInsights sourceSetInsights,
                                  ScalaVersions scalaVersions,
@@ -42,6 +42,7 @@ class ResolutionStrategyConfigurer {
         this.sourceSetInsights = sourceSetInsights
         this.scalaVersions = scalaVersions
         this.scalaVersionInsights = scalaVersionInsights
+        this.project = sourceSetInsights.project
     }
 
     ResolutionStrategyConfigurer(SourceSetInsights sourceSetInsights,
@@ -60,8 +61,6 @@ class ResolutionStrategyConfigurer {
      *                       - A {@link Configuration} to link as {@code extendedFrom}
      */
     void applyForLinkWith(ViewType... views) {
-
-
         views.findAll { view ->
             def insightsView = new SourceSetInsightsView(sourceSetInsights, view)
             def names = insightsView.names
@@ -74,10 +73,10 @@ class ResolutionStrategyConfigurer {
             //avoid big string creation
             if (project.logger.infoEnabled) {
                 project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle: 'afterEvaluate',
-                    configuration: crossBuildConfigurationName,
-                    parentConfiguration: names.main,
-                    msg: "Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
+                    lifecycle:'afterEvaluate',
+                    configuration:crossBuildConfigurationName,
+                    parentConfiguration:names.main,
+                    msg:"Inherited dependendencies to consider while resolving ${crossBuildConfigurationName} " +
                         'configuration dependencies: [' +
                         "${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
                 ))
@@ -139,9 +138,9 @@ class ResolutionStrategyConfigurer {
                 tryCorrectingTargetDependencyName(details, scalaVersionInsights.artifactInlinedVersion, insightsView)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle: 'afterEvaluate',
-                    configuration: crossBuildConfigurationName,
-                    msg: 'Dependency Scan ' +
+                    lifecycle:'afterEvaluate',
+                    configuration:crossBuildConfigurationName,
+                    msg:'Dependency Scan ' +
                         "| Found polluting dependency ${requested.name}:${requested.version}. Replacing all " +
                         "together with [${details.target.name}:${details.target.version}]"
                 ))
@@ -209,9 +208,11 @@ class ResolutionStrategyConfigurer {
      *
      * Solves, usually, the following plugin DSL scenario {@see CrossBuildPluginCompileMultiModuleAdvancedTest}:
      * <pre>
-     *     dependencies {*         compile 'org.scalaz:scalaz-core_2.12:7.2.28'
+     *     dependencies {
+     *         compile 'org.scalaz:scalaz-core_2.12:7.2.28'
      *         crossBuildSpark230_211Compile 'org.scalaz:scalaz-core_2.11:7.2.28'
-     *}* </pre>
+     *     }
+     * </pre>
      *
      * @param offenderDetails {@link DependencyResolveDetails} from resolution strategy
      * @param targetScalaVersion Scala version to correct to.
@@ -254,7 +255,8 @@ class ResolutionStrategyConfigurer {
 
             // Assuming group is staying the same ...
             offenderDetails.useTarget requested.group + ':' + correctDependency.name + ':' + correctDependency.version
-        } else {
+        }
+        else {
             def preRegex = scalaVersions.mkRefTargetVersions().collect { '_' + it }.join('|')
             def regex = "($preRegex)"
             offenderDetails.useTarget requested.group + ':' +
