@@ -2636,7 +2636,7 @@ dependencies {
 
         when:
         Assume.assumeTrue(testMavenCentralAccess())
-        def result = GradleRunner.create()
+        def result = GradleRunner.create()//.forwardOutput()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.root)
                 .withPluginClasspath()
@@ -2677,10 +2677,15 @@ dependencies {
         def expectedLibJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_12_8_: gradleVersion.startsWith('6') ? '-2.12.10' : '',
+                _2_12_cond_: gradleVersion.startsWith('6') ? '2.12.13' : '',
+                _2_12_: '2.12.13',
                 _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
                 _2_10_7_: gradleVersion.startsWith('6') ? '-2.10.7' : '',
-                _7_2_30_: gradleVersion.startsWith('6') ? '-7.2.30' : '',
+                _7_2_plus_for_2_10_cond_: gradleVersion.startsWith('6') ? '7.2.30' : '',
+                _7_2_plus_for_2_10_: '7.2.30',
+                _7_2_plus_cond_: gradleVersion.startsWith('6') ? '7.2.31' : '',
+                _7_2_plus_: '7.2.31',
+                dashOrEmpty: gradleVersion.startsWith('6') ? '-' : '',
                 '/lib_builds_resolved_configurations-04.json')
         def libResolvedConfigurationReportFile = findFile("*/lib_builds_resolved_configurations.json")
 
@@ -2697,11 +2702,13 @@ dependencies {
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
                 _2_12_8_: gradleVersion.startsWith('6') ? '-2.12.8' : '',
-                _2_12_10_: gradleVersion.startsWith('6') ? '-2.12.10' : '',
+                _2_12_cond_: gradleVersion.startsWith('6') ? '-2.12.13' : '',
+                _2_12_: '2.12.13',
                 _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
                 _skuber_v_: gradleVersion.startsWith('6') ? '-2.5.0' : '',
                 _play_v_: gradleVersion.startsWith('6') ? '-2.7.4' : '',
-                _scalaz_v_: gradleVersion.startsWith('6') ? '-7.2.30' : '',
+                _scalaz_v_cond_: gradleVersion.startsWith('6') ? '-7.2.31' : '',
+                _scalaz_v_: '7.2.31',
                 _akka_http_v_: gradleVersion.startsWith('6') ? '-10.1.11' : '',
                 _akka_v_: gradleVersion.startsWith('6') ? '-2.5.29' : '',
                 _ssl_config_v_: gradleVersion.startsWith('6') ? '-0.3.8' : '',

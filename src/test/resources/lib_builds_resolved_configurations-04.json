@@ -11,16 +11,16 @@
   "resolvedConfiguration": {
     "hasError": false,
     "resolvedArtifacts": [
-      "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+      "scalaz-core_2.11@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.11:@_7_2_plus_@)",
       "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
     ],
     "files": [
-      "scalaz-core_2.11-7.2.30.jar",
+      "scalaz-core_2.11-@_7_2_plus_@.jar",
       "scala-library-2.11.12.jar"
     ],
     "firstLevelModuleDependencies": [
       "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
-      "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+      "org.scalaz:scalaz-core_2.11:@_7_2_plus_@;@defaultOrRuntime@"
     ]
   }
 },
@@ -54,16 +54,16 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scalaz-core_2.11@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.11:@_7_2_plus_@)",
         "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
       ],
       "files": [
-        "scalaz-core_2.11-7.2.30.jar",
+        "scalaz-core_2.11-@_7_2_plus_@.jar",
         "scala-library-2.11.12.jar"
       ],
       "firstLevelModuleDependencies": [
         "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
-        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrCompile@"
+        "org.scalaz:scalaz-core_2.11:@_7_2_plus_@;@defaultOrCompile@"
       ]
     }
   },
@@ -80,16 +80,16 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scalaz-core_2.11@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.11:@_7_2_plus_@)",
         "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
       ],
       "files": [
-        "scalaz-core_2.11-7.2.30.jar",
+        "scalaz-core_2.11-@_7_2_plus_@.jar",
         "scala-library-2.11.12.jar"
       ],
       "firstLevelModuleDependencies": [
         "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+        "org.scalaz:scalaz-core_2.11:@_7_2_plus_@;@defaultOrRuntime@"
       ]
     }
   }],
@@ -106,16 +106,16 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
-        "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+        "scalaz-core_2.12@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.12:@_7_2_plus_@)",
+        "scala-library@dashOrEmpty@@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)"
       ],
       "files": [
-        "scalaz-core_2.12-7.2.30.jar",
-        "scala-library-2.12.10.jar"
+        "scalaz-core_2.12-@_7_2_plus_@.jar",
+        "scala-library-@_2_12_@.jar"
       ],
       "firstLevelModuleDependencies": [
-        "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+        "org.scalaz:scalaz-core_2.12:@_7_2_plus_@;@defaultOrRuntime@",
+        "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
       ]
     }
   },
@@ -149,16 +149,16 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
-          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+          "scalaz-core_2.12@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.12:@_7_2_plus_@)",
+          "scala-library@dashOrEmpty@@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)"
         ],
         "files": [
-          "scalaz-core_2.12-7.2.30.jar",
-          "scala-library-2.12.10.jar"
+          "scalaz-core_2.12-@_7_2_plus_@.jar",
+          "scala-library-@_2_12_@.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrCompile@",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrCompile@"
+          "org.scalaz:scalaz-core_2.12:@_7_2_plus_@;@defaultOrCompile@",
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrCompile@"
         ]
       }
     },
@@ -175,16 +175,16 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
-          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+          "scalaz-core_2.12@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.12:@_7_2_plus_@)",
+          "scala-library@dashOrEmpty@@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)"
         ],
         "files": [
-          "scalaz-core_2.12-7.2.30.jar",
-          "scala-library-2.12.10.jar"
+          "scalaz-core_2.12-@_7_2_plus_@.jar",
+          "scala-library-@_2_12_@.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+          "org.scalaz:scalaz-core_2.12:@_7_2_plus_@;@defaultOrRuntime@",
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
         ]
       }
     }],
@@ -201,16 +201,16 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+        "scalaz-core_2.11@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.11:@_7_2_plus_@)",
         "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
       ],
       "files": [
-        "scalaz-core_2.11-7.2.30.jar",
+        "scalaz-core_2.11-@_7_2_plus_@.jar",
         "scala-library-2.11.12.jar"
       ],
       "firstLevelModuleDependencies": [
         "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+        "org.scalaz:scalaz-core_2.11:@_7_2_plus_@;@defaultOrRuntime@"
       ]
     }
   },
@@ -244,16 +244,16 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+          "scalaz-core_2.11@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.11:@_7_2_plus_@)",
           "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
         ],
         "files": [
-          "scalaz-core_2.11-7.2.30.jar",
+          "scalaz-core_2.11-@_7_2_plus_@.jar",
           "scala-library-2.11.12.jar"
         ],
         "firstLevelModuleDependencies": [
           "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
-          "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrCompile@"
+          "org.scalaz:scalaz-core_2.11:@_7_2_plus_@;@defaultOrCompile@"
         ]
       }
     },
@@ -270,16 +270,16 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.11@_7_2_30_@.jar (org.scalaz:scalaz-core_2.11:7.2.30)",
+          "scalaz-core_2.11@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.11:@_7_2_plus_@)",
           "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
         ],
         "files": [
-          "scalaz-core_2.11-7.2.30.jar",
+          "scalaz-core_2.11-@_7_2_plus_@.jar",
           "scala-library-2.11.12.jar"
         ],
         "firstLevelModuleDependencies": [
           "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
-          "org.scalaz:scalaz-core_2.11:7.2.30;@defaultOrRuntime@"
+          "org.scalaz:scalaz-core_2.11:@_7_2_plus_@;@defaultOrRuntime@"
         ]
       }
     }],
@@ -296,16 +296,16 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
-        "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+        "scalaz-core_2.12@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.12:@_7_2_plus_@)",
+        "scala-library@dashOrEmpty@@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)"
       ],
       "files": [
-        "scalaz-core_2.12-7.2.30.jar",
-        "scala-library-2.12.10.jar"
+        "scalaz-core_2.12-@_7_2_plus_@.jar",
+        "scala-library-@_2_12_@.jar"
       ],
       "firstLevelModuleDependencies": [
-        "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+        "org.scalaz:scalaz-core_2.12:@_7_2_plus_@;@defaultOrRuntime@",
+        "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
       ]
     }
   },
@@ -339,16 +339,16 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
-          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+          "scalaz-core_2.12@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.12:@_7_2_plus_@)",
+          "scala-library@dashOrEmpty@@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)"
         ],
         "files": [
-          "scalaz-core_2.12-7.2.30.jar",
-          "scala-library-2.12.10.jar"
+          "scalaz-core_2.12-@_7_2_plus_@.jar",
+          "scala-library-@_2_12_@.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrCompile@",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrCompile@"
+          "org.scalaz:scalaz-core_2.12:@_7_2_plus_@;@defaultOrCompile@",
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrCompile@"
         ]
       }
     },
@@ -365,16 +365,16 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.12@_7_2_30_@.jar (org.scalaz:scalaz-core_2.12:7.2.30)",
-          "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.10)"
+          "scalaz-core_2.12@dashOrEmpty@@_7_2_plus_cond_@.jar (org.scalaz:scalaz-core_2.12:@_7_2_plus_@)",
+          "scala-library@dashOrEmpty@@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)"
         ],
         "files": [
-          "scalaz-core_2.12-7.2.30.jar",
-          "scala-library-2.12.10.jar"
+          "scalaz-core_2.12-@_7_2_plus_@.jar",
+          "scala-library-@_2_12_@.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scalaz:scalaz-core_2.12:7.2.30;@defaultOrRuntime@",
-          "org.scala-lang:scala-library:2.12.10;@defaultOrRuntime@"
+          "org.scalaz:scalaz-core_2.12:@_7_2_plus_@;@defaultOrRuntime@",
+          "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
         ]
       }
     }],
@@ -391,15 +391,15 @@
     "resolvedConfiguration": {
       "hasError": false,
       "resolvedArtifacts": [
-        "scalaz-core_2.10@_7_2_30_@.jar (org.scalaz:scalaz-core_2.10:7.2.30)",
+        "scalaz-core_2.10@dashOrEmpty@@_7_2_plus_for_2_10_cond_@.jar (org.scalaz:scalaz-core_2.10:@_7_2_plus_for_2_10_@)",
         "scala-library@_2_10_7_@.jar (org.scala-lang:scala-library:2.10.7)"
       ],
       "files": [
-        "scalaz-core_2.10-7.2.30.jar",
+        "scalaz-core_2.10-@_7_2_plus_for_2_10_@.jar",
         "scala-library-2.10.7.jar"
       ],
       "firstLevelModuleDependencies": [
-        "org.scalaz:scalaz-core_2.10:7.2.30;@defaultOrRuntime@",
+        "org.scalaz:scalaz-core_2.10:@_7_2_plus_for_2_10_@;@defaultOrRuntime@",
         "org.scala-lang:scala-library:2.10.7;@defaultOrRuntime@"
       ]
     }
@@ -434,15 +434,15 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.10@_7_2_30_@.jar (org.scalaz:scalaz-core_2.10:7.2.30)",
+          "scalaz-core_2.10@dashOrEmpty@@_7_2_plus_for_2_10_cond_@.jar (org.scalaz:scalaz-core_2.10:@_7_2_plus_for_2_10_@)",
           "scala-library@_2_10_7_@.jar (org.scala-lang:scala-library:2.10.7)"
         ],
         "files": [
-          "scalaz-core_2.10-7.2.30.jar",
+          "scalaz-core_2.10-@_7_2_plus_for_2_10_@.jar",
           "scala-library-2.10.7.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scalaz:scalaz-core_2.10:7.2.30;@defaultOrCompile@",
+          "org.scalaz:scalaz-core_2.10:@_7_2_plus_for_2_10_@;@defaultOrCompile@",
           "org.scala-lang:scala-library:2.10.7;@defaultOrCompile@"
         ]
       }
@@ -460,15 +460,15 @@
       "resolvedConfiguration": {
         "hasError": false,
         "resolvedArtifacts": [
-          "scalaz-core_2.10@_7_2_30_@.jar (org.scalaz:scalaz-core_2.10:7.2.30)",
+          "scalaz-core_2.10@dashOrEmpty@@_7_2_plus_for_2_10_cond_@.jar (org.scalaz:scalaz-core_2.10:@_7_2_plus_for_2_10_@)",
           "scala-library@_2_10_7_@.jar (org.scala-lang:scala-library:2.10.7)"
         ],
         "files": [
-          "scalaz-core_2.10-7.2.30.jar",
+          "scalaz-core_2.10-@_7_2_plus_for_2_10_@.jar",
           "scala-library-2.10.7.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scalaz:scalaz-core_2.10:7.2.30;@defaultOrRuntime@",
+          "org.scalaz:scalaz-core_2.10:@_7_2_plus_for_2_10_@;@defaultOrRuntime@",
           "org.scala-lang:scala-library:2.10.7;@defaultOrRuntime@"
         ]
       }
