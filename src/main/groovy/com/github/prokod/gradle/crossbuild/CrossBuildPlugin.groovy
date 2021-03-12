@@ -238,13 +238,13 @@ class CrossBuildPlugin implements Plugin<Project> {
         def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByName(rb.name)
 
         // Assign main java source-set to cross-build java source-set
-        sourceSet.java.srcDirs = main.java.getSrcDirs()
+        sourceSet.java.source(main.java)
 
         // Assign main scala source-set to cross-build scala source-set
-        sourceSet.scala.srcDirs = main.scala.getSrcDirs()
+        sourceSet.scala.source(main.scala)
 
         // Assign main resources source-set to cross-build resources source-set
-        sourceSet.resources.srcDirs = main.resources.getSrcDirs()
+        sourceSet.resources.source(main.resources)
 
         sourceSet
     }
