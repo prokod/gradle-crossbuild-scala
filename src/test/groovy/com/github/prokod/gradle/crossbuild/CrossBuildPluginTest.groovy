@@ -666,4 +666,50 @@ crossBuild {
         where:
         gradleVersion << ['4.10.3', '5.6.4', '6.5']
     }
+
+    @Unroll
+    def "[#gradleVersion] the applied crossbuild sourcesets should follow the scala an java sourcesets"() {
+        given:
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+}
+
+crossBuild {
+ 
+    builds {
+        v211
+    }
+}
+afterEvaluate{
+    project.sourceSets.main.scala.srcDirs += 'extra-scala-source'
+    project.sourceSets.main.java.srcDirs += 'extra-java-source'
+    project.sourceSets.main.resources.srcDirs += 'extra-resource-source'
+}
+task printSourceSet{
+   doLast{
+      println(sourceSets.getByName('crossBuildV211').scala.getSrcDirs())
+      println(sourceSets.getByName('crossBuildV211').java.getSrcDirs())
+      println(sourceSets.getByName('crossBuildV211').resources.getSrcDirs())
+   }
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(dir.root)
+            .withPluginClasspath()
+            .withDebug(true)
+            .withArguments('printSourceSet', '--info')
+            .build()
+
+        then:
+        result.task(":printSourceSet").outcome == SUCCESS
+        result.output.contains('extra-scala-source')
+        result.output.contains('extra-java-source')
+        result.output.contains('extra-resource-source')
+        where:
+        gradleVersion << ['4.10.3', '5.6.4', '6.5']
+    }
 }
