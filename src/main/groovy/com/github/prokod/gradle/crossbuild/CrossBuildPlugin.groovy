@@ -88,8 +88,8 @@ class CrossBuildPlugin implements Plugin<Project> {
             //todo maybe not needed anymore (might not be as helpful as expected)
             // Mainly here to help with creation of the correct dependencies for pom creation
             // see ResolutionStrategyConfigurer::assemble3rdPartyDependencies
-            extension.project.dependencies.add(sourceSet.compileConfigurationName,
-                    "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
+//            extension.project.dependencies.add(sourceSet.compileConfigurationName,
+//                    "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
         }
     }
 
@@ -221,12 +221,10 @@ class CrossBuildPlugin implements Plugin<Project> {
                     rb.scalaVersionInsights)
 
             configurer.applyForLinkWith(
-                    ViewType.COMPILE,
                     ViewType.IMPLEMENTATION,
                     ViewType.COMPILE_CLASSPATH,
                     ViewType.RUNTIME_CLASSPATH,
                     ViewType.COMPILE_ONLY,
-                    ViewType.RUNTIME,
                     ViewType.RUNTIME_ONLY)
         }
     }
@@ -289,8 +287,8 @@ class CrossBuildPlugin implements Plugin<Project> {
             di.addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_ONLY, sv)
 
             // for 'compile' configuration
-            di.addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE)
-            di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.COMPILE, ViewType.IMPLEMENTATION)
+//            di.addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE)
+//            di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.COMPILE, ViewType.IMPLEMENTATION)
             di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.IMPLEMENTATION, ViewType.IMPLEMENTATION)
         }
     }

@@ -17,18 +17,14 @@ import org.gradle.api.plugins.JavaPlugin
  */
 @SuppressWarnings(['ThisReferenceEscapesConstructor', 'PrivateFieldCouldBeFinal', 'LineLength', 'DuplicateListLiteral'])
 enum ViewType {
-    COMPILE(JavaPlugin.COMPILE_CONFIGURATION_NAME, ['canBeConsumed', 'canBeResolved']),
     COMPILE_ONLY(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, ['canBeConsumed']),
     COMPILE_CLASSPATH(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME, ['canBeResolved']),
-    RUNTIME(JavaPlugin.RUNTIME_CONFIGURATION_NAME, ['canBeConsumed', 'canBeResolved']),
     RUNTIME_ONLY(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME, ['canBeConsumed']),
     RUNTIME_CLASSPATH(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME, ['canBeResolved']),
     IMPLEMENTATION(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, ['canBeConsumed']),
-    TEST_COMPILE(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME, ['canBeConsumed', 'canBeResolved', 'test']),
     TEST_COMPILE_ONLY(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME, ['canBeConsumed', 'test']),
     TEST_COMPILE_CLASSPATH(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, ['canBeResolved', 'test']),
     TEST_IMPLEMENTATION(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, ['canBeConsumed', 'test']),
-    TEST_RUNTIME(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME, ['canBeConsumed', 'canBeResolved', 'test']),
     TEST_RUNTIME_ONLY(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME, ['canBeConsumed', 'test']),
     TEST_RUNTIME_CLASSPATH(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME, ['canBeResolved', 'test']),
     DEFAULT('default', ['canBeConsumed', 'canBeResolved'])

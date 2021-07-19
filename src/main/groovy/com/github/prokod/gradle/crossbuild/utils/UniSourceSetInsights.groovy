@@ -25,16 +25,12 @@ class UniSourceSetInsights {
 
     String getNameFor(ViewType configurationType) {
         switch (configurationType) {
-            case ViewType.COMPILE:
-                return getCompileName()
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyName()
             case ViewType.COMPILE_CLASSPATH:
                 return getCompileClasspathName()
             case ViewType.IMPLEMENTATION:
                 return getImplementationName()
-            case ViewType.RUNTIME:
-                return getRuntimeName()
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyName()
             case ViewType.RUNTIME_CLASSPATH:
@@ -48,16 +44,12 @@ class UniSourceSetInsights {
 
     Configuration getConfigurationFor(ViewType configurationType) {
         switch (configurationType) {
-            case ViewType.COMPILE:
-                return getCompileConfiguration()
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyConfiguration()
             case ViewType.COMPILE_CLASSPATH:
                 return getCompileClasspathConfiguration()
             case ViewType.IMPLEMENTATION:
                 return getImplementationConfiguration()
-            case ViewType.RUNTIME:
-                return getRuntimeConfiguration()
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyConfiguration()
             case ViewType.RUNTIME_CLASSPATH:
@@ -79,16 +71,12 @@ class UniSourceSetInsights {
 
     DependencySet getDependencySetFor(ViewType configurationType, DependencySetType dependencySetType) {
         switch (configurationType) {
-            case ViewType.COMPILE:
-                return getCompileDependencySet(dependencySetType)
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyDependencySet(dependencySetType)
             case ViewType.COMPILE_CLASSPATH:
                 return getCompileClasspathDependencySet(dependencySetType)
             case ViewType.IMPLEMENTATION:
                 return getImplementationDependencySet(dependencySetType)
-            case ViewType.RUNTIME:
-                return getRuntimeDependencySet(dependencySetType)
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyDependencySet(dependencySetType)
             case ViewType.RUNTIME_CLASSPATH:
