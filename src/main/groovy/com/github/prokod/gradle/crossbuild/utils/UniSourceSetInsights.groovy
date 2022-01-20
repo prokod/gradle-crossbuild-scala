@@ -109,18 +109,6 @@ class UniSourceSetInsights {
         }
     }
 
-    String getCompileName() {
-        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getCompileConfigurationName() }
-    }
-
-    Configuration getCompileConfiguration() {
-        getConfigurationUsing { it -> getCompileName() }
-    }
-
-    DependencySet getCompileDependencySet(DependencySetType dependencySetType) {
-        getDependencySetUsing(dependencySetType) { it -> getCompileConfiguration() }
-    }
-
     String getCompileOnlyName() {
         getConfigurationNameUsing { SourceSet srcSet -> srcSet.getCompileOnlyConfigurationName() }
     }
@@ -155,18 +143,6 @@ class UniSourceSetInsights {
 
     DependencySet getImplementationDependencySet(DependencySetType dependencySetType) {
         getDependencySetUsing(dependencySetType) { it -> getImplementationConfiguration() }
-    }
-
-    String getRuntimeName() {
-        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getRuntimeConfigurationName() }
-    }
-
-    Configuration getRuntimeConfiguration() {
-        getConfigurationUsing { it -> getRuntimeName() }
-    }
-
-    DependencySet getRuntimeDependencySet(DependencySetType dependencySetType) {
-        getDependencySetUsing(dependencySetType) { it -> getRuntimeConfiguration() }
     }
 
     String getRuntimeOnlyName() {

@@ -8,10 +8,8 @@ class ViewTypeTest extends Specification {
         when:
             def views = ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') }, { tags -> !tags.contains('test') })
         then :
-            views.toSet() == [ViewType.COMPILE,
-                    ViewType.COMPILE_ONLY,
+            views.toSet() == [ViewType.COMPILE_ONLY,
                     ViewType.IMPLEMENTATION,
-                    ViewType.RUNTIME,
                     ViewType.RUNTIME_ONLY].toSet()
     }
 
@@ -19,11 +17,9 @@ class ViewTypeTest extends Specification {
         when:
         def views = ViewType.filterViewsBy({ tags -> tags.contains('test') })
         then :
-        views.toSet() == [ViewType.TEST_COMPILE,
-                ViewType.TEST_COMPILE_CLASSPATH,
+        views.toSet() == [ViewType.TEST_COMPILE_CLASSPATH,
                 ViewType.TEST_COMPILE_ONLY,
                 ViewType.TEST_IMPLEMENTATION,
-                ViewType.TEST_RUNTIME,
                 ViewType.TEST_RUNTIME_CLASSPATH,
                 ViewType.TEST_RUNTIME_ONLY].toSet()
     }

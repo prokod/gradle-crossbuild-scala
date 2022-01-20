@@ -85,11 +85,11 @@ class CrossBuildPlugin implements Plugin<Project> {
 
             def sourceSet = getAndUpdateSourceSetFor(rb, extension.crossBuildSourceSets)
 
-            //todo maybe not needed anymore (might not be as helpful as expected)
-            // Mainly here to help with creation of the correct dependencies for pom creation
+            // 1. Adds scala-lib dependency to all sub projects (User convenience)
+            // 2. Helps with the creation of the correct dependencies for pom creation
             // see ResolutionStrategyConfigurer::assemble3rdPartyDependencies
-//            extension.project.dependencies.add(sourceSet.compileConfigurationName,
-//                    "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
+            extension.project.dependencies.add(sourceSet.implementationConfigurationName,
+                    "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
         }
     }
 
@@ -287,7 +287,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             di.addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_ONLY, sv)
 
             // for 'compile' configuration
-//            di.addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE)
+//            di.addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.IMPLEMENTATION)
 //            di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.COMPILE, ViewType.IMPLEMENTATION)
             di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.IMPLEMENTATION, ViewType.IMPLEMENTATION)
         }
