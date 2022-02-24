@@ -15,9 +15,6 @@ class ScalaCompileTasks {
         // org.gradle.api.UncheckedIOException: Failed to capture fingerprint of input files for task ':app:compileScala' property 'scalaClasspath' during up-to-date check.
         // So this should be avoided ...
         project.tasks.withType(ScalaCompile) { ScalaCompile t ->
-            project.logger.warn(">>> (srcset-classpath)${sourceSet.compileClasspath}")
-            project.logger.warn(">>> (task-classpath)${t.classpath}")
-            project.logger.warn(">>> (prj)${project.name} - (task)${t.name} | (srcset)${sourceSet.name} -> ${sourceSet.compileClasspath.collect {it.name}.join(',')} _[vs]_ ${t.classpath.collect {it.name}.join(',')}")
             if (t.name == sourceSet.getCompileTaskName('scala')) {
                 def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
                 if (!analysisFile) {

@@ -42,9 +42,9 @@ class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossB
     String createReportItemAsJsonFor(ResolvedBuildAfterEvalLifeCycle rb) {
         def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
-//        def subItem1 = createReportSubItemFor(sourceSet) { SourceSet input ->
-//            sourceSet.compileConfigurationName
-//        }
+        def subItem1 = createReportSubItemFor(sourceSet) { SourceSet input ->
+            sourceSet.apiConfigurationName
+        }
         def subItem2 = createReportSubItemFor(sourceSet) { SourceSet input ->
             sourceSet.implementationConfigurationName
         }
@@ -55,7 +55,7 @@ class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossB
             sourceSet.runtimeClasspathConfigurationName
         }
 
-        def subItems = [/*subItem1,*/ subItem2, subItem3, subItem4]
+        def subItems = [subItem1, subItem2, subItem3, subItem4]
         '[' + subItems.collect { toJson(it) }.join(',\n') + ']'
     }
 

@@ -54,6 +54,11 @@ class CrossBuildPluginPublishingTest extends CrossBuildGradleRunnerSpec {
     }
 
     /**
+     * * Test Properties:
+     * <ul>
+     *     <li>Plugin apply mode: Eager</li>
+     *     <li> Gradle compatibility matrix: 6.x, 7.x</li>
+     * </ul>
      * resource file/s for the test:
      * 04-app_builds_resolved_configurations.json
      * 04-pom_lib2-00.xml
@@ -97,6 +102,7 @@ subprojects {
     }
     
     if (!project.name.endsWith('app')) {
+        // This block is only compatible with Gradle 6 and above
         java {
             withSourcesJar()
             withJavadocJar()
@@ -155,7 +161,7 @@ dependencies {
 }
 """
 
-        lib2ScalaFile << """
+        lib2ScalaFile.withWriter('utf-8') {it.write """
 object CompileTimeFactorial {
 
   import scala.language.experimental.macros
@@ -187,7 +193,7 @@ object CompileTimeFactorial {
     }
   }
 }
-"""
+""" }
 
         lib2BuildFile << """
 sourceSets {
@@ -269,7 +275,7 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_11_12_: gradleVersion.startsWith('6') ? '-2.11.12' : '',
+                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -353,8 +359,7 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        // '4.10.3'      | '2.12'
-        // '5.6.4'       | '2.11'
-        '6.5'         | '2.12'
+        '6.9.2'       | '2.12'
+        '7.3.3'       | '2.11'
     }
 }

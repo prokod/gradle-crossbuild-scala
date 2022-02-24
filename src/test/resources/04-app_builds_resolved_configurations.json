@@ -3,20 +3,14 @@
         "allDependencies": [
             "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
         ],
-        "name": "crossBuildSpark230_211Compile"
+        "name": "crossBuildSpark230_211Api"
     },
     "sourceSet": "crossBuildSpark230_211",
     "resolvedConfiguration": {
         "hasError": false,
-        "resolvedArtifacts": [
-            "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
-        ],
-        "files": [
-            "scala-library-2.11.12.jar"
-        ],
-        "firstLevelModuleDependencies": [
-            "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@"
-        ]
+        "resolvedArtifacts": null,
+        "files": null,
+        "firstLevelModuleDependencies": null
     }
 },
   {

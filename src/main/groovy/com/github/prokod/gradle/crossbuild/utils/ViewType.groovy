@@ -17,8 +17,11 @@ import org.gradle.api.plugins.JavaPlugin
  */
 @SuppressWarnings(['ThisReferenceEscapesConstructor', 'PrivateFieldCouldBeFinal', 'LineLength', 'DuplicateListLiteral'])
 enum ViewType {
+    COMPILE_FRONTEND(JavaPlugin.API_CONFIGURATION_NAME, ['canBeConsumed']),
+    COMPILE_BACKEND(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME, ['canBeResolved']),
     COMPILE_ONLY(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, ['canBeConsumed']),
     COMPILE_CLASSPATH(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME, ['canBeResolved']),
+    RUNTIME(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME, ['canBeResolved']),
     RUNTIME_ONLY(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME, ['canBeConsumed']),
     RUNTIME_CLASSPATH(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME, ['canBeResolved']),
     IMPLEMENTATION(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, ['canBeConsumed']),

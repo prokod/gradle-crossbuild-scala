@@ -14,6 +14,7 @@ import org.gradle.api.tasks.SourceSet
  * For each such pair the following are available respectively: Configuration names, Configurations and dependency sets
  *
  */
+@SuppressWarnings(['MethodCount'])
 class UniSourceSetInsights {
     final SourceSet sourceSet
     final Project project
@@ -25,12 +26,18 @@ class UniSourceSetInsights {
 
     String getNameFor(ViewType configurationType) {
         switch (configurationType) {
+            case ViewType.COMPILE_FRONTEND:
+                return getCompileName()
+            case ViewType.COMPILE_BACKEND:
+                return getCompileBackendName()
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyName()
             case ViewType.COMPILE_CLASSPATH:
                 return getCompileClasspathName()
             case ViewType.IMPLEMENTATION:
                 return getImplementationName()
+            case ViewType.RUNTIME:
+                return getRuntimeName()
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyName()
             case ViewType.RUNTIME_CLASSPATH:
@@ -44,12 +51,18 @@ class UniSourceSetInsights {
 
     Configuration getConfigurationFor(ViewType configurationType) {
         switch (configurationType) {
+            case ViewType.COMPILE_FRONTEND:
+                return getCompileConfiguration()
+            case ViewType.COMPILE_BACKEND:
+                return getCompileBackendConfiguration()
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyConfiguration()
             case ViewType.COMPILE_CLASSPATH:
                 return getCompileClasspathConfiguration()
             case ViewType.IMPLEMENTATION:
                 return getImplementationConfiguration()
+            case ViewType.RUNTIME:
+                return getRuntimeConfiguration()
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyConfiguration()
             case ViewType.RUNTIME_CLASSPATH:
@@ -63,20 +76,20 @@ class UniSourceSetInsights {
         }
     }
 
-    Collection<Configuration> getUserFacingConfigurations() {
-        ViewType.getUserFacingViews().collect { viewType ->
-            getConfigurationFor(viewType)
-        }
-    }
-
     DependencySet getDependencySetFor(ViewType configurationType, DependencySetType dependencySetType) {
         switch (configurationType) {
+            case ViewType.COMPILE_FRONTEND:
+                return getCompileDependencySet(dependencySetType)
+            case ViewType.COMPILE_BACKEND:
+                return getCompileBackendDependencySet(dependencySetType)
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyDependencySet(dependencySetType)
             case ViewType.COMPILE_CLASSPATH:
                 return getCompileClasspathDependencySet(dependencySetType)
             case ViewType.IMPLEMENTATION:
                 return getImplementationDependencySet(dependencySetType)
+            case ViewType.RUNTIME:
+                return getRuntimeDependencySet(dependencySetType)
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyDependencySet(dependencySetType)
             case ViewType.RUNTIME_CLASSPATH:
@@ -107,6 +120,30 @@ class UniSourceSetInsights {
         else {
             sourceSet.name + configurationType.name.capitalize()
         }
+    }
+
+    String getCompileName() {
+        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getApiConfigurationName() }
+    }
+
+    Configuration getCompileConfiguration() {
+        getConfigurationUsing { it -> getCompileName() }
+    }
+
+    DependencySet getCompileDependencySet(DependencySetType dependencySetType) {
+        getDependencySetUsing(dependencySetType) { it -> getCompileConfiguration() }
+    }
+
+    String getCompileBackendName() {
+        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getApiElementsConfigurationName() }
+    }
+
+    Configuration getCompileBackendConfiguration() {
+        getConfigurationUsing { it -> getCompileName() }
+    }
+
+    DependencySet getCompileBackendDependencySet(DependencySetType dependencySetType) {
+        getDependencySetUsing(dependencySetType) { it -> getCompileConfiguration() }
     }
 
     String getCompileOnlyName() {
@@ -143,6 +180,18 @@ class UniSourceSetInsights {
 
     DependencySet getImplementationDependencySet(DependencySetType dependencySetType) {
         getDependencySetUsing(dependencySetType) { it -> getImplementationConfiguration() }
+    }
+
+    String getRuntimeName() {
+        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getRuntimeElementsConfigurationName() }
+    }
+
+    Configuration getRuntimeConfiguration() {
+        getConfigurationUsing { it -> getRuntimeName() }
+    }
+
+    DependencySet getRuntimeDependencySet(DependencySetType dependencySetType) {
+        getDependencySetUsing(dependencySetType) { it -> getRuntimeConfiguration() }
     }
 
     String getRuntimeOnlyName() {

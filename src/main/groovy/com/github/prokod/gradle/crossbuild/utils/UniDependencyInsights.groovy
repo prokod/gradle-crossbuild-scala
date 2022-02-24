@@ -1,5 +1,6 @@
 package com.github.prokod.gradle.crossbuild.utils
 
+import com.github.prokod.gradle.crossbuild.ScalaVersions
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -8,12 +9,43 @@ import org.gradle.api.artifacts.ProjectDependency
  * A collection of Dependency related methods
  *
  */
-class DependencyInsights1 {
+class UniDependencyInsights {
 
     final UniSourceSetInsights sourceSetInsights
 
-    DependencyInsights1(UniSourceSetInsights sourceSetInsights) {
+    UniDependencyInsights(UniSourceSetInsights sourceSetInsights) {
         this.sourceSetInsights = sourceSetInsights
+    }
+
+    /**
+     * Find a set of scala versions,
+     * based on provided {@link org.gradle.api.artifacts.DependencySet} (of the configuration being handled)
+     * and scala-library dependency version.
+     *
+     * @param configuration Specified configuration to retrieve all dependencies from.
+     * @param sourceSetInsights Source-set Insight (representation of specific crossBuild source-set or its main
+     *                          counterpart) - aids with dependencies related insights mainly
+     * @param scalaVersions A set of Scala versions that serve as input for the plugin.
+     */
+    Set<String> findScalaVersions(ScalaVersions scalaVersions) {
+        ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') }).collectMany { viewType ->
+            def mainConfig = sourceSetInsights.getConfigurationFor(viewType)
+
+            def insightsView = UniSourceSetInsightsView.from(mainConfig, sourceSetInsights)
+
+            def dependencySet = [mainConfig.allDependencies]
+
+            def configurationNames = [mainConfig.name] as Set
+            def crossBuildProjectDependencySet =
+                    findAllCrossBuildProjectTypeDependenciesDependenciesFor(configurationNames, insightsView.viewType)
+
+            def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
+
+            def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
+
+            def versions = scalaDeps*.supposedScalaVersion.toSet()
+            versions
+        }
     }
 
     /**

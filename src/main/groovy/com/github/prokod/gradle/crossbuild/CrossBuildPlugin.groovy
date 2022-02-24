@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors
+ * Copyright 2016-2022 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsClasspathResolvedConfigurationReportTask
 import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights1
+import com.github.prokod.gradle.crossbuild.utils.UniDependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsightsView
@@ -43,6 +43,7 @@ import org.gradle.api.tasks.SourceSet
 class CrossBuildPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.pluginManager.apply('scala')
+        project.pluginManager.apply('java-library')
 
         def extension = project.extensions.create('crossBuild', CrossBuildExtension, project)
 
@@ -80,15 +81,17 @@ class CrossBuildPlugin implements Plugin<Project> {
     }
 
     private static void updateSourceBuildSourceSets(CrossBuildExtension extension) {
-        extension.resolvedBuilds.findAll { rb ->
+        extension.resolvedBuilds.each { rb ->
             def scalaVersionInsights = rb.scalaVersionInsights
 
             def sourceSet = getAndUpdateSourceSetFor(rb, extension.crossBuildSourceSets)
 
+            def sourceSetInsight = new UniSourceSetInsights(sourceSet, extension.project)
+
             // 1. Adds scala-lib dependency to all sub projects (User convenience)
             // 2. Helps with the creation of the correct dependencies for pom creation
             // see ResolutionStrategyConfigurer::assemble3rdPartyDependencies
-            extension.project.dependencies.add(sourceSet.implementationConfigurationName,
+            extension.project.dependencies.add(sourceSetInsight.getCompileName(),
                     "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
         }
     }
@@ -103,10 +106,13 @@ class CrossBuildPlugin implements Plugin<Project> {
         def allNonTestRelatedUserFacingViews =
                 ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') }, { tags -> !tags.contains('test') })
 
+        // Create scalaVersions to be used in parseByDependencyName and more
+        def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
+        def di = new UniDependencyInsights(mainSourceSetInsights)
+        def possibleDefaultScalaVersions = di.findScalaVersions(scalaVersions)
+
         ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') }).each { viewType ->
             def mainConfig = mainSourceSetInsights.getConfigurationFor(viewType)
-            // Create scalaVersions to be used in parseByDependencyName
-            def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
             // Iterate dependencies in compile configuration
             def globTypeDeps = mainConfig.dependencies.findAll { dep ->
                 def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(dep.name, scalaVersions)
@@ -141,7 +147,7 @@ class CrossBuildPlugin implements Plugin<Project> {
                                 lifecycle:'afterEvaluate',
                                 parentConfiguration:mainConfig.name,
                                 configuration:crossBuildConfig.name,
-                                msg:"Glob type depenency translation | glob '?' type dependency" +
+                                msg:"Glob type dependency translation | glob '?' type dependency" +
                                         " ${origDepConfiguration} partially translated to: " +
                                         "[${translatedDepConfiguration} ${translatedDepNotation}]"
                         ))
@@ -149,9 +155,6 @@ class CrossBuildPlugin implements Plugin<Project> {
                 }
 
                 // Add explicit dependency to main source set default version
-                def possibleDefaultScalaVersions = findScalaVersions(mainConfig, mainSourceSetInsights, scalaVersions)
-                //def possibleDefaultScalaVersions = getScalaDependencies(mainConfig, scalaVersions)
-
                 CrossBuildPluginUtils.assertWithMsg('Could not discover ' +
                         'default scala version. ' +
                         'Scala library dependency is missing ?') { assert possibleDefaultScalaVersions.size() > 0 }
@@ -189,6 +192,7 @@ class CrossBuildPlugin implements Plugin<Project> {
      *                          counterpart) - aids with dependencies related insights mainly
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      */
+    @Deprecated
     private static Set<String> findScalaVersions(Configuration configuration,
                                               UniSourceSetInsights sourceSetInsights,
                                               ScalaVersions scalaVersions) {
@@ -196,7 +200,7 @@ class CrossBuildPlugin implements Plugin<Project> {
 
         def dependencySet = [configuration.allDependencies]
 
-        def di = new DependencyInsights1(sourceSetInsights)
+        def di = new UniDependencyInsights(sourceSetInsights)
 
         def configurationNames = [configuration.name] as Set
         def crossBuildProjectDependencySet =
@@ -221,10 +225,13 @@ class CrossBuildPlugin implements Plugin<Project> {
                     rb.scalaVersionInsights)
 
             configurer.applyForLinkWith(
+                    ViewType.COMPILE_FRONTEND,
+                    ViewType.COMPILE_BACKEND,
                     ViewType.IMPLEMENTATION,
                     ViewType.COMPILE_CLASSPATH,
                     ViewType.RUNTIME_CLASSPATH,
                     ViewType.COMPILE_ONLY,
+                    ViewType.RUNTIME,
                     ViewType.RUNTIME_ONLY)
         }
     }
@@ -281,15 +288,22 @@ class CrossBuildPlugin implements Plugin<Project> {
             def di = new DependencyInsights(sourceSetInsights)
 
             //todo add other needed configuration types (except COMPILE)
-            // for 'implementation' configuration
-            di.addMainConfigurationToCrossBuildCounterPart(ViewType.IMPLEMENTATION, sv)
-            // for 'compileOnly' configuration
-            di.addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_ONLY, sv)
 
-            // for 'compile' configuration
-//            di.addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.IMPLEMENTATION)
-//            di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.COMPILE, ViewType.IMPLEMENTATION)
-            di.generateAndWireCrossBuildProjectTypeDependencies(ViewType.IMPLEMENTATION, ViewType.IMPLEMENTATION)
+            di.with {
+                // for 'api' configuration
+                addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_FRONTEND, sv)
+                // for 'implementation' configuration
+                addMainConfigurationToCrossBuildCounterPart(ViewType.IMPLEMENTATION, sv)
+                // for 'compileOnly' configuration
+                addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_ONLY, sv)
+                // for 'runtimeOnly' configuration
+                addMainConfigurationToCrossBuildCounterPart(ViewType.RUNTIME_ONLY, sv)
+
+                // for 'compile' configuration
+                addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE_FRONTEND)
+                generateAndWireCrossBuildProjectTypeDependencies(ViewType.COMPILE_FRONTEND)
+                generateAndWireCrossBuildProjectTypeDependencies(ViewType.IMPLEMENTATION)
+            }
         }
     }
 

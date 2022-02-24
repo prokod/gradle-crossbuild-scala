@@ -88,9 +88,9 @@ tasks.withType(GenerateMavenPom) { t ->
 }
 
 dependencies {
-    compile "org.scalatest:scalatest_?:3.0.1"
-    compile "com.google.guava:guava:18.0"
-    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+    implementation "org.scalatest:scalatest_?:3.0.1"
+    implementation "com.google.guava:guava:18.0"
+    implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 
     compileOnly "org.apache.spark:spark-sql_${defaultScalaVersion}:${defaultScalaVersion == '2.10' ? '1.6.3' : '2.2.1'}"
     crossBuildV210CompileOnly "org.apache.spark:spark-sql_2.10:1.6.3"
@@ -169,7 +169,8 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.10'
-        '6.5'         | '2.11'
+        '6.9.2'         | '2.11'
+        '7.3.3'         | '2.10'
     }
 
     @Unroll
@@ -252,9 +253,9 @@ tasks.withType(GenerateMavenPom) { t ->
 }
 
 dependencies {
-    compile "org.scalatest:scalatest_?:3.0.1"
-    compile "com.google.guava:guava:18.0"
-    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+    implementation "org.scalatest:scalatest_?:3.0.1"
+    implementation "com.google.guava:guava:18.0"
+    implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 
     compileOnly "org.apache.spark:spark-sql_${defaultScalaVersion}:${defaultScalaVersion == '2.10' ? '1.6.3' : '2.2.1'}"
     crossBuildScala_210CompileOnly "org.apache.spark:spark-sql_2.10:1.6.3"
@@ -329,6 +330,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.10'
-        '6.5'         | '2.11'
+        '6.9.2'         | '2.11'
+        '7.3.3'         | '2.11'
     }
 }

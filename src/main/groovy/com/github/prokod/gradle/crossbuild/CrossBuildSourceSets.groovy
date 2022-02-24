@@ -21,19 +21,6 @@ class CrossBuildSourceSets {
         this.container = getSourceSetContainer(project)
     }
 
-    void fromDefault(ScalaVersions scalaVersions) {
-        // Create default source sets early enough to be used in build.gradle dependencies block
-        scalaVersions.catalog*.key.each { String scalaVersion ->
-            def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, scalaVersions)
-
-            def sourceSetId = getOrCreateCrossBuildScalaSourceSet(scalaVersionInsights).first
-
-            project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle:'config',
-                    msg:"Creating source set (Default): [${sourceSetId}]"))
-        }
-    }
-
     /**
      * Creates additional {@link org.gradle.api.tasks.SourceSet} per scala version for each build item enlisted under
      * {@code builds {}} block within crossBuild DSL.
@@ -47,6 +34,31 @@ class CrossBuildSourceSets {
         assert builds != null : 'builds should not be null'
         def sourceSetIds = builds.collect { build ->
             def (sourceSetId, SourceSet sourceSet) = getOrCreateCrossBuildScalaSourceSet(build.name)
+
+            def implementationConfig = project.configurations.getByName(sourceSet.getImplementationConfigurationName())
+
+            def runtimeOnlyConfig = project.configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName())
+
+            def createdApiConfig = project.configurations.create(sourceSet.getApiConfigurationName()) {
+                canBeConsumed = true
+                canBeResolved = false
+            }
+
+            def createdApiElementsConfig = project.configurations.create(sourceSet.getApiElementsConfigurationName()) {
+                canBeConsumed = false
+                canBeResolved = true
+            }
+
+            def createdRuntimeElementsConfig =
+                    project.configurations.create(sourceSet.getRuntimeElementsConfigurationName()) {
+                canBeConsumed = false
+                canBeResolved = true
+            }
+
+            implementationConfig.extendsFrom(createdApiConfig)
+            createdApiElementsConfig.extendsFrom(createdApiConfig)
+            createdRuntimeElementsConfig.extendsFrom(implementationConfig, runtimeOnlyConfig)
+
             project.logger.info(LoggerUtils.logTemplate(project,
                     lifecycle:'config',
                     msg:"Creating source set (User request): [${sourceSetId}]"))
@@ -100,7 +112,7 @@ class CrossBuildSourceSets {
      * @throws AssertionError if {@link org.gradle.api.tasks.SourceSetContainer} is null for the given project
      */
     static SourceSetContainer getSourceSetContainer(Project project) {
-        def sourceSets = project.hasProperty('sourceSets') ? (SourceSetContainer)project.sourceSets : null
+        def sourceSets = project.findProperty('sourceSets') ? (SourceSetContainer)project.sourceSets : null
         assert sourceSets != null : "Missing 'sourceSets' property under Project ${project.name} properties."
         sourceSets
     }

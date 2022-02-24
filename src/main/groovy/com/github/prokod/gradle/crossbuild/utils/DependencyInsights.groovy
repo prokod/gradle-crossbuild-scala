@@ -107,6 +107,9 @@ class DependencyInsights {
     }
 
     /**
+     * Finds all project type dependencies
+     * Generates for each a Producer configuration that "holds" the cross built artifact
+     * Then this dependency is added to the dependencies block of the current project
      *
      * @param producerView
      * @param consumerView
@@ -154,7 +157,10 @@ class DependencyInsights {
         }
     }
 
-    /**
+    void generateAndWireCrossBuildProjectTypeDependencies(ViewType viewType) {
+        generateAndWireCrossBuildProjectTypeDependencies(viewType, viewType)
+    }
+        /**
      * See {@link #generateDetachedDefaultConfigurationsRecursivelyFor} doc
      *
      * @param referenceView Configuration type as context for this method to operate from.
@@ -229,10 +235,8 @@ class DependencyInsights {
             currentProjectTypeDepsForDefault.each { ProjectDependency dependency ->
                 def nextDependencyProject = dependency.dependencyProject
                 def nextInsightsView = insightsView.switchTo(nextDependencyProject)
-                //accum.addAll(
                 generateDetachedDefaultConfigurationsRecursivelyFor(
                         nextDependencyProject, modules, nextInsightsView, depTracker, accum)
-                //)
             }
         }
 
