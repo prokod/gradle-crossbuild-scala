@@ -28,7 +28,7 @@ class UniDependencyInsights {
      * @param scalaVersions A set of Scala versions that serve as input for the plugin.
      */
     Set<String> findScalaVersions(ScalaVersions scalaVersions) {
-        ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') }).collectMany { viewType ->
+        ViewType.filterViewsBy { tags -> tags.contains('canBeConsumed') }.collectMany { viewType ->
             def mainConfig = sourceSetInsights.getConfigurationFor(viewType)
 
             def insightsView = UniSourceSetInsightsView.from(mainConfig, sourceSetInsights)

@@ -2,100 +2,26 @@
   "configuration": {
     "allDependencies": [
       "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-      "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
-      "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-      "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}"
     ],
-    "name": "crossBuildSpark233_211Compile"
+    "name": "crossBuildSpark233_211Api"
   },
   "sourceSet": "crossBuildSpark233_211",
   "resolvedConfiguration": {
     "hasError": false,
-    "resolvedArtifacts": [
-      "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
-      "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
-      "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-      "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
-      "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
-      "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
-      "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
-      "akka-actor_2.11@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.11:2.5.29)",
-      "akka-protobuf_2.11@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.11:2.5.29)",
-      "ssl-config-core_2.11@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.11:0.3.8)",
-      "play-functional_2.11@_play_v_@.jar (com.typesafe.play:play-functional_2.11:2.7.4)",
-      "akka-parsing_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.11:10.1.11)",
-      "scala-java8-compat_2.11@_scala_java8_compat_2_11_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.11:0.7.0)",
-      "scala-parser-combinators_2.11@_scala_parser_combinators_2_11_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.11:1.1.1)",
-      "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-      "lib3.jar (project :lib3)",
-      "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
-      "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
-      "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
-      "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
-      "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
-      "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
-      "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
-      "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
-      "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
-      "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
-      "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
-      "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
-      "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
-      "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
-    ],
-    "files": [
-      "skuber_2.11-2.5.0.jar",
-      "play-json_2.11-2.7.4.jar",
-      "scala-reflect-2.11.12.jar",
-      "scalaz-core_2.11-@_scalaz_v_@.jar",
-      "akka-http_2.11-10.1.11.jar",
-      "akka-stream_2.11-2.5.29.jar",
-      "akka-http-core_2.11-10.1.11.jar",
-      "akka-actor_2.11-2.5.29.jar",
-      "akka-protobuf_2.11-2.5.29.jar",
-      "ssl-config-core_2.11-0.3.8.jar",
-      "play-functional_2.11-2.7.4.jar",
-      "akka-parsing_2.11-10.1.11.jar",
-      "scala-java8-compat_2.11-0.7.0.jar",
-      "scala-parser-combinators_2.11-1.1.1.jar",
-      "scala-library-2.11.12.jar",
-      "lib3-1.0-SNAPSHOT.jar",
-      "commons-math3-3.6.1.jar",
-      "snakeyaml-1.25.jar",
-      "commons-io-2.6.jar",
-      "commons-codec-1.14.jar",
-      "bcpkix-jdk15on-1.64.jar",
-      "reactive-streams-1.0.2.jar",
-      "joda-time-2.10.1.jar",
-      "jackson-datatype-jdk8-2.9.8.jar",
-      "jackson-datatype-jsr310-2.9.8.jar",
-      "jackson-databind-2.9.8.jar",
-      "jackson-core-2.9.8.jar",
-      "jackson-annotations-2.9.8.jar",
-      "bcprov-jdk15on-1.64.jar",
-      "config-1.3.3.jar"
-    ],
-    "firstLevelModuleDependencies": [
-      "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
-      "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
-      "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
-      "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-      "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@"
-    ]
+    "resolvedArtifacts": null,
+    "files": null,
+    "firstLevelModuleDependencies": null
   }
-},
+  },
   {
     "configuration": {
       "allDependencies": [
-        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
         "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
       ],
       "name": "crossBuildSpark233_211Implementation"
     },
@@ -110,13 +36,11 @@
   {
     "configuration": {
       "allDependencies": [
-        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}"
       ],
       "name": "crossBuildSpark233_211CompileClasspath"
     },
@@ -127,7 +51,6 @@
         "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
         "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
         "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
         "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
         "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
         "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -141,7 +64,6 @@
         "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
         "lib3.jar (project :lib3)",
         "lib_2.11.jar (project :lib)",
-        "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
         "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
         "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
         "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
@@ -160,7 +82,6 @@
         "skuber_2.11-2.5.0.jar",
         "play-json_2.11-2.7.4.jar",
         "scala-reflect-2.11.12.jar",
-        "scalaz-core_2.11-@_scalaz_v_@.jar",
         "akka-http_2.11-10.1.11.jar",
         "akka-stream_2.11-2.5.29.jar",
         "akka-http-core_2.11-10.1.11.jar",
@@ -174,7 +95,6 @@
         "scala-library-2.11.12.jar",
         "lib3-1.0-SNAPSHOT.jar",
         "lib_2.11-1.0-SNAPSHOT.jar",
-        "commons-math3-3.6.1.jar",
         "snakeyaml-1.25.jar",
         "commons-io-2.6.jar",
         "commons-codec-1.14.jar",
@@ -194,7 +114,6 @@
         "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
         "io.skuber:skuber_2.11:2.5.0;@defaultOrCompile@",
         "org.scala-lang:scala-reflect:2.11.12;@defaultOrCompile@",
-        "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrCompile@",
         "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark233_211Producer"
       ]
     }
@@ -202,13 +121,11 @@
   {
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
         "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
-        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}"
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
       ],
       "name": "crossBuildSpark233_211RuntimeClasspath"
     },
@@ -219,7 +136,6 @@
         "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
         "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
         "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
         "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
         "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
         "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
@@ -252,7 +168,6 @@
         "skuber_2.11-2.5.0.jar",
         "play-json_2.11-2.7.4.jar",
         "scala-reflect-2.11.12.jar",
-        "scalaz-core_2.11-@_scalaz_v_@.jar",
         "akka-http_2.11-10.1.11.jar",
         "akka-stream_2.11-2.5.29.jar",
         "akka-http-core_2.11-10.1.11.jar",
@@ -286,7 +201,6 @@
         "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
         "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
         "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@",
         "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark233_211Producer"
       ]
     }
@@ -295,90 +209,18 @@
     "configuration": {
       "allDependencies": [
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-        "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
-        "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}"
       ],
-      "name": "crossBuildSpark242_212Compile"
+      "name": "crossBuildSpark242_212Api"
     },
     "sourceSet": "crossBuildSpark242_212",
     "resolvedConfiguration": {
       "hasError": false,
-      "resolvedArtifacts": [
-        "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
-        "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
-        "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-        "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
-        "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
-        "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
-        "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
-        "akka-actor_2.12@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.12:2.5.29)",
-        "akka-protobuf_2.12@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.12:2.5.29)",
-        "ssl-config-core_2.12@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.12:0.3.8)",
-        "play-functional_2.12@_play_v_@.jar (com.typesafe.play:play-functional_2.12:2.7.4)",
-        "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
-        "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
-        "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-        "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
-        "lib3.jar (project :lib3)",
-        "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
-        "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
-        "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
-        "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
-        "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
-        "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
-        "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
-        "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
-        "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
-        "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
-        "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
-        "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
-        "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
-        "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
-      ],
-      "files": [
-        "skuber_2.12-2.5.0.jar",
-        "play-json_2.12-2.7.4.jar",
-        "scala-reflect-2.12.8.jar",
-        "scalaz-core_2.12-@_scalaz_v_@.jar",
-        "akka-http_2.12-10.1.11.jar",
-        "akka-stream_2.12-2.5.29.jar",
-        "akka-http-core_2.12-10.1.11.jar",
-        "akka-actor_2.12-2.5.29.jar",
-        "akka-protobuf_2.12-2.5.29.jar",
-        "ssl-config-core_2.12-0.3.8.jar",
-        "play-functional_2.12-2.7.4.jar",
-        "akka-parsing_2.12-10.1.11.jar",
-        "scala-java8-compat_2.12-0.8.0.jar",
-        "scala-parser-combinators_2.12-1.1.2.jar",
-        "scala-library-@_2_12_@.jar",
-        "lib3-1.0-SNAPSHOT.jar",
-        "commons-math3-3.6.1.jar",
-        "snakeyaml-1.25.jar",
-        "commons-io-2.6.jar",
-        "commons-codec-1.14.jar",
-        "bcpkix-jdk15on-1.64.jar",
-        "reactive-streams-1.0.2.jar",
-        "joda-time-2.10.1.jar",
-        "jackson-datatype-jdk8-2.9.8.jar",
-        "jackson-datatype-jsr310-2.9.8.jar",
-        "jackson-databind-2.9.8.jar",
-        "jackson-core-2.9.8.jar",
-        "jackson-annotations-2.9.8.jar",
-        "bcprov-jdk15on-1.64.jar",
-        "config-1.3.3.jar"
-      ],
-      "firstLevelModuleDependencies": [
-        "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
-        "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
-        "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
-      ]
+      "resolvedArtifacts": null,
+      "files": null,
+      "firstLevelModuleDependencies": null
     }
-  },
+    },
     {
       "configuration": {
         "allDependencies": [
@@ -386,9 +228,7 @@
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
           "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark242_212Implementation"
       },
@@ -407,9 +247,7 @@
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
           "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark242_212CompileClasspath"
       },
@@ -420,7 +258,6 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -434,7 +271,6 @@
           "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
           "lib3.jar (project :lib3)",
           "lib_2.12.jar (project :lib)",
-          "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
           "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
           "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
           "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
@@ -453,7 +289,6 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -467,7 +302,6 @@
           "scala-library-@_2_12_@.jar",
           "lib3-1.0-SNAPSHOT.jar",
           "lib_2.12-1.0-SNAPSHOT.jar",
-          "commons-math3-3.6.1.jar",
           "snakeyaml-1.25.jar",
           "commons-io-2.6.jar",
           "commons-codec-1.14.jar",
@@ -486,7 +320,6 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrCompile@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrCompile@",
-          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrCompile@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark242_212Producer",
           "org.scala-lang:scala-library:@_2_12_@;@defaultOrCompile@"
         ]
@@ -499,8 +332,6 @@
           "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
           "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}"
         ],
         "name": "crossBuildSpark242_212RuntimeClasspath"
@@ -512,7 +343,6 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -545,7 +375,6 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -578,7 +407,6 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark242_212Producer",
           "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
         ]
@@ -587,382 +415,17 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-        "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
-        "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
-      ],
-      "name": "crossBuildSpark243_211Compile"
-    },
-    "sourceSet": "crossBuildSpark243_211",
-    "resolvedConfiguration": {
-      "hasError": false,
-      "resolvedArtifacts": [
-        "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
-        "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
-        "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
-        "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
-        "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
-        "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
-        "akka-actor_2.11@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.11:2.5.29)",
-        "akka-protobuf_2.11@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.11:2.5.29)",
-        "ssl-config-core_2.11@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.11:0.3.8)",
-        "play-functional_2.11@_play_v_@.jar (com.typesafe.play:play-functional_2.11:2.7.4)",
-        "akka-parsing_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.11:10.1.11)",
-        "scala-java8-compat_2.11@_scala_java8_compat_2_11_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.11:0.7.0)",
-        "scala-parser-combinators_2.11@_scala_parser_combinators_2_11_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.11:1.1.1)",
-        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-        "lib3.jar (project :lib3)",
-        "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
-        "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
-        "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
-        "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
-        "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
-        "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
-        "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
-        "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
-        "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
-        "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
-        "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
-        "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
-        "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
-        "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
-      ],
-      "files": [
-        "skuber_2.11-2.5.0.jar",
-        "play-json_2.11-2.7.4.jar",
-        "scala-reflect-2.11.12.jar",
-        "scalaz-core_2.11-@_scalaz_v_@.jar",
-        "akka-http_2.11-10.1.11.jar",
-        "akka-stream_2.11-2.5.29.jar",
-        "akka-http-core_2.11-10.1.11.jar",
-        "akka-actor_2.11-2.5.29.jar",
-        "akka-protobuf_2.11-2.5.29.jar",
-        "ssl-config-core_2.11-0.3.8.jar",
-        "play-functional_2.11-2.7.4.jar",
-        "akka-parsing_2.11-10.1.11.jar",
-        "scala-java8-compat_2.11-0.7.0.jar",
-        "scala-parser-combinators_2.11-1.1.1.jar",
-        "scala-library-2.11.12.jar",
-        "lib3-1.0-SNAPSHOT.jar",
-        "commons-math3-3.6.1.jar",
-        "snakeyaml-1.25.jar",
-        "commons-io-2.6.jar",
-        "commons-codec-1.14.jar",
-        "bcpkix-jdk15on-1.64.jar",
-        "reactive-streams-1.0.2.jar",
-        "joda-time-2.10.1.jar",
-        "jackson-datatype-jdk8-2.9.8.jar",
-        "jackson-datatype-jsr310-2.9.8.jar",
-        "jackson-databind-2.9.8.jar",
-        "jackson-core-2.9.8.jar",
-        "jackson-annotations-2.9.8.jar",
-        "bcprov-jdk15on-1.64.jar",
-        "config-1.3.3.jar"
-      ],
-      "firstLevelModuleDependencies": [
-        "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
-        "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
-        "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
-        "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@"
-      ]
-    }
-  },
-    {
-      "configuration": {
-        "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-          "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
-          "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
-        ],
-        "name": "crossBuildSpark243_211Implementation"
-      },
-      "sourceSet": "crossBuildSpark243_211",
-      "resolvedConfiguration": {
-        "hasError": false,
-        "resolvedArtifacts": null,
-        "files": null,
-        "firstLevelModuleDependencies": null
-      }
-    },
-    {
-      "configuration": {
-        "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-          "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
-          "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
-        ],
-        "name": "crossBuildSpark243_211CompileClasspath"
-      },
-      "sourceSet": "crossBuildSpark243_211",
-      "resolvedConfiguration": {
-        "hasError": false,
-        "resolvedArtifacts": [
-          "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
-          "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
-          "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
-          "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
-          "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
-          "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
-          "akka-actor_2.11@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.11:2.5.29)",
-          "akka-protobuf_2.11@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.11:2.5.29)",
-          "ssl-config-core_2.11@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.11:0.3.8)",
-          "play-functional_2.11@_play_v_@.jar (com.typesafe.play:play-functional_2.11:2.7.4)",
-          "akka-parsing_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.11:10.1.11)",
-          "scala-java8-compat_2.11@_scala_java8_compat_2_11_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.11:0.7.0)",
-          "scala-parser-combinators_2.11@_scala_parser_combinators_2_11_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.11:1.1.1)",
-          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-          "lib3.jar (project :lib3)",
-          "lib-2-4-3_2.11.jar (project :lib)",
-          "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
-          "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
-          "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
-          "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
-          "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
-          "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
-          "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
-          "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
-          "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
-          "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
-          "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
-          "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
-          "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
-          "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
-        ],
-        "files": [
-          "skuber_2.11-2.5.0.jar",
-          "play-json_2.11-2.7.4.jar",
-          "scala-reflect-2.11.12.jar",
-          "scalaz-core_2.11-@_scalaz_v_@.jar",
-          "akka-http_2.11-10.1.11.jar",
-          "akka-stream_2.11-2.5.29.jar",
-          "akka-http-core_2.11-10.1.11.jar",
-          "akka-actor_2.11-2.5.29.jar",
-          "akka-protobuf_2.11-2.5.29.jar",
-          "ssl-config-core_2.11-0.3.8.jar",
-          "play-functional_2.11-2.7.4.jar",
-          "akka-parsing_2.11-10.1.11.jar",
-          "scala-java8-compat_2.11-0.7.0.jar",
-          "scala-parser-combinators_2.11-1.1.1.jar",
-          "scala-library-2.11.12.jar",
-          "lib3-1.0-SNAPSHOT.jar",
-          "lib-2-4-3_2.11-1.0-SNAPSHOT.jar",
-          "commons-math3-3.6.1.jar",
-          "snakeyaml-1.25.jar",
-          "commons-io-2.6.jar",
-          "commons-codec-1.14.jar",
-          "bcpkix-jdk15on-1.64.jar",
-          "reactive-streams-1.0.2.jar",
-          "joda-time-2.10.1.jar",
-          "jackson-datatype-jdk8-2.9.8.jar",
-          "jackson-datatype-jsr310-2.9.8.jar",
-          "jackson-databind-2.9.8.jar",
-          "jackson-core-2.9.8.jar",
-          "jackson-annotations-2.9.8.jar",
-          "bcprov-jdk15on-1.64.jar",
-          "config-1.3.3.jar"
-        ],
-        "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
-          "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
-          "io.skuber:skuber_2.11:2.5.0;@defaultOrCompile@",
-          "org.scala-lang:scala-reflect:2.11.12;@defaultOrCompile@",
-          "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrCompile@",
-          "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
-        ]
-      }
-    },
-    {
-      "configuration": {
-        "allDependencies": [
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-          "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
-          "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}"
-        ],
-        "name": "crossBuildSpark243_211RuntimeClasspath"
-      },
-      "sourceSet": "crossBuildSpark243_211",
-      "resolvedConfiguration": {
-        "hasError": false,
-        "resolvedArtifacts": [
-          "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
-          "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
-          "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-          "scalaz-core_2.11@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.11:@_scalaz_v_@)",
-          "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
-          "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
-          "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
-          "akka-actor_2.11@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.11:2.5.29)",
-          "akka-protobuf_2.11@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.11:2.5.29)",
-          "ssl-config-core_2.11@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.11:0.3.8)",
-          "play-functional_2.11@_play_v_@.jar (com.typesafe.play:play-functional_2.11:2.7.4)",
-          "akka-parsing_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.11:10.1.11)",
-          "scala-java8-compat_2.11@_scala_java8_compat_2_11_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.11:0.7.0)",
-          "scala-parser-combinators_2.11@_scala_parser_combinators_2_11_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.11:1.1.1)",
-          "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-          "lib3.jar (project :lib3)",
-          "lib-2-4-3_2.11.jar (project :lib)",
-          "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
-          "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
-          "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
-          "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
-          "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
-          "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
-          "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
-          "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
-          "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
-          "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
-          "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
-          "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
-          "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
-          "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
-        ],
-        "files": [
-          "skuber_2.11-2.5.0.jar",
-          "play-json_2.11-2.7.4.jar",
-          "scala-reflect-2.11.12.jar",
-          "scalaz-core_2.11-@_scalaz_v_@.jar",
-          "akka-http_2.11-10.1.11.jar",
-          "akka-stream_2.11-2.5.29.jar",
-          "akka-http-core_2.11-10.1.11.jar",
-          "akka-actor_2.11-2.5.29.jar",
-          "akka-protobuf_2.11-2.5.29.jar",
-          "ssl-config-core_2.11-0.3.8.jar",
-          "play-functional_2.11-2.7.4.jar",
-          "akka-parsing_2.11-10.1.11.jar",
-          "scala-java8-compat_2.11-0.7.0.jar",
-          "scala-parser-combinators_2.11-1.1.1.jar",
-          "scala-library-2.11.12.jar",
-          "lib3-1.0-SNAPSHOT.jar",
-          "lib-2-4-3_2.11-1.0-SNAPSHOT.jar",
-          "commons-math3-3.6.1.jar",
-          "snakeyaml-1.25.jar",
-          "commons-io-2.6.jar",
-          "commons-codec-1.14.jar",
-          "bcpkix-jdk15on-1.64.jar",
-          "reactive-streams-1.0.2.jar",
-          "joda-time-2.10.1.jar",
-          "jackson-datatype-jdk8-2.9.8.jar",
-          "jackson-datatype-jsr310-2.9.8.jar",
-          "jackson-databind-2.9.8.jar",
-          "jackson-core-2.9.8.jar",
-          "jackson-annotations-2.9.8.jar",
-          "bcprov-jdk15on-1.64.jar",
-          "config-1.3.3.jar"
-        ],
-        "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
-          "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
-          "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
-          "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-          "org.scalaz:scalaz-core_2.11:@_scalaz_v_@;@defaultOrRuntime@",
-          "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
-        ]
-      }
-    }],
-  [{
-    "configuration": {
-      "allDependencies": [
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-        "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
-        "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}"
       ],
-      "name": "crossBuildSpark243_212Compile"
+      "name": "crossBuildSpark243_212Api"
     },
     "sourceSet": "crossBuildSpark243_212",
     "resolvedConfiguration": {
       "hasError": false,
-      "resolvedArtifacts": [
-        "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
-        "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
-        "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-        "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
-        "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
-        "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
-        "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
-        "akka-actor_2.12@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.12:2.5.29)",
-        "akka-protobuf_2.12@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.12:2.5.29)",
-        "ssl-config-core_2.12@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.12:0.3.8)",
-        "play-functional_2.12@_play_v_@.jar (com.typesafe.play:play-functional_2.12:2.7.4)",
-        "akka-parsing_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.12:10.1.11)",
-        "scala-java8-compat_2.12@_scala_java8_compat_2_12_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.12:0.8.0)",
-        "scala-parser-combinators_2.12@_scala_parser_combinators_2_12_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.12:1.1.2)",
-        "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
-        "lib3.jar (project :lib3)",
-        "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
-        "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
-        "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
-        "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
-        "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
-        "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
-        "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
-        "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
-        "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
-        "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
-        "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
-        "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
-        "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
-        "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
-      ],
-      "files": [
-        "skuber_2.12-2.5.0.jar",
-        "play-json_2.12-2.7.4.jar",
-        "scala-reflect-2.12.8.jar",
-        "scalaz-core_2.12-@_scalaz_v_@.jar",
-        "akka-http_2.12-10.1.11.jar",
-        "akka-stream_2.12-2.5.29.jar",
-        "akka-http-core_2.12-10.1.11.jar",
-        "akka-actor_2.12-2.5.29.jar",
-        "akka-protobuf_2.12-2.5.29.jar",
-        "ssl-config-core_2.12-0.3.8.jar",
-        "play-functional_2.12-2.7.4.jar",
-        "akka-parsing_2.12-10.1.11.jar",
-        "scala-java8-compat_2.12-0.8.0.jar",
-        "scala-parser-combinators_2.12-1.1.2.jar",
-        "scala-library-@_2_12_@.jar",
-        "lib3-1.0-SNAPSHOT.jar",
-        "commons-math3-3.6.1.jar",
-        "snakeyaml-1.25.jar",
-        "commons-io-2.6.jar",
-        "commons-codec-1.14.jar",
-        "bcpkix-jdk15on-1.64.jar",
-        "reactive-streams-1.0.2.jar",
-        "joda-time-2.10.1.jar",
-        "jackson-datatype-jdk8-2.9.8.jar",
-        "jackson-datatype-jsr310-2.9.8.jar",
-        "jackson-databind-2.9.8.jar",
-        "jackson-core-2.9.8.jar",
-        "jackson-annotations-2.9.8.jar",
-        "bcprov-jdk15on-1.64.jar",
-        "config-1.3.3.jar"
-      ],
-      "firstLevelModuleDependencies": [
-        "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
-        "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
-        "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-        "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
-      ]
+      "resolvedArtifacts": null,
+      "files": null,
+      "firstLevelModuleDependencies": null
     }
   },
     {
@@ -972,9 +435,7 @@
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
           "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark243_212Implementation"
       },
@@ -993,9 +454,7 @@
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
           "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark243_212CompileClasspath"
       },
@@ -1006,7 +465,6 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -1020,7 +478,6 @@
           "scala-library@_2_12_cond_@.jar (org.scala-lang:scala-library:@_2_12_@)",
           "lib3.jar (project :lib3)",
           "lib-2-4-3_2.12.jar (project :lib)",
-          "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
           "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
           "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
           "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
@@ -1039,7 +496,6 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -1053,7 +509,6 @@
           "scala-library-@_2_12_@.jar",
           "lib3-1.0-SNAPSHOT.jar",
           "lib-2-4-3_2.12-1.0-SNAPSHOT.jar",
-          "commons-math3-3.6.1.jar",
           "snakeyaml-1.25.jar",
           "commons-io-2.6.jar",
           "commons-codec-1.14.jar",
@@ -1072,7 +527,6 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrCompile@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrCompile@",
-          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrCompile@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_212Producer",
           "org.scala-lang:scala-library:@_2_12_@;@defaultOrCompile@"
         ]
@@ -1085,8 +539,6 @@
           "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
           "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.+', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}"
         ],
         "name": "crossBuildSpark243_212RuntimeClasspath"
@@ -1098,7 +550,6 @@
           "skuber_2.12@_skuber_v_@.jar (io.skuber:skuber_2.12:2.5.0)",
           "play-json_2.12@_play_v_@.jar (com.typesafe.play:play-json_2.12:2.7.4)",
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-          "scalaz-core_2.12@_scalaz_v_cond_@.jar (org.scalaz:scalaz-core_2.12:@_scalaz_v_@)",
           "akka-http_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.12:10.1.11)",
           "akka-stream_2.12@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.12:2.5.29)",
           "akka-http-core_2.12@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.12:10.1.11)",
@@ -1131,7 +582,6 @@
           "skuber_2.12-2.5.0.jar",
           "play-json_2.12-2.7.4.jar",
           "scala-reflect-2.12.8.jar",
-          "scalaz-core_2.12-@_scalaz_v_@.jar",
           "akka-http_2.12-10.1.11.jar",
           "akka-stream_2.12-2.5.29.jar",
           "akka-http-core_2.12-10.1.11.jar",
@@ -1164,9 +614,215 @@
           "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
           "io.skuber:skuber_2.12:2.5.0;@defaultOrRuntime@",
           "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-          "org.scalaz:scalaz-core_2.12:@_scalaz_v_@;@defaultOrRuntime@",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_212Producer",
           "org.scala-lang:scala-library:@_2_12_@;@defaultOrRuntime@"
         ]
       }
-    }]]
+    }],
+    [{
+      "configuration": {
+        "allDependencies": [
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}"
+        ],
+        "name": "crossBuildSpark243_211Api"
+      },
+      "sourceSet": "crossBuildSpark243_211",
+      "resolvedConfiguration": {
+        "hasError": false,
+        "resolvedArtifacts": null,
+        "files": null,
+        "firstLevelModuleDependencies": null
+      }
+    },
+      {
+        "configuration": {
+          "allDependencies": [
+            "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+            "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
+            "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
+          ],
+          "name": "crossBuildSpark243_211Implementation"
+        },
+        "sourceSet": "crossBuildSpark243_211",
+        "resolvedConfiguration": {
+          "hasError": false,
+          "resolvedArtifacts": null,
+          "files": null,
+          "firstLevelModuleDependencies": null
+        }
+      },
+      {
+        "configuration": {
+          "allDependencies": [
+            "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+            "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
+            "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
+          ],
+          "name": "crossBuildSpark243_211CompileClasspath"
+        },
+        "sourceSet": "crossBuildSpark243_211",
+        "resolvedConfiguration": {
+          "hasError": false,
+          "resolvedArtifacts": [
+            "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
+            "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
+            "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+            "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
+            "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
+            "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
+            "akka-actor_2.11@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.11:2.5.29)",
+            "akka-protobuf_2.11@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.11:2.5.29)",
+            "ssl-config-core_2.11@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.11:0.3.8)",
+            "play-functional_2.11@_play_v_@.jar (com.typesafe.play:play-functional_2.11:2.7.4)",
+            "akka-parsing_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.11:10.1.11)",
+            "scala-java8-compat_2.11@_scala_java8_compat_2_11_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.11:0.7.0)",
+            "scala-parser-combinators_2.11@_scala_parser_combinators_2_11_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.11:1.1.1)",
+            "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
+            "lib3.jar (project :lib3)",
+            "lib-2-4-3_2.11.jar (project :lib)",
+            "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
+            "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
+            "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
+            "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
+            "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
+            "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
+            "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
+            "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
+            "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
+            "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
+            "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
+            "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
+            "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
+          ],
+          "files": [
+            "skuber_2.11-2.5.0.jar",
+            "play-json_2.11-2.7.4.jar",
+            "scala-reflect-2.11.12.jar",
+            "akka-http_2.11-10.1.11.jar",
+            "akka-stream_2.11-2.5.29.jar",
+            "akka-http-core_2.11-10.1.11.jar",
+            "akka-actor_2.11-2.5.29.jar",
+            "akka-protobuf_2.11-2.5.29.jar",
+            "ssl-config-core_2.11-0.3.8.jar",
+            "play-functional_2.11-2.7.4.jar",
+            "akka-parsing_2.11-10.1.11.jar",
+            "scala-java8-compat_2.11-0.7.0.jar",
+            "scala-parser-combinators_2.11-1.1.1.jar",
+            "scala-library-2.11.12.jar",
+            "lib3-1.0-SNAPSHOT.jar",
+            "lib-2-4-3_2.11-1.0-SNAPSHOT.jar",
+            "snakeyaml-1.25.jar",
+            "commons-io-2.6.jar",
+            "commons-codec-1.14.jar",
+            "bcpkix-jdk15on-1.64.jar",
+            "reactive-streams-1.0.2.jar",
+            "joda-time-2.10.1.jar",
+            "jackson-datatype-jdk8-2.9.8.jar",
+            "jackson-datatype-jsr310-2.9.8.jar",
+            "jackson-databind-2.9.8.jar",
+            "jackson-core-2.9.8.jar",
+            "jackson-annotations-2.9.8.jar",
+            "bcprov-jdk15on-1.64.jar",
+            "config-1.3.3.jar"
+          ],
+          "firstLevelModuleDependencies": [
+            "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
+            "com.github.prokod.it:lib3:1.0-SNAPSHOT;apiElements",
+            "io.skuber:skuber_2.11:2.5.0;@defaultOrCompile@",
+            "org.scala-lang:scala-reflect:2.11.12;@defaultOrCompile@",
+            "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
+          ]
+        }
+      },
+      {
+        "configuration": {
+          "allDependencies": [
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
+            "DefaultProjectDependency{dependencyProject='project ':lib3'', configuration='default'}",
+            "DefaultExternalModuleDependency{group='io.skuber', name='skuber_@dsv@', version='2.5.0', configuration='default'}",
+            "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
+            "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}"
+          ],
+          "name": "crossBuildSpark243_211RuntimeClasspath"
+        },
+        "sourceSet": "crossBuildSpark243_211",
+        "resolvedConfiguration": {
+          "hasError": false,
+          "resolvedArtifacts": [
+            "skuber_2.11@_skuber_v_@.jar (io.skuber:skuber_2.11:2.5.0)",
+            "play-json_2.11@_play_v_@.jar (com.typesafe.play:play-json_2.11:2.7.4)",
+            "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
+            "akka-http_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http_2.11:10.1.11)",
+            "akka-stream_2.11@_akka_v_@.jar (com.typesafe.akka:akka-stream_2.11:2.5.29)",
+            "akka-http-core_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-http-core_2.11:10.1.11)",
+            "akka-actor_2.11@_akka_v_@.jar (com.typesafe.akka:akka-actor_2.11:2.5.29)",
+            "akka-protobuf_2.11@_akka_v_@.jar (com.typesafe.akka:akka-protobuf_2.11:2.5.29)",
+            "ssl-config-core_2.11@_ssl_config_v_@.jar (com.typesafe:ssl-config-core_2.11:0.3.8)",
+            "play-functional_2.11@_play_v_@.jar (com.typesafe.play:play-functional_2.11:2.7.4)",
+            "akka-parsing_2.11@_akka_http_v_@.jar (com.typesafe.akka:akka-parsing_2.11:10.1.11)",
+            "scala-java8-compat_2.11@_scala_java8_compat_2_11_v_@.jar (org.scala-lang.modules:scala-java8-compat_2.11:0.7.0)",
+            "scala-parser-combinators_2.11@_scala_parser_combinators_2_11_v_@.jar (org.scala-lang.modules:scala-parser-combinators_2.11:1.1.1)",
+            "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
+            "lib3.jar (project :lib3)",
+            "lib-2-4-3_2.11.jar (project :lib)",
+            "commons-math3@_commons_math3_v_@.jar (org.apache.commons:commons-math3:3.6.1)",
+            "snakeyaml@_snakeyaml_v_@.jar (org.yaml:snakeyaml:1.25)",
+            "commons-io@_commons_io_v_@.jar (commons-io:commons-io:2.6)",
+            "commons-codec@_commons_codec_v_@.jar (commons-codec:commons-codec:1.14)",
+            "bcpkix-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcpkix-jdk15on:1.64)",
+            "reactive-streams@_reactive_streams_v_@.jar (org.reactivestreams:reactive-streams:1.0.2)",
+            "joda-time@_joda_time_v_@.jar (joda-time:joda-time:2.10.1)",
+            "jackson-datatype-jdk8@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.8)",
+            "jackson-datatype-jsr310@_jackson_v_@.jar (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8)",
+            "jackson-databind@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-databind:2.9.8)",
+            "jackson-core@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-core:2.9.8)",
+            "jackson-annotations@_jackson_v_@.jar (com.fasterxml.jackson.core:jackson-annotations:2.9.8)",
+            "bcprov-jdk15on@_jdk15on_v_@.jar (org.bouncycastle:bcprov-jdk15on:1.64)",
+            "config@_config_v_@.jar (com.typesafe:config:1.3.3)"
+          ],
+          "files": [
+            "skuber_2.11-2.5.0.jar",
+            "play-json_2.11-2.7.4.jar",
+            "scala-reflect-2.11.12.jar",
+            "akka-http_2.11-10.1.11.jar",
+            "akka-stream_2.11-2.5.29.jar",
+            "akka-http-core_2.11-10.1.11.jar",
+            "akka-actor_2.11-2.5.29.jar",
+            "akka-protobuf_2.11-2.5.29.jar",
+            "ssl-config-core_2.11-0.3.8.jar",
+            "play-functional_2.11-2.7.4.jar",
+            "akka-parsing_2.11-10.1.11.jar",
+            "scala-java8-compat_2.11-0.7.0.jar",
+            "scala-parser-combinators_2.11-1.1.1.jar",
+            "scala-library-2.11.12.jar",
+            "lib3-1.0-SNAPSHOT.jar",
+            "lib-2-4-3_2.11-1.0-SNAPSHOT.jar",
+            "commons-math3-3.6.1.jar",
+            "snakeyaml-1.25.jar",
+            "commons-io-2.6.jar",
+            "commons-codec-1.14.jar",
+            "bcpkix-jdk15on-1.64.jar",
+            "reactive-streams-1.0.2.jar",
+            "joda-time-2.10.1.jar",
+            "jackson-datatype-jdk8-2.9.8.jar",
+            "jackson-datatype-jsr310-2.9.8.jar",
+            "jackson-databind-2.9.8.jar",
+            "jackson-core-2.9.8.jar",
+            "jackson-annotations-2.9.8.jar",
+            "bcprov-jdk15on-1.64.jar",
+            "config-1.3.3.jar"
+          ],
+          "firstLevelModuleDependencies": [
+            "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+            "com.github.prokod.it:lib3:1.0-SNAPSHOT;runtimeElements",
+            "io.skuber:skuber_2.11:2.5.0;@defaultOrRuntime@",
+            "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
+            "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
+          ]
+        }
+      }]]

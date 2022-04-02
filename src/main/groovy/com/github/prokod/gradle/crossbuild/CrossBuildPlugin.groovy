@@ -25,10 +25,8 @@ import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.UniDependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
-import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsightsView
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsights
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 import com.github.prokod.gradle.crossbuild.utils.ScalaCompileTasks
@@ -180,38 +178,6 @@ class CrossBuildPlugin implements Plugin<Project> {
                 mainConfig.dependencies.remove(dep)
             }
         }
-    }
-
-    /**
-     * Find a set of scala versions,
-     * based on provided {@link org.gradle.api.artifacts.DependencySet} (of the configuration being handled)
-     * and scala-library dependency version.
-     *
-     * @param configuration Specified configuration to retrieve all dependencies from.
-     * @param sourceSetInsights Source-set Insight (representation of specific crossBuild source-set or its main
-     *                          counterpart) - aids with dependencies related insights mainly
-     * @param scalaVersions A set of Scala versions that serve as input for the plugin.
-     */
-    @Deprecated
-    private static Set<String> findScalaVersions(Configuration configuration,
-                                              UniSourceSetInsights sourceSetInsights,
-                                              ScalaVersions scalaVersions) {
-        def insightsView =  UniSourceSetInsightsView.from(configuration, sourceSetInsights)
-
-        def dependencySet = [configuration.allDependencies]
-
-        def di = new UniDependencyInsights(sourceSetInsights)
-
-        def configurationNames = [configuration.name] as Set
-        def crossBuildProjectDependencySet =
-                di.findAllCrossBuildProjectTypeDependenciesDependenciesFor(configurationNames, insightsView.viewType)
-
-        def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
-
-        def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
-
-        def versions = scalaDeps*.supposedScalaVersion.toSet()
-        versions
     }
 
     private static void assignCrossBuildDependencyResolutionStrategy(CrossBuildExtension extension) {
