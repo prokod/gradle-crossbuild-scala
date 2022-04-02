@@ -33,3 +33,7 @@ dependency-reduced-pom.xml
 README.html
 
 *.priv
+
+# VS Code Files
+
+.vscode/

@@ -43,7 +43,7 @@ class CrossBuildsClasspathResolvedConfigurationReportTask extends AbstractCrossB
         def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
         def subItem1 = createReportSubItemFor(sourceSet) { SourceSet input ->
-            sourceSet.compileConfigurationName
+            sourceSet.apiConfigurationName
         }
         def subItem2 = createReportSubItemFor(sourceSet) { SourceSet input ->
             sourceSet.implementationConfigurationName

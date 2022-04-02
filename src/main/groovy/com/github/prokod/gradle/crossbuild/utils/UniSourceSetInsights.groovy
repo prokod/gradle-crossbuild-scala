@@ -14,6 +14,7 @@ import org.gradle.api.tasks.SourceSet
  * For each such pair the following are available respectively: Configuration names, Configurations and dependency sets
  *
  */
+@SuppressWarnings(['MethodCount'])
 class UniSourceSetInsights {
     final SourceSet sourceSet
     final Project project
@@ -25,8 +26,10 @@ class UniSourceSetInsights {
 
     String getNameFor(ViewType configurationType) {
         switch (configurationType) {
-            case ViewType.COMPILE:
+            case ViewType.COMPILE_FRONTEND:
                 return getCompileName()
+            case ViewType.COMPILE_BACKEND:
+                return getCompileBackendName()
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyName()
             case ViewType.COMPILE_CLASSPATH:
@@ -48,8 +51,10 @@ class UniSourceSetInsights {
 
     Configuration getConfigurationFor(ViewType configurationType) {
         switch (configurationType) {
-            case ViewType.COMPILE:
+            case ViewType.COMPILE_FRONTEND:
                 return getCompileConfiguration()
+            case ViewType.COMPILE_BACKEND:
+                return getCompileBackendConfiguration()
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyConfiguration()
             case ViewType.COMPILE_CLASSPATH:
@@ -71,16 +76,12 @@ class UniSourceSetInsights {
         }
     }
 
-    Collection<Configuration> getUserFacingConfigurations() {
-        ViewType.getUserFacingViews().collect { viewType ->
-            getConfigurationFor(viewType)
-        }
-    }
-
     DependencySet getDependencySetFor(ViewType configurationType, DependencySetType dependencySetType) {
         switch (configurationType) {
-            case ViewType.COMPILE:
+            case ViewType.COMPILE_FRONTEND:
                 return getCompileDependencySet(dependencySetType)
+            case ViewType.COMPILE_BACKEND:
+                return getCompileBackendDependencySet(dependencySetType)
             case ViewType.COMPILE_ONLY:
                 return getCompileOnlyDependencySet(dependencySetType)
             case ViewType.COMPILE_CLASSPATH:
@@ -122,7 +123,7 @@ class UniSourceSetInsights {
     }
 
     String getCompileName() {
-        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getCompileConfigurationName() }
+        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getApiConfigurationName() }
     }
 
     Configuration getCompileConfiguration() {
@@ -130,6 +131,18 @@ class UniSourceSetInsights {
     }
 
     DependencySet getCompileDependencySet(DependencySetType dependencySetType) {
+        getDependencySetUsing(dependencySetType) { it -> getCompileConfiguration() }
+    }
+
+    String getCompileBackendName() {
+        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getApiElementsConfigurationName() }
+    }
+
+    Configuration getCompileBackendConfiguration() {
+        getConfigurationUsing { it -> getCompileName() }
+    }
+
+    DependencySet getCompileBackendDependencySet(DependencySetType dependencySetType) {
         getDependencySetUsing(dependencySetType) { it -> getCompileConfiguration() }
     }
 
@@ -170,7 +183,7 @@ class UniSourceSetInsights {
     }
 
     String getRuntimeName() {
-        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getRuntimeConfigurationName() }
+        getConfigurationNameUsing { SourceSet srcSet -> srcSet.getRuntimeElementsConfigurationName() }
     }
 
     Configuration getRuntimeConfiguration() {

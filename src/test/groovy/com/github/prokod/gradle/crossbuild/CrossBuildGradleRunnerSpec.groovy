@@ -19,7 +19,11 @@ import java.util.regex.Pattern
 abstract class CrossBuildGradleRunnerSpec extends Specification {
 
     @Rule
-    final TemporaryFolder dir = new TemporaryFolder()
+    final TemporaryFolder dir = new TemporaryFolder() {
+        @Override
+        protected void after() {
+        }
+    }
 
     def testMavenCentralAccess() {
         URL u = new URL ( "https://repo1.maven.org/maven2/")
