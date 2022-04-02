@@ -98,14 +98,14 @@ tasks.withType(GenerateMavenPom) { t ->
 }
 
 dependencies {
-    compile "org.scalatest:scalatest_?:3.0.1"
-    compile "com.google.guava:guava:18.0"
-    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+    implementation "org.scalatest:scalatest_?:3.0.1"
+    implementation "com.google.guava:guava:18.0"
+    implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
     // flink-connector-kafka-0.10 dependency is only built for Scala 2.11
     // In this case, when cross building this project to Scala 2.10, that dependency should be excluded
-    //  from 'crossBuild210Compile' configurations which inherit from 'compile'. 
-    compile 'org.apache.flink:flink-connector-kafka-0.10_2.11:1.4.1'
-    crossBuildV210Compile 'org.apache.flink:flink-connector-kafka-0.10_2.10:1.3.2'
+    //  from 'crossBuild210Implementation' configurations which inherit from 'implementation'. 
+    implementation 'org.apache.flink:flink-connector-kafka-0.10_2.11:1.4.1'
+    crossBuildV210Implementation 'org.apache.flink:flink-connector-kafka-0.10_2.10:1.3.2'
 }
 
 
@@ -231,6 +231,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.5'           | '2.12'
+        '6.9.2'         | '2.11'
+        '7.3.3'         | '2.12'
     }
 }

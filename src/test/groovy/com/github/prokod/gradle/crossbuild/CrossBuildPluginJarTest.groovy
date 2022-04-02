@@ -124,9 +124,9 @@ sourceSets {
 }
 
 dependencies {
-    compile "org.scalatest:scalatest_?:3.0.1"
-    compile "com.google.guava:guava:18.0"
-    compile "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+    implementation "org.scalatest:scalatest_?:3.0.1"
+    implementation "com.google.guava:guava:18.0"
+    implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
 """
 
@@ -151,7 +151,8 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.10'
         '5.6.4'         | '2.11'
-        '6.5'           | '2.11'
+        '6.9.2'         | '2.11'
+        '7.3.3'         | '2.10'
     }
 
     @Unroll
@@ -241,6 +242,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
-        '6.5'           | '2.12'
+        '6.9.2'         | '2.12'
+        '7.3.3'         | '2.11'
     }
 }

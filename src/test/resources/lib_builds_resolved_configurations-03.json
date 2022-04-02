@@ -1,27 +1,16 @@
 [[{
   "configuration": {
     "allDependencies": [
-      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
     ],
-    "name": "crossBuildSpark233_211Compile"
+    "name": "crossBuildSpark233_211Api"
   },
   "sourceSet": "crossBuildSpark233_211",
   "resolvedConfiguration": {
     "hasError": false,
-    "resolvedArtifacts": [
-      "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-      "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
-    ],
-    "files": [
-      "scala-reflect-2.11.12.jar",
-      "scala-library-2.11.12.jar"
-    ],
-    "firstLevelModuleDependencies": [
-      "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-      "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@"
-    ]
+    "resolvedArtifacts": null,
+    "files": null,
+    "firstLevelModuleDependencies": null
   }
 },
   {
@@ -29,8 +18,7 @@
       "allDependencies": [
         "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
       ],
       "name": "crossBuildSpark233_211Implementation"
     },
@@ -47,8 +35,7 @@
       "allDependencies": [
         "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
       ],
       "name": "crossBuildSpark233_211CompileClasspath"
     },
@@ -77,7 +64,6 @@
       "allDependencies": [
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
         "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}"
       ],
       "name": "crossBuildSpark233_211RuntimeClasspath"
@@ -105,27 +91,16 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}"
       ],
-      "name": "crossBuildSpark242_212Compile"
+      "name": "crossBuildSpark242_212Api"
     },
     "sourceSet": "crossBuildSpark242_212",
     "resolvedConfiguration": {
       "hasError": false,
-      "resolvedArtifacts": [
-        "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-        "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)"
-      ],
-      "files": [
-        "scala-reflect-2.12.8.jar",
-        "scala-library-2.12.8.jar"
-      ],
-      "firstLevelModuleDependencies": [
-        "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.12.8;@defaultOrRuntime@"
-      ]
+      "resolvedArtifacts": null,
+      "files": null,
+      "firstLevelModuleDependencies": null
     }
   },
     {
@@ -133,8 +108,7 @@
         "allDependencies": [
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark242_212Implementation"
       },
@@ -151,8 +125,7 @@
         "allDependencies": [
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark242_212CompileClasspath"
       },
@@ -181,7 +154,6 @@
         "allDependencies": [
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}"
         ],
         "name": "crossBuildSpark242_212RuntimeClasspath"
@@ -209,27 +181,16 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
       ],
-      "name": "crossBuildSpark243_211Compile"
+      "name": "crossBuildSpark243_211Api"
     },
     "sourceSet": "crossBuildSpark243_211",
     "resolvedConfiguration": {
       "hasError": false,
-      "resolvedArtifacts": [
-        "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
-        "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)"
-      ],
-      "files": [
-        "scala-reflect-2.11.12.jar",
-        "scala-library-2.11.12.jar"
-      ],
-      "firstLevelModuleDependencies": [
-        "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@"
-      ]
+      "resolvedArtifacts": null,
+      "files": null,
+      "firstLevelModuleDependencies": null
     }
   },
     {
@@ -237,8 +198,7 @@
         "allDependencies": [
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark243_211Implementation"
       },
@@ -255,8 +215,7 @@
         "allDependencies": [
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark243_211CompileClasspath"
       },
@@ -285,7 +244,6 @@
         "allDependencies": [
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}"
         ],
         "name": "crossBuildSpark243_211RuntimeClasspath"
@@ -313,27 +271,16 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}"
       ],
-      "name": "crossBuildSpark243_212Compile"
+      "name": "crossBuildSpark243_212Api"
     },
     "sourceSet": "crossBuildSpark243_212",
     "resolvedConfiguration": {
       "hasError": false,
-      "resolvedArtifacts": [
-        "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
-        "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)"
-      ],
-      "files": [
-        "scala-reflect-2.12.8.jar",
-        "scala-library-2.12.8.jar"
-      ],
-      "firstLevelModuleDependencies": [
-        "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.12.8;@defaultOrRuntime@"
-      ]
+      "resolvedArtifacts": null,
+      "files": null,
+      "firstLevelModuleDependencies": null
     }
   },
     {
@@ -341,8 +288,7 @@
         "allDependencies": [
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark243_212Implementation"
       },
@@ -359,8 +305,7 @@
         "allDependencies": [
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}"
+          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
         "name": "crossBuildSpark243_212CompileClasspath"
       },
@@ -389,7 +334,6 @@
         "allDependencies": [
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='@dsv@.+', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}"
         ],
         "name": "crossBuildSpark243_212RuntimeClasspath"
