@@ -48,9 +48,6 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def compileConfiguration = project.configurations[crossBuildSourceSet.compileClasspathConfigurationName]
         def runtimeConfiguration = project.configurations[crossBuildSourceSet.runtimeClasspathConfigurationName]
 
-//        def compileConfiguration = project.configurations[crossBuildSourceSet.runtimeElementsConfigurationName]
-//        def runtimeConfiguration = project.configurations[crossBuildSourceSet.apiElementsConfigurationName]
-
         def gcc = gradleClasspathConfigurationBasedDependencySetFunction(compileConfiguration)
         def grc = gradleClasspathConfigurationBasedDependencySetFunction(runtimeConfiguration)
 

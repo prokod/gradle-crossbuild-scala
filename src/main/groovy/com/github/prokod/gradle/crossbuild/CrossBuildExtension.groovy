@@ -160,9 +160,6 @@ class CrossBuildExtension {
             jar.description = 'Assembles a jar archive containing ' +
                     "${rb.scalaVersionInsights.strippedArtifactInlinedVersion} classes"
             jar.archiveBaseName.set(archiveBaseName.get() + rb.archive.appendix)
-            /* CLASSIFIER based pub */
-//            jar.archiveClassifier.set(rb.scalaVersionInsights.underscoredArtifactInlinedVersion)
-            /* CLASSIFIER based pub */
             jar.from sourceSet.output
         }
 
