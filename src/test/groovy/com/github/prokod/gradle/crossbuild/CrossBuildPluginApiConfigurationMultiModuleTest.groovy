@@ -442,15 +442,15 @@ dependencies {
         project210['org.scala-lang'].groupId == 'org.scala-lang'
         project210['org.scala-lang'].artifactId == 'scala-library'
         project210['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
-        project210['org.scala-lang'].scope == 'compile'
+        project210['org.scala-lang'].scope == 'runtime'
         project210['com.google.guava'].groupId == 'com.google.guava'
         project210['com.google.guava'].artifactId == 'guava'
         project210['com.google.guava'].version == '18.0'
-        project210['com.google.guava'].scope == 'compile'
+        project210['com.google.guava'].scope == 'runtime'
         project210['org.scalatest'].groupId == 'org.scalatest'
         project210['org.scalatest'].artifactId == 'scalatest_2.10'
         project210['org.scalatest'].version == '3.0.1'
-        project210['org.scalatest'].scope == 'compile'
+        project210['org.scalatest'].scope == 'runtime'
 
         when:
         def project211 = new XmlSlurper().parseText(pom211).dependencies.dependency.collectEntries{
@@ -462,15 +462,15 @@ dependencies {
         project211['org.scalatest'].groupId == 'org.scalatest'
         project211['org.scalatest'].artifactId == 'scalatest_2.11'
         project211['org.scalatest'].version == '3.0.1'
-        project211['org.scalatest'].scope == 'compile'
+        project211['org.scalatest'].scope == 'runtime'
         project211['org.scala-lang'].groupId == 'org.scala-lang'
         project211['org.scala-lang'].artifactId == 'scala-library'
         project211['org.scala-lang'].version == '2.11.11'
-        project211['org.scala-lang'].scope == 'compile'
+        project211['org.scala-lang'].scope == 'runtime'
         project211['com.google.guava'].groupId == 'com.google.guava'
         project211['com.google.guava'].artifactId == 'guava'
         project211['com.google.guava'].version == '18.0'
-        project211['com.google.guava'].scope == 'compile'
+        project211['com.google.guava'].scope == 'runtime'
 
         when:
         def projectLib2_210 = new XmlSlurper().parseText(lib2pom210).dependencies.dependency.collectEntries{
@@ -482,11 +482,11 @@ dependencies {
         projectLib2_210['org.scala-lang'].groupId == 'org.scala-lang'
         projectLib2_210['org.scala-lang'].artifactId == 'scala-library'
         projectLib2_210['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
-        projectLib2_210['org.scala-lang'].scope == 'compile'
+        projectLib2_210['org.scala-lang'].scope == 'runtime'
         projectLib2_210['com.github.prokod.it'].groupId == 'com.github.prokod.it'
         projectLib2_210['com.github.prokod.it'].artifactId == 'lib_2.10'
         projectLib2_210['com.github.prokod.it'].version == '1.0-SNAPSHOT'
-        projectLib2_210['com.github.prokod.it'].scope == 'compile'
+        projectLib2_210['com.github.prokod.it'].scope == 'runtime'
 
         when:
         def projectLib2_211 = new XmlSlurper().parseText(lib2pom211).dependencies.dependency.collectEntries{
@@ -498,11 +498,11 @@ dependencies {
         projectLib2_211['org.scala-lang'].groupId == 'org.scala-lang'
         projectLib2_211['org.scala-lang'].artifactId == 'scala-library'
         projectLib2_211['org.scala-lang'].version == '2.11.11'
-        projectLib2_211['org.scala-lang'].scope == 'compile'
+        projectLib2_211['org.scala-lang'].scope == 'runtime'
         projectLib2_211['com.github.prokod.it'].groupId == 'com.github.prokod.it'
         projectLib2_211['com.github.prokod.it'].artifactId == 'lib_2.11'
         projectLib2_211['com.github.prokod.it'].version == '1.0-SNAPSHOT'
-        projectLib2_211['com.github.prokod.it'].scope == 'compile'
+        projectLib2_211['com.github.prokod.it'].scope == 'runtime'
 
         where:
         gradleVersion   | defaultScalaVersion
