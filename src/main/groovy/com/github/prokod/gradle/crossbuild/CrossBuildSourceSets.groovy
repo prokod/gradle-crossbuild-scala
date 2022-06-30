@@ -3,8 +3,11 @@ package com.github.prokod.gradle.crossbuild
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.model.ObjectFactory
 
 /**
  * {@link SourceSetContainer} manipulation class to set and view CrossBuild SourceSets
@@ -14,10 +17,12 @@ class CrossBuildSourceSets {
     static final String SOURCESET_BASE_NAME = 'crossBuild'
 
     private final Project project
+    private final ObjectFactory objectFactory
     final SourceSetContainer container
 
-    CrossBuildSourceSets(Project project) {
+    CrossBuildSourceSets(Project project, ObjectFactory objectFactory) {
         this.project = project
+        this.objectFactory = objectFactory
         this.container = getSourceSetContainer(project)
     }
 
@@ -39,20 +44,32 @@ class CrossBuildSourceSets {
 
             def runtimeOnlyConfig = project.configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName())
 
-            def createdApiConfig = project.configurations.create(sourceSet.getApiConfigurationName()) {
-                canBeConsumed = true
-                canBeResolved = false
+            def createdApiConfig =
+                    project.configurations.create(sourceSet.getApiConfigurationName()) { Configuration cnf ->
+                cnf.canBeConsumed = false
+                cnf.canBeResolved = false
             }
 
-            def createdApiElementsConfig = project.configurations.create(sourceSet.getApiElementsConfigurationName()) {
-                canBeConsumed = false
-                canBeResolved = true
+            def createdApiElementsConfig =
+                    project.configurations.create(sourceSet.getApiElementsConfigurationName()) { Configuration cnf ->
+                cnf.canBeConsumed = true
+                cnf.canBeResolved = false
+
+                cnf.attributes {
+                    it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                                    objectFactory.named(LibraryElements, "scala-${build.scalaVersion}-jar"))
+                }
             }
 
             def createdRuntimeElementsConfig =
-                    project.configurations.create(sourceSet.getRuntimeElementsConfigurationName()) {
-                canBeConsumed = false
-                canBeResolved = true
+                    project.configurations.create(sourceSet.getRuntimeElementsConfigurationName()) { Configuration c ->
+                c.canBeConsumed = true
+                c.canBeResolved = false
+
+                c.attributes {
+                    it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                                    objectFactory.named(LibraryElements, "scala-${build.scalaVersion}-jar"))
+                }
             }
 
             implementationConfig.extendsFrom(createdApiConfig)

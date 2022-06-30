@@ -858,11 +858,9 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion | scalazQmarked
-        '4.10.3'        | '2.11'              | false
         '5.6.4'         | '2.12'              | false
         '6.9.2'         | '2.12'              | false
         '7.3.3'         | '2.11'              | false
-        '4.10.3'        | '2.11'              | true
         '5.6.4'         | '2.12'              | true
         '6.9.2'         | '2.12'              | true
         '7.3.3'         | '2.11'              | true
@@ -1104,7 +1102,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
         '6.9.2'         | '2.12'
         '7.3.3'         | '2.11'
@@ -1363,7 +1360,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
         '6.9.2'         | '2.12'
         '7.3.3'         | '2.11'

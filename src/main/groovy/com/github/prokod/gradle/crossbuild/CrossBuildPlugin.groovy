@@ -27,6 +27,7 @@ import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsights
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 import com.github.prokod.gradle.crossbuild.utils.ScalaCompileTasks
@@ -35,15 +36,27 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 
+import javax.inject.Inject
+
 /**
  * Crossbuild plugin entry point
  */
 class CrossBuildPlugin implements Plugin<Project> {
+    private final ObjectFactory objectFactory
+
+    @Inject
+    CrossBuildPlugin(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory
+    }
+
     void apply(Project project) {
         project.pluginManager.apply('scala')
         project.pluginManager.apply('java-library')
 
-        def extension = project.extensions.create('crossBuild', CrossBuildExtension, project)
+        def extension = project.extensions.create('crossBuild',
+                CrossBuildExtension,
+                project,
+                objectFactory)
 
         project.task(type:CrossBuildsReportTask,
                 "${AbstractCrossBuildsReportTask.BASE_TASK_NAME}ResolvedDsl") { CrossBuildsReportTask t ->

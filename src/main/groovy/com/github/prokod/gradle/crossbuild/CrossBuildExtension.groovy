@@ -8,9 +8,16 @@ import com.github.prokod.gradle.crossbuild.model.EventType
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmVersion
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
@@ -21,8 +28,8 @@ import org.gradle.api.tasks.bundling.Jar
 class CrossBuildExtension {
 
     final Project project
-
     final CrossBuildSourceSets crossBuildSourceSets
+    final ObjectFactory objects
 
     Map<String, String> scalaVersionsCatalog = [:]
 
@@ -34,13 +41,14 @@ class CrossBuildExtension {
 
     Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds = []
 
-    CrossBuildExtension(Project project) {
+    CrossBuildExtension(Project project, ObjectFactory objectFactory) {
         this.project = project
+        this.objects = objectFactory
 
         this.archive = project.objects.newInstance(ArchiveNaming,
                 'DefaultArchiveNaming', '_?', new BuildUpdateEventStore(project))
 
-        this.crossBuildSourceSets = new CrossBuildSourceSets(project)
+        this.crossBuildSourceSets = new CrossBuildSourceSets(project, objects)
 
         this.builds = project.container(Build, buildFactory)
     }
@@ -111,24 +119,62 @@ class CrossBuildExtension {
 
     void realizeCrossBuildTasks(Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
         resolvedBuilds.findAll { rb ->
-            def scalaVersionInsights = rb.scalaVersionInsights
-
             def (String sourceSetId, SourceSet sourceSet) =
-            crossBuildSourceSets.findByName(rb.name)
+                                    crossBuildSourceSets.findByName(rb.name)
 
-            def task = project.tasks.create(sourceSet.getJarTaskName(), Jar) {
-                group = BasePlugin.BUILD_GROUP
-                description = 'Assembles a jar archive containing ' +
-                        "${scalaVersionInsights.strippedArtifactInlinedVersion} classes"
-                baseName = baseName + rb.archive.appendix
-                from sourceSet.output
-            }
-
-            project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle:'config',
-                    msg:"Created crossbuild Jar task for sourceSet ${sourceSetId}." +
-                            " [Resolved Jar baseName (w/ appendix): ${task.baseName}]"))
+            def scalaJar = createArtifact(sourceSet, rb)
+            // Runtime
+            def outgoingConfigurationRuntime =
+                    configureOutgoingConfiguration(sourceSet.getRuntimeElementsConfigurationName(),
+                            rb.scalaVersion,
+                            Usage.JAVA_RUNTIME)
+            attachArtifact(scalaJar, outgoingConfigurationRuntime.name)
+            // Api
+            def outgoingConfigurationApi =
+                    configureOutgoingConfiguration(sourceSet.getApiElementsConfigurationName(),
+                            rb.scalaVersion,
+                            Usage.JAVA_API)
+            attachArtifact(scalaJar, outgoingConfigurationApi.name)
         }
+    }
+
+    Configuration configureOutgoingConfiguration(String outgoingConfigurationName, String scalaVersion, String usage) {
+        Configuration outgoingConfiguration =
+                project.configurations.getByName(outgoingConfigurationName) { Configuration cnf ->
+            cnf.attributes {
+                it.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, usage))
+                it.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+                it.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                        JavaVersion.current().majorVersion.toInteger())
+                it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objects.named(LibraryElements, "scala-${scalaVersion}-jar"))
+            }
+        }
+        outgoingConfiguration
+    }
+
+    Jar createArtifact(SourceSet sourceSet, ResolvedBuildAfterEvalLifeCycle rb) {
+        def scalaJar = project.tasks.create(sourceSet.getJarTaskName(), Jar) { Jar jar ->
+            jar.group = BasePlugin.BUILD_GROUP
+            jar.description = 'Assembles a jar archive containing ' +
+                    "${rb.scalaVersionInsights.strippedArtifactInlinedVersion} classes"
+            jar.archiveBaseName.set(archiveBaseName.get() + rb.archive.appendix)
+            /* CLASSIFIER based pub */
+//            jar.archiveClassifier.set(rb.scalaVersionInsights.underscoredArtifactInlinedVersion)
+            /* CLASSIFIER based pub */
+            jar.from sourceSet.output
+        }
+
+        project.logger.info(LoggerUtils.logTemplate(project,
+                lifecycle:'config',
+                msg:"Created crossbuild Jar task for sourceSet ${sourceSet.name}." +
+                        " [Resolved Jar archiveBaseName (w/ appendix): ${scalaJar.archiveBaseName.get()}]"))
+        scalaJar
+    }
+
+    void attachArtifact(Jar scalaJar, String configurationName) {
+        project.artifacts.add(configurationName, scalaJar)
     }
 
     void updateCrossBuildTasks(Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
@@ -141,15 +187,16 @@ class CrossBuildExtension {
             def task = sourceSet?.getJarTaskName() != null ? project.tasks.findByName(sourceSet.getJarTaskName()) : null
 
             if (task != null) {
-                def origBaseName = DependencyLimitedInsight.parseByDependencyName(task.baseName, sv).baseName
+                def origBaseName =
+                        DependencyLimitedInsight.parseByDependencyName(task.archiveBaseName.get(), sv).baseName
                 task.configure {
-                    baseName = origBaseName + rb.archive.appendix
+                    archiveBaseName.set(origBaseName + rb.archive.appendix)
                 }
 
                 project.logger.info(LoggerUtils.logTemplate(project,
                         lifecycle:'config',
                         msg:"Updated crossbuild Jar task for sourceSet ${sourceSetId}." +
-                                " [Resolved Jar baseName (w/ appendix): ${task.baseName}]"))
+                                " [Resolved Jar archiveBaseName (w/ appendix): ${task.archiveBaseName.get()}]"))
             }
         }
     }

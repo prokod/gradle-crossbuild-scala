@@ -48,6 +48,9 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def compileConfiguration = project.configurations[crossBuildSourceSet.compileClasspathConfigurationName]
         def runtimeConfiguration = project.configurations[crossBuildSourceSet.runtimeClasspathConfigurationName]
 
+//        def compileConfiguration = project.configurations[crossBuildSourceSet.runtimeElementsConfigurationName]
+//        def runtimeConfiguration = project.configurations[crossBuildSourceSet.apiElementsConfigurationName]
+
         def gcc = gradleClasspathConfigurationBasedDependencySetFunction(compileConfiguration)
         def grc = gradleClasspathConfigurationBasedDependencySetFunction(runtimeConfiguration)
 
@@ -79,21 +82,17 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def mavenScopeBasedDependencySetFunction = { ScopeType scope ->
             switch (scope) {
                 case ScopeType.COMPILE:
-                    // Gradle compileOnly deps
-                    def gco = gcc - grc
+                    def mrs = grc.intersect(gcc)
+                    def mcs = gcc - mrs
                     // Maven compile scope
-                    def mc = gcc - gco
-                    return mc
+                    return mcs
                 case ScopeType.RUNTIME:
                     // Maven runtime scope
-                    def mr = grc - gcc
-                    return mr
+                    def mrs = grc.intersect(gcc)
+                    return mrs
                 case ScopeType.PROVIDED:
-                    // Gradle compileOnly deps
-                    def gco = gcc - grc
-                    // Maven provided scope
-                    def mp = gco
-                    return mp
+                    // Short circuit for now
+                    return [] as Set<Dependency>
             }
         }
 

@@ -91,10 +91,7 @@ class DependencyInsightsTest extends Specification {
             def dep3 = new DefaultExternalModuleDependency('some.group', 'yasomecalalib_?_suffix', '1.2.5')
             def dep4 = new DefaultExternalModuleDependency('some.group', 'yasomecalalib_2.10', '1.2.5')
 
-        def dependencySet = new DefaultDependencySet(
-                    Describables.of('someDisplayName'),
-                    null,
-                    new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep4)))
+        def dependencySet = Arrays.asList(dep1, dep2, dep3, dep4)
         when:
             def tupleList = DependencyInsights.findAllNonMatchingScalaVersionDependencies(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
@@ -120,10 +117,7 @@ class DependencyInsightsTest extends Specification {
             def dep5 = new DefaultExternalModuleDependency('some.group', 'yasomescalalib_?', '1.2.4')
             def dep51 = new DefaultExternalModuleDependency('some.group', 'yasomescalalib_?_suffix', '1.2.4')
             def dep6 = new DefaultExternalModuleDependency('some.group', 'nonscalalib', '1.2.5')
-            def dependencySet = new DefaultDependencySet(
-                    Describables.of('someDisplayName'),
-                    null,
-                    new DefaultDomainObjectSet(Dependency, Arrays.asList(dep1, dep2, dep3, dep31, dep4, dep5, dep51, dep6)))
+            def dependencySet = Arrays.asList(dep1, dep2, dep3, dep31, dep4, dep5, dep51, dep6)
         when:
             def tuplesList = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(dependencySet.collect(), '2.10', ScalaVersions.DEFAULT_SCALA_VERSIONS)
         then:
