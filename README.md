@@ -248,10 +248,10 @@ The transformation from Gradle's own Configurations to Maven's Scopes is done us
   
 | Maven Scope | Gradle transformation function |
 |-------------|--------------------------------|
-| `COMPILE`   | `GCC - (GCC - GRC)`            |
-| `RUNTIME`   | `GRC - GCC`                    |
-| `PROVIDED`  | `GCC - GRC`                    |
-  
+| `RUNTIME`   | `GRC` $\cap$ `GCC`                    |
+| `COMPILE`   | `GCC - (GRC` $\cap$ `GCC)`            |
+| `PROVIDED`  | `{}`                           |
+
 Where `GCC` is Gradle's CompileClasspath dependency set; `GRC`is Gradle's RuntimeClasspath dependency set
 
 #### overriding plugin's internal pom.withXml

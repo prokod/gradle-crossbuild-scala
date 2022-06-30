@@ -221,7 +221,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.12'
         '5.6.4'         | '2.12'
         '6.9.2'         | '2.10'
         '7.3.3'         | '2.11'
@@ -356,7 +355,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.12'
         '5.6.4'         | '2.11'
         '6.9.2'         | '2.11'
         '7.3.3'         | '2.12'
@@ -609,7 +607,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
         '6.9.2'         | '2.12'
         '7.3.3'         | '2.11'
@@ -858,11 +855,11 @@ dependencies {
         pom211.dependencies.dependency[0].groupId == 'org.scala-lang'
         pom211.dependencies.dependency[0].artifactId == 'scala-library'
         pom211.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
-        pom211.dependencies.dependency[0].scope == 'compile'
+        pom211.dependencies.dependency[0].scope == 'runtime'
         pom211.dependencies.dependency[1].groupId == 'com.google.guava'
         pom211.dependencies.dependency[1].artifactId == 'guava'
         pom211.dependencies.dependency[1].version == '18.0'
-        pom211.dependencies.dependency[1].scope == 'compile'
+        pom211.dependencies.dependency[1].scope == 'runtime'
 
         when:
         def pom212 = new XmlSlurper().parse(pom212File)
@@ -872,11 +869,11 @@ dependencies {
         pom212.dependencies.dependency[0].groupId == 'org.scala-lang'
         pom212.dependencies.dependency[0].artifactId == 'scala-library'
         pom212.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
-        pom212.dependencies.dependency[0].scope == 'compile'
+        pom212.dependencies.dependency[0].scope == 'runtime'
         pom211.dependencies.dependency[1].groupId == 'com.google.guava'
         pom211.dependencies.dependency[1].artifactId == 'guava'
         pom211.dependencies.dependency[1].version == '18.0'
-        pom211.dependencies.dependency[1].scope == 'compile'
+        pom211.dependencies.dependency[1].scope == 'runtime'
 
         when:
         def lib2pom211File = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.11.xml")
@@ -917,7 +914,6 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        '4.10.3'      | '2.12'
         '5.6.4'       | '2.11'
         '6.9.2'       | '2.12'
         '7.3.3'       | '2.11'

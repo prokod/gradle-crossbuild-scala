@@ -149,7 +149,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.10'
         '5.6.4'         | '2.11'
         '6.9.2'         | '2.11'
         '7.3.3'         | '2.10'
@@ -240,7 +239,6 @@ dependencies {
         fileExists("$dir.root.absolutePath/build/libs/junit*_2.12.jar")
         where:
         gradleVersion   | defaultScalaVersion
-        '4.10.3'        | '2.11'
         '5.6.4'         | '2.12'
         '6.9.2'         | '2.12'
         '7.3.3'         | '2.11'

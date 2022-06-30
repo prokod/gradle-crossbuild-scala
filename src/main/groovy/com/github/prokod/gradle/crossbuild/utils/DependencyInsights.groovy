@@ -111,8 +111,32 @@ class DependencyInsights {
      * Generates for each a Producer configuration that "holds" the cross built artifact
      * Then this dependency is added to the dependencies block of the current project
      *
+     * NOTE: The outcome can be seen in the following resolved config task output (many artifacts to single Producer
+     *       configuration)
+     *  {
+     *      "configuration": {
+     *          "allDependencies": [
+     *              "DefaultProjectDependency{dependencyProject='project ':lib2'',
+     *                                        configuration='crossBuildSpark230_211ImplementationProducer'}",
+     *              "DefaultProjectDependency{dependencyProject='project ':lib'',
+     *                                        configuration='crossBuildSpark230_211ImplementationProducer'}",
+     *              ...
+     *          ],
+     *          "name": "crossBuildSpark230_211Implementation"
+     *      },
+     *      "sourceSet": "crossBuildSpark230_211",
+     *      "resolvedConfiguration": {
+     *          "hasError": false,
+     *          "resolvedArtifacts": null,
+     *          "files": null,
+     *          "firstLevelModuleDependencies": null
+     *      }
+     *  }
+     *
      * @param producerView
      * @param consumerView
+     * @param softwareComponentFactory - wiring artifacts with adhoc Scala software component
+     * @return Producer configuration name
      */
     void generateAndWireCrossBuildProjectTypeDependencies(ViewType producerView, ViewType consumerView) {
         def project = sourceSetInsights.project
@@ -122,30 +146,24 @@ class DependencyInsights {
 
         def projectLibDependencies = extractCrossBuildProjectTypeDependencies(producerView)
 
+        def componentBaseName = sourceSetInsights.crossBuild.sourceSet.name
+        def producerConfigurationName = "${componentBaseName}Producer"
+
         projectLibDependencies.each { dependency ->
             def subProject = dependency.dependencyProject
 
             def targetTask = subProject.tasks[sourceSetInsights.crossBuild.sourceSet.jarTaskName]
 
-            def producerConfigurationName = "${sourceSetInsights.crossBuild.sourceSet.name}Producer"
-
             def alreadyCreatedProducerConfiguration = subProject.configurations.findByName(producerConfigurationName)
             def producerConfiguration =
                     alreadyCreatedProducerConfiguration ?: subProject.configurations.create(producerConfigurationName) {
-                canBeResolved = false
-                canBeConsumed = true
+                it.canBeResolved = false
+                it.canBeConsumed = true
 
-                outgoing.artifact(targetTask)
+                it.outgoing.artifact(targetTask)
             }
 
             def dep = project.dependencies.project(path:subProject.path, configuration:producerConfiguration.name)
-
-            project.dependencies.attributesSchema.with {
-                // Added to support correct Dependency resolution for Gradle 4.X
-                attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules.add(DisRule) {
-                    it.params(sourceSetInsights.crossBuild.sourceSet.name)
-                }
-            }
 
             project.dependencies.add(consumerConfiguration.name, dep)
 
@@ -160,7 +178,7 @@ class DependencyInsights {
     void generateAndWireCrossBuildProjectTypeDependencies(ViewType viewType) {
         generateAndWireCrossBuildProjectTypeDependencies(viewType, viewType)
     }
-        /**
+    /**
      * See {@link #generateDetachedDefaultConfigurationsRecursivelyFor} doc
      *
      * @param referenceView Configuration type as context for this method to operate from.

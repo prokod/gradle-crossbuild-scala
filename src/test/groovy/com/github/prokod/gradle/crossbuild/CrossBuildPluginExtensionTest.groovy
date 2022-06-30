@@ -16,6 +16,7 @@
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.Build
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testfixtures.ProjectBuilder
@@ -147,17 +148,18 @@ dependencies {
         // instantiation will fail.
         project.pluginManager.apply(JavaPlugin)
 
-        def build1 = new Build('spark160', new CrossBuildExtension(project)).with { b ->
+        ObjectFactory objects = project.services.get(ObjectFactory)
+        def build1 = new Build('spark160', new CrossBuildExtension(project, objects)).with { b ->
             scalaVersions = ['2.10']
             archive.appendixPattern = eap1
             b
         }
-        def build2 = new Build('spark240', new CrossBuildExtension(project)).with { b ->
+        def build2 = new Build('spark240', new CrossBuildExtension(project, objects)).with { b ->
             scalaVersions = ['2.11']
             archive.appendixPattern = eap2
             b
         }
-        def build3 = new Build('spark241', new CrossBuildExtension(project)).with { b ->
+        def build3 = new Build('spark241', new CrossBuildExtension(project, objects)).with { b ->
             scalaVersions = ['2.12']
             archive.appendixPattern = eap3
             b
@@ -193,7 +195,7 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
-        '4.10.3'      | '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
+        '5.6.4'       | '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
         '5.6.4'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
         '6.9.2'       | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
         '7.3.3'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
