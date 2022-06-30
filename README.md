@@ -248,8 +248,8 @@ The transformation from Gradle's own Configurations to Maven's Scopes is done us
   
 | Maven Scope | Gradle transformation function |
 |-------------|--------------------------------|
-| `RUNTIME`   | `GRC U GCC`                    |
-| `COMPILE`   | `GCC - (GRC U GCC)`            |
+| `RUNTIME`   | `GRC` $\cap$ `GCC`                    |
+| `COMPILE`   | `GCC - (GRC` $\cap$ `GCC)`            |
 | `PROVIDED`  | `{}`                           |
 
 Where `GCC` is Gradle's CompileClasspath dependency set; `GRC`is Gradle's RuntimeClasspath dependency set
