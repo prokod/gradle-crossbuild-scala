@@ -33,21 +33,15 @@ configurations {
     codeCoverageTestImplementation.extendsFrom implementation
     codeCoverageTestImplementation.extendsFrom testImplementation
     codeCoverageTestRuntimeOnly.extendsFrom runtimeOnly
-    // codeCoverageTestCompileOnly.extendsFrom testCompileOnly
 }
-
-// dependencies {
-//     codeCoverageTestImplementation(project)
-// }
 
 jacoco {
     toolVersion = "0.8.7"
 }
 
-task jacocoCodeCoverageTestReport(type: JacocoReport) {
+tasks.register('jacocoCodeCoverageTestReport', JacocoReport) {
    sourceSets sourceSets.main
-//    executionData codeCoverageTest
-   executionData layout.buildDirectory.file("test-results/codeCoverageTest/binary/output.bin")
+   executionData codeCoverageTest
 }
 
 // For jacoco to cover also Gradle's TestKit tests, GradleRunner.create() should be built using withDebug(true)
@@ -55,7 +49,6 @@ jacocoCodeCoverageTestReport {
     reports {
         xml.enabled true
         html.enabled true
-        // html.destination file("${buildDir}/jacocoHtml")
     }
 }
 
