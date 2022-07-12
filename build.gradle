@@ -26,6 +26,8 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
+apply from: 'codecov.gradle'
+
 artifacts {
     archives javadocJar
     archives sourcesJar
@@ -42,16 +44,22 @@ signing {
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
+    implementation gradleApi()
+    implementation localGroovy()
 
-    testCompile gradleTestKit()
-    testCompile ('org.spockframework:spock-core:1.2-groovy-2.4') {
-        exclude module: 'groovy-all'
+    testImplementation gradleTestKit()
+    testImplementation ('org.spockframework:spock-core:2.1-groovy-2.5') {
+        exclude module: 'groovy'
     }
-    testCompile 'org.skyscreamer:jsonassert:1.5.0'
-    testCompile 'org.xmlunit:xmlunit-core:2.6.3'
-    testCompile 'org.xmlunit:xmlunit-matchers:2.6.3'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
+    testImplementation 'org.xmlunit:xmlunit-core:2.6.3'
+    testImplementation 'org.xmlunit:xmlunit-matchers:2.6.3'
+
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'spock.configuration', rootProject.file('config/spock/SpockConfig.groovy').absolutePath
 }
 
 gradlePlugin {
@@ -163,18 +171,5 @@ tasks.withType(Test) {
                 println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
             }
         }
-    }
-}
-
-jacoco {
-    toolVersion = "0.8.5"
-}
-
-// For jacoco to cover also Gradle's TestKit tests, GradleRunner.create() should be built using withDebug(true)
-jacocoTestReport {
-    reports {
-        xml.enabled true
-        html.enabled false
-        html.destination file("${buildDir}/jacocoHtml")
     }
 }

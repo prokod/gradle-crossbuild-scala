@@ -49,9 +49,9 @@ crossBuild {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -98,9 +98,9 @@ crossBuild {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -138,14 +138,14 @@ crossBuild {
 publishing {
     publications {
         crossBuildV211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
         crossBuildV212(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV212Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -154,9 +154,9 @@ publishing {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -190,9 +190,9 @@ crossBuild {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildV211Jar', 'crossBuildV212Jar', '--info', '--stacktrace')
                 .build()
 
@@ -234,9 +234,9 @@ crossBuild {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -283,9 +283,9 @@ gradle.projectsEvaluated {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--debug', '--stacktrace')
                 .build()
 
@@ -351,9 +351,9 @@ gradle.projectsEvaluated {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildV210Jar',
                         'crossBuildV211_211Jar',
                         'crossBuildV211_212Jar',
@@ -425,9 +425,9 @@ crossBuild {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('tasks',
                         '--info', '--stacktrace')
                 .build()
@@ -482,14 +482,14 @@ crossBuild {
 publishing {
     publications {
         crossBuildV210(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV210Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
         crossBuildV211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -498,9 +498,9 @@ publishing {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -548,9 +548,9 @@ sourceSets {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuild210Jar', 'crossBuild211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -584,9 +584,9 @@ crossBuild {
         when:
         GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuild213Jar', '--info')
                 .build()
 
@@ -619,9 +619,9 @@ crossBuild {
         when:
         GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuild213Jar', '--info')
                 .build()
 
@@ -654,9 +654,9 @@ crossBuild {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildV213Jar', '--info')
                 .build()
 

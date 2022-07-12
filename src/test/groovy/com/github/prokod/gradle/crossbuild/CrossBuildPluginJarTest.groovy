@@ -91,14 +91,14 @@ crossBuild {
 publishing {
     publications {
         crossBuildV210(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV210Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
         crossBuildV211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -134,9 +134,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -144,8 +144,8 @@ dependencies {
         result.task(":crossBuildV210Jar").outcome == SUCCESS
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/build/libs/junit*_2.10.jar")
-        fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
+        fileExists(dir.resolve('build/libs/spock__gradle_*_2.10.jar'))
+        fileExists(dir.resolve('build/libs/spock__gradle_*_2.11.jar'))
 
         where:
         gradleVersion   | defaultScalaVersion
@@ -224,9 +224,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildResolvedConfigs', 'crossBuildV211Jar', 'crossBuildV212Jar', 'check', '--info', '--stacktrace')
                 .build()
 
@@ -235,8 +235,8 @@ dependencies {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
         result.task(":crossBuildV212Jar").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/build/libs/junit*_2.11.jar")
-        fileExists("$dir.root.absolutePath/build/libs/junit*_2.12.jar")
+        fileExists("${dir.resolve('build/libs/spock__gradle_*_2.11.jar')}")
+        fileExists("${dir.resolve('build/libs/spock__gradle_*_2.12.jar')}")
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'

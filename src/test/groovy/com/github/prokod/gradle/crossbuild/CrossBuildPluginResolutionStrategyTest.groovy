@@ -78,13 +78,15 @@ crossBuild {
 publishing {
     publications {
         crossBuildV210(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV210Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
+            }
+        }
         crossBuildV211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}        }
+            }
+        }
     }
 }
 
@@ -115,16 +117,16 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":publishToMavenLocal").outcome == SUCCESS
-        def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
-        def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def pom210 = dir.resolve("build${File.separator}generated-pom_2.10.xml").text
+        def pom211 = dir.resolve("build${File.separator}generated-pom_2.11.xml").text
 
         !pom210.contains('2.11.')
         pom210.contains('2.10.6')
@@ -138,8 +140,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        '5.6.4'       | '2.10'
-        '6.9.2'       | '2.11'
+        '5.6.4'       | '2.11'
+        '6.9.2'       | '2.10'
         '7.3.3'       | '2.11'
     }
 
@@ -217,9 +219,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('build', 'check', '--info', '--stacktrace')
                 .build()
 

@@ -1,0 +1,67 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+// Generate enabled withDebug on all test source code
+def generateCodeCoverageFriendlyTests = tasks.register("generateCodeCoverageFriendlyTests", Copy) {
+    from("${rootDir}/src/test/groovy")
+    into(layout.buildDirectory.dir("generated/sources/codeCoverage/test/groovy"))
+
+    filter(ReplaceTokens, tokens: [withDebug: '.withDebug(true)'], beginToken: '/*@', endToken: '@*/')
+}
+
+// Extra sourceset to handle generated test code
+sourceSets {
+    codeCoverageTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output + configurations.testRuntimeClasspath
+
+        groovy {
+            srcDir(generateCodeCoverageFriendlyTests)
+        }
+    }
+}
+
+// Dedicated test task
+tasks.register('codeCoverageTest', Test) {
+    description = 'Runs tests with debug symbols for accurate code coverage report.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.codeCoverageTest.output.classesDirs
+    classpath = sourceSets.codeCoverageTest.runtimeClasspath
+}
+
+configurations {
+    codeCoverageTestImplementation.extendsFrom implementation
+    codeCoverageTestImplementation.extendsFrom testImplementation
+    codeCoverageTestRuntimeOnly.extendsFrom runtimeOnly
+    // codeCoverageTestCompileOnly.extendsFrom testCompileOnly
+}
+
+// dependencies {
+//     codeCoverageTestImplementation(project)
+// }
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+task jacocoCodeCoverageTestReport(type: JacocoReport) {
+   sourceSets sourceSets.main
+//    executionData codeCoverageTest
+   executionData layout.buildDirectory.file("test-results/codeCoverageTest/binary/output.bin")
+}
+
+// For jacoco to cover also Gradle's TestKit tests, GradleRunner.create() should be built using withDebug(true)
+jacocoCodeCoverageTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+        // html.destination file("${buildDir}/jacocoHtml")
+    }
+}
+
+codeCoverageTest {
+    useJUnitPlatform()
+    finalizedBy jacocoCodeCoverageTestReport
+}
+
+codenarcCodeCoverageTest.enabled = false
