@@ -17,7 +17,7 @@ on:
 
 jobs:
   checks:
-    name: "Gradle check + Code coverage"
+    name: "Gradle Check"
     runs-on: ubuntu-latest
     steps:
       - name: setup_jdk
@@ -32,7 +32,7 @@ jobs:
       - name: check
         run: ./gradlew clean check --no-daemon
   code_coverage:
-    name: "Gradle check + Code coverage"
+    name: "Gradle Check + Code coverage"
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
