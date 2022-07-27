@@ -12,7 +12,7 @@ import java.nio.file.Paths
  */
 class ScalaCompileTasks {
 
-    @SuppressWarnings(['LineLength'])
+    @SuppressWarnings(['LineLength', 'UnnecessaryReturnKeyword'])
     static void tuneCrossBuildScalaCompileTask(Project project, SourceSetInsights sourceSetInsights) {
         // Classpath debugging by collecting classpath property and printing out may cause ana exception similar to:
         // org.gradle.api.UncheckedIOException: Failed to capture fingerprint of input files for task ':app:compileScala' property 'scalaClasspath' during up-to-date check.
@@ -35,10 +35,10 @@ class ScalaCompileTasks {
                             project.logger.info(LoggerUtils.logTemplate(project,
                                     lifecycle:'task',
                                     msg:"Excluding from compilation detected duplicate source file: [${tested.normalize().toString()}]"))
-                            true
+                            return true
                         }
                     }
-                    false
+                    return false
                 }
             }
         }
