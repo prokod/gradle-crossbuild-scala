@@ -188,9 +188,9 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         and:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('tasks', 'build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -198,10 +198,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         result.task(":tasks").outcome == SUCCESS
         result.task(":app:build").outcome == SUCCESS
         result.task(":app:publishToMavenLocal").outcome == SUCCESS
-//        def f = findFile("$dir.root.absolutePath/app/build/classpath-libs-")
 
-//        println(">>> ${classpath.collect {it.toString()}.join(', ')}")
-        //then:
         println(result.output)
 
         when:
@@ -209,89 +206,97 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         def xmlPaths = []
         def poms = [:]
         def classPaths = []
+        def metadata = []
         def sparkVersionsForBoth = ["3.3.0", "3.2.1", "3.2.0"]
         def scalaVersions = ['2.12.15', '2.13.8']
 
         and:
         for (spark in sparkVersionsForBoth) {
             for (scala in scalaVersions) {
+                def sparkMinor = spark.substring(0, spark.lastIndexOf('.'))
                 def sparkStripped = spark.replaceAll('\\.', '')
                 def scalaCompat = scala.substring(0, scala.lastIndexOf('.'))
                 def scalaCompatStripped = scalaCompat.replaceAll('\\.', '')
 
-                libPaths += ["$dir.root.absolutePath/app/build/libs/app-${spark}_${scalaCompat}*.jar"]
-                xmlPaths += ["${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom${sparkStripped}_${scalaCompatStripped}.xml"]
+                libPaths += [dir.resolve("app/build/libs/app-${spark}_${scalaCompat}*.jar").normalize().toString()]
+                xmlPaths += [dir.resolve("app${File.separator}build${File.separator}generated-pom${sparkStripped}_${scalaCompatStripped}.xml").normalize().toString()]
                 poms += [[spark, scala, scalaCompat]:new XmlSlurper().parseText(new File(xmlPaths.last()).text).dependencies.dependency.collectEntries {
                     [it.groupId.text(), it]
                 }]
-                classPaths += ["$dir.root.absolutePath/app/build/classpath-libs-crossBuild${sparkStripped}_${scalaCompatStripped}"]
+                classPaths += [dir.resolve("app/build/classpath-libs-crossBuild${sparkStripped}_${scalaCompatStripped}").normalize().toString()]
+                metadata += [[spark, scala, scalaCompat, sparkMinor]]
             }
         }
 
         and:
         def sparkVersionsFor2_12 = ["3.1.3", "3.1.2", "3.1.1", "3.1.0", "3.0.3", "3.0.2", "3.0.1", "3.0.0"]
         for (spark in sparkVersionsFor2_12) {
+            def sparkMinor = spark.substring(0, spark.lastIndexOf('.'))
             def sparkStripped = spark.replaceAll('\\.', '')
             def scala = '2.12.15'
             def scalaCompat = scala.substring(0, scala.lastIndexOf('.'))
             def scalaCompatStripped = scalaCompat.replaceAll('\\.', '')
 
-            libPaths += ["$dir.root.absolutePath/app/build/libs/app-${spark}_${scalaCompat}*.jar"]
-            xmlPaths += ["${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom${sparkStripped}_${scalaCompatStripped}.xml"]
+            libPaths += [dir.resolve("app/build/libs/app-${spark}_${scalaCompat}*.jar").normalize().toString()]
+            xmlPaths += [dir.resolve("app${File.separator}build${File.separator}generated-pom${sparkStripped}_${scalaCompatStripped}.xml").normalize().toString()]
             poms += [[spark, scala, scalaCompat]:new XmlSlurper().parseText(new File(xmlPaths.last()).text).dependencies.dependency.collectEntries {
                 [it.groupId.text(), it]
             }]
-            classPaths += ["$dir.root.absolutePath/app/build/classpath-libs-crossBuild${sparkStripped}_${scalaCompatStripped}"]
+            classPaths += [dir.resolve("app/build/classpath-libs-crossBuild${sparkStripped}_${scalaCompatStripped}").normalize().toString()]
+            metadata += [[spark, scala, scalaCompat, sparkMinor]]
         }
 
         then:
-        for (path in libPaths) {
-            def f = findFile(path)
-            f.exists()
-        }
+        libPaths.each {assert findFile(it) != null}
 
         and:
-        def i = 0
-        for (classpath in classPaths) {
-            def f = findFile(libPaths[i])
-            def d = new File(classpath)
+        [classPaths, libPaths, metadata].transpose().collect{ List tuple ->
+            def f = findFile(tuple[1])
+            def d = new File(tuple[0])
+            def data = tuple[2]
             def jars = d.listFiles()
             def urls = jars.collect { it.toURI().toURL() }
             urls += [f.toURI().toURL()]
             ClassLoader classLoader = new URLClassLoader(urls as URL[], this.class.classLoader)
             Class clazzExModule = classLoader.loadClass("com.github.prokod.it.gradleCrossbuildSample.Main\$")
             def module = clazzExModule.getField("MODULE\$").get(null)
-            def expected = 'expectedOutput'
-
-            System.out = Mock(PrintStream)
-
-            module.main()
-            1*System.out.println(expected)
-            i++
+            def expected = "Read spark version as ${data[0]}, scala version as ${data[1]}, scala compat version as ${data[2]}, spark minor version as ${data[3]}\n"
+            if (data[2] == '2.12') {
+                expected += "This doesn't work on scala 2.13: \${scala.collection.mutable.WrappedArray::class.qualifiedName}\n"
+            }
+            def allWrittenLines = ''
+            def stdOut = System.out
+            new ByteArrayOutputStream().withCloseable {bo ->
+                System.setOut(new PrintStream(bo))
+                module.main()
+                bo.flush()
+                allWrittenLines = new String(bo.toByteArray())
+                System.out = stdOut
+            }
+            new Tuple2(allWrittenLines.replaceAll("\\r\\n?", "\n"), expected)
+        }.each {tuple ->
+            assert tuple.first == tuple.second
         }
 
         and:
-        for (path in xmlPaths) {
-            def f = new File(path)
-            f.exists()
-        }
+        xmlPaths.collect {new File(it)}.each {assert it.exists()}
 
         and:
-        for (pom in poms) {
-            pom.value.size() == 2
-            pom.value['org.scala-lang'].artifactId == 'scala-library'
-            pom.value['org.scala-lang'].version == pom.key[1]
-            pom.value['org.scala-lang'].scope == 'runtime'
-            pom.value['org.apache.spark'].groupId == 'org.apache.spark'
-            pom.value['org.apache.spark'].artifactId == "spark-sql_${pom.key[2]}"
-            pom.value['org.apache.spark'].version == pom.key[0]
-            pom.value['org.apache.spark'].scope == 'runtime'
+        poms.each {pom ->
+            assert pom.value.size() == 2
+            assert pom.value['org.scala-lang'].artifactId == 'scala-library'
+            assert pom.value['org.scala-lang'].version == pom.key[1]
+            assert pom.value['org.scala-lang'].scope == 'runtime'
+            assert pom.value['org.apache.spark'].groupId == 'org.apache.spark'
+            assert pom.value['org.apache.spark'].artifactId == "spark-sql_${pom.key[2]}"
+            assert pom.value['org.apache.spark'].version == pom.key[0]
+            assert pom.value['org.apache.spark'].scope == 'runtime'
         }
 
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
-//        '6.9.2'         | '2.13'
-//        '7.3.3'         | '2.12'
+        '6.9.2'         | '2.13'
+        '7.3.3'         | '2.12'
     }
 }
