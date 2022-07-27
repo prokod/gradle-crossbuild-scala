@@ -4,6 +4,7 @@ import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.attributes.LibraryElements
@@ -39,6 +40,8 @@ class CrossBuildSourceSets {
         assert builds != null : 'builds should not be null'
         def sourceSetIds = builds.collect { build ->
             def (sourceSetId, SourceSet sourceSet) = getOrCreateCrossBuildScalaSourceSet(build.name)
+
+            addExtraProperty(sourceSet, 'scalaCompilerVersion', build.scalaVersionInsights.compilerVersion)
 
             def implementationConfig = project.configurations.getByName(sourceSet.getImplementationConfigurationName())
 
@@ -84,6 +87,13 @@ class CrossBuildSourceSets {
         sourceSetIds
     }
 
+    /**
+     * Inject extra property to ExtensionAware cross build sourceset
+     */
+    static void addExtraProperty(SourceSet sourceSet, String name, value) {
+        def extraProperties = sourceSet.extensions.findByType(ExtraPropertiesExtension)
+        extraProperties.set(name, value)
+    }
     /**
      * Find Scala source set id and instance in a source set container based on specific Scala version insights.
      *

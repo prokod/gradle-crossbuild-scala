@@ -117,7 +117,8 @@ class BuildUpdateEventStore {
     }
 
     /**
-     * Storing {@link ArchiveNamingUpdateEvent} only if store contains previously stored {@link BuildUpdateEvent}
+     * Storing {@link ArchiveNamingUpdateEvent} multiplexed into {@link BuildUpdateEvent} only if store contains
+     * previously stored {@link BuildUpdateEvent} with same base name (sourceSet name).
      * This way, triggering callback for {@link ArchiveNaming} appendixPattern change for a specific {@link Build}
      * is done only on top of already triggered callback for the same {@link Build} item cause by scalaVersions
      * update/set event
@@ -126,6 +127,26 @@ class BuildUpdateEventStore {
      */
     @SuppressWarnings(['ConfusingMethodName'])
     void store(ArchiveNamingUpdateEvent event) {
+        def eventNameToLookFor = event.source.name + '_' + EventType.SCALA_VERSIONS_UPDATE
+        def prevEvent = this.store.find { eventNameToLookFor == it.name }
+        if (prevEvent != null) {
+            def prevBuild = prevEvent.source
+            def newBuildSnapshot = new BuildSnapshot(prevBuild, event.source)
+            store(new BuildUpdateEvent(Build.from(newBuildSnapshot), event.eventType))
+        }
+    }
+
+    /**
+     * Storing {@link ExtUpdateEvent} multiplexed into {@link BuildUpdateEvent} only if store contains previously
+     * stored {@link BuildUpdateEvent} with same base name (sourceSet name).
+     * This way, triggering callback for {@link Build} ext Extra properties change for a specific {@link Build}
+     * is done only on top of already triggered callback for the same {@link Build} item cause by scalaVersions
+     * update/set event
+     *
+     * @param event
+     */
+    @SuppressWarnings(['ConfusingMethodName'])
+    void store(ExtUpdateEvent event) {
         def eventNameToLookFor = event.source.name + '_' + EventType.SCALA_VERSIONS_UPDATE
         def prevEvent = this.store.find { eventNameToLookFor == it.name }
         if (prevEvent != null) {

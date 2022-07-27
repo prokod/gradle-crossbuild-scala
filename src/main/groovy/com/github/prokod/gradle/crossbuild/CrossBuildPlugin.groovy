@@ -222,13 +222,13 @@ class CrossBuildPlugin implements Plugin<Project> {
         def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByName(rb.name)
 
         // Assign main java source-set to cross-build java source-set
-        sourceSet.java.srcDirs = main.java.getSrcDirs()
+        sourceSet.java.srcDirs(main.java.getSrcDirs())
 
         // Assign main scala source-set to cross-build scala source-set
-        sourceSet.scala.srcDirs = main.scala.getSrcDirs()
+        sourceSet.scala.srcDirs(main.scala.getSrcDirs())
 
         // Assign main resources source-set to cross-build resources source-set
-        sourceSet.resources.srcDirs = main.resources.getSrcDirs()
+        sourceSet.resources.srcDirs(main.resources.getSrcDirs())
 
         sourceSet
     }
@@ -294,10 +294,13 @@ class CrossBuildPlugin implements Plugin<Project> {
      * @param resolvedBuilds
      */
     private static void alterCrossBuildCompileTasks(CrossBuildExtension extension) {
+        def main = extension.crossBuildSourceSets.container.findByName('main')
+
         extension.resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
+            def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
 
-            ScalaCompileTasks.tuneCrossBuildScalaCompileTask(extension.project, sourceSet)
+            ScalaCompileTasks.tuneCrossBuildScalaCompileTask(extension.project, sourceSetInsights)
         }
     }
 }

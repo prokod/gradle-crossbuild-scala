@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.prokod.gradle.crossbuild.model;
+package com.github.prokod.gradle.crossbuild.model
 
 /**
- * UpdateEvent type
+ * Event to create when {@link ArchiveNaming} appendixPattern is set/updated
+ *
+ * Used to communicate change in observable {@link ArchiveNaming} to observer
+ * {@link com.github.prokod.gradle.crossbuild.CrossBuildExtension}
  */
-public enum EventType {
-    SCALA_VERSIONS_UPDATE,
-    EXT_UPDATE,
-    ARCHIVE_APPENDIX_PATTERN_UPDATE
+class ExtUpdateEvent {
+    final Map<String, Object> source
+    final EventType eventType
+
+    ExtUpdateEvent(Map<String, Object> source) {
+        this.source = source == null ? [:] : source.clone()
+        this.eventType = EventType.EXT_UPDATE
+    }
 }
