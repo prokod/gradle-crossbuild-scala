@@ -33,7 +33,11 @@ class BuildSnapshot {
     Map<String, Object> ext
 
     static BuildSnapshot from(Build other) {
-        new BuildSnapshot(other.name, other.extension, other.archive.appendixPattern, other.scalaVersions, other.ext ?: [:])
+        new BuildSnapshot(other.name,
+                          other.extension,
+                          other.archive.appendixPattern,
+                          other.scalaVersions,
+                          other.ext ?: [:])
     }
 
     BuildSnapshot(String name,

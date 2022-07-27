@@ -38,6 +38,7 @@ class Build {
                 snapshot.ext)
     }
 
+    @SuppressWarnings('ParameterCount')
     Build(String name,
           CrossBuildExtension extension,
           BuildUpdateEventStore eventStore,

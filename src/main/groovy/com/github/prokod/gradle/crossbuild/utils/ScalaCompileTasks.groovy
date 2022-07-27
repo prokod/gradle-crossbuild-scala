@@ -2,7 +2,6 @@ package com.github.prokod.gradle.crossbuild.utils
 
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 
 import java.nio.file.Files
@@ -36,10 +35,10 @@ class ScalaCompileTasks {
                             project.logger.info(LoggerUtils.logTemplate(project,
                                     lifecycle:'task',
                                     msg:"Excluding from compilation detected duplicate source file: [${tested.normalize().toString()}]"))
-                            return true
+                            true
                         }
                     }
-                    return false
+                    false
                 }
             }
         }

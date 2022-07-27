@@ -90,7 +90,7 @@ class CrossBuildSourceSets {
     /**
      * Inject extra property to ExtensionAware cross build sourceset
      */
-    static void addExtraProperty(SourceSet sourceSet, String name, value) {
+    static void addExtraProperty(SourceSet sourceSet, String name, Object value) {
         def extraProperties = sourceSet.extensions.findByType(ExtraPropertiesExtension)
         extraProperties.set(name, value)
     }
