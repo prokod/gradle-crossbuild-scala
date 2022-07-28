@@ -9,7 +9,7 @@
 
 - **Multi-module projects support** Supports both simple projects and multi-module projects.<br/>In multi-module projects support mixed cases where only some of the modules needs cross compiling.
 - **Powerful DSL** Plugin DSL can be written once for all sub projects using `subprojects {}` block.<br/>Specific DSL definition can be afterwards added to individual sub projects.<br/>It supports shorthands to avoid repetitions.<br/>Operates in both eager and lazy (wrapped in `pluginManager.withPlugin {}` block) `apply` modes.
-- **Multi-aspect cross building** Supports cross building for Scala aspect and on top of that any other custom aspect, for instance Spark. So one could use the plugin DSL to build, for instance, libraries that supports multiple Scala / Spark version combinations programmatically.
+- **Multi-aspect cross building** Supports cross building for Scala aspect and on top of that any other custom aspect, for instance Spark. Further details [multi-aspect cross building](#multi_aspect_cross_building)
 - **Integrates with maven-publish plugin** When used, can be leveraged to publish cross building artifacts.
 - **Implicit/Explicit scala lib dependency declaration** Supports declaring both<br/>simple case implicit `implementation 3rd-party-scala-lib_2.12` type of dependencies<br/>and also finer granular explicit `crossBuildSpark24_212Implementation spark-streaming-kafka-0-10_2.12` type of dependencies.
 - **Applied easily on existing projects** As the plugin maintains a strict separation between `main` source set configurations and <code>crossBuild*XYZ*</code> ones, a simple non cross build project can be easily and gradually transformed to a cross build one.
@@ -27,7 +27,7 @@
 plugins {
     id "com.github.prokod.gradle-crossbuild-scala" version "0.14.0"
 }
-```  
+```
 
 ### Using legacy `buildscript`
 
@@ -56,8 +56,8 @@ This is especially true for multi module projects but not just.<br/>
 
 - To configure the plugin efficiently please see recommended [multi module projects apply patterns](#multi_module_apply_patterns).
 
-  > **NOTE:** From version 0.12.x there is no need to have any special glob pattern to express cross build dependency for `implementation`/`api`/`runtime`/`...` configurations - the plugin will add a correct dependency resolution according to the provided `crossBuild {}` plugin dsl block.<br/>
-    Up to version 0.11.x (inclusive) use the '?' question mark to express cross build dependency inside `implementation`/`api`/`runtime`/`...` configurations.<br/>
+  > **NOTE:** From version `0.12.x` there is no need to have any special glob pattern to express cross build dependency for `implementation`/`api`/`runtime`/`...` configurations - the plugin will add a correct dependency resolution according to the provided `crossBuild {}` plugin dsl block.<br/>
+    Up to version `0.11.x` (inclusive) use the '?' question mark to express cross build dependency inside `implementation`/`api`/`runtime`/`...` configurations.<br/>
     Use the provided explicit <code>crossBuild*XYZ*</code>`Implementation`/`api`/`Runtime`/`...` configuration when you need a finer granularity in expressing the cross build dependencies
 
 - Publish cross building artifacts, for that please have a look on [publishing](#publishing)
@@ -119,7 +119,7 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
     }
     ```
 
-   > **NOTE:** **Up to** version 0.11.x (inclusive) 3rd party Scala lib dependencies are expressed using '?'
+   > **NOTE:** **Up to** version `0.11.x` (inclusive) 3rd party Scala lib dependencies are expressed using '?'
    >             question mark (implicit pattern)
    >
    > ```groovy
@@ -379,7 +379,7 @@ dependencies {
 
 - **Cross building DSL programmatically** - In the next code snippet you can observe how programmatically we are generating cross builds using the plugin DSL.
 - **Extra properties per cross build** - Not only the cross building is described in a programmatic manner, you can also observe that specific unique meta data for each cross build permutation is generated using the plugin's `ext` entry
-  > **NOTE:** Supported in the plugin from version 0.14.x onwards
+  > **NOTE:** Supported in the plugin from version `0.14.x` onwards
   
 ```groovy
 ...
@@ -419,10 +419,10 @@ subprojects {
 }
 ```
 
-### Scala Version Specific Source (available )
+### Scala Version Specific Source
 
 - Each sourceSet that the plugin creates based on the DSL is assigned with its own `main` Scala source dir.
-  > **NOTE:** Gradle's intrinsic convention. Supported in the plugin from version 0.14.x onwards
+  > **NOTE:** Gradle's intrinsic convention. Supported in the plugin from version `0.14.x` onwards
   
   For instance, if a sourceSet id is `crossBuild211` then the source dir by convention is `src/crossBuild211/scala`
 - We can now combine the previous topic of [multi-aspect cross building](#multi_aspect_cross_building) with the current topic and provide powerful way of maintaing differnet cross builds not only with their differences in library dependencies but also with their code differences
