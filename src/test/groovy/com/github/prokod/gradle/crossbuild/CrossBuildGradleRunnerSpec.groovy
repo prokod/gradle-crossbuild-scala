@@ -1,8 +1,6 @@
 package com.github.prokod.gradle.crossbuild
 
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import org.w3c.dom.Node
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.builder.Input
@@ -11,19 +9,17 @@ import org.xmlunit.diff.Diff
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.util.Predicate
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
+import java.io.File
 import java.util.regex.Pattern
 
 abstract class CrossBuildGradleRunnerSpec extends Specification {
 
-    @Rule
-    final TemporaryFolder dir = new TemporaryFolder() {
-        @Override
-        protected void after() {
-        }
-    }
+    @TempDir
+    Path dir
 
     def testMavenCentralAccess() {
         URL u = new URL ( "https://repo1.maven.org/maven2/")
@@ -34,30 +30,28 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
     }
 
     protected File directory(String path) {
-        new File(dir.root, path).with {
-            mkdirs()
-            it
+        dir.resolve(path).with {
+            Files.createDirectories(it).toFile()
         }
     }
 
     protected File file(String path) {
         def splitted = path.split(File.separator)
-        def directory = splitted.size() > 1 ? directory(splitted[0..-2].join(File.separator)) : dir.root
+        def directory = splitted.size() > 1 ? directory(splitted[0..-2].join(File.separator)) : dir.toFile()
         def file = new File(directory, splitted[-1])
         file.createNewFile()
         file
     }
 
     protected File findFile(String path) {
-        def proot = Paths.get(dir.root.absolutePath)
-        if (Files.isDirectory(proot)) {
+        if (Files.isDirectory(dir)) {
             File found = null
             if (path.contains('*')) {
                 // Create a Pattern object
                 def cpattern = "^" + (path.startsWith(File.separator) ? "" : path.startsWith('*') ? "" : ".*?") + path.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".*?") + "\$"
                 def pattern = Pattern.compile(cpattern)
 
-                proot.toFile().traverse { f ->
+                dir.toFile().traverse { f ->
                     def fPath = f.toPath().toString()
                     def m = pattern.matcher(fPath)
                     if (m.find()) {
@@ -65,7 +59,7 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
                     }
                 }
             } else {
-                proot.toFile().traverse { f ->
+                dir.toFile().traverse { f ->
                     def fPath = f.toPath().toString()
                     if (fPath == path) {
                         found = f
@@ -82,16 +76,8 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
         findFile(path) != null
     }
 
-    /**
-     * Prior to Gradle 5.0, the publishing {} block was (by default) implicitly treated as if all the logic inside it
-     * was executed after the project is evaluated.
-     * This behavior caused quite a bit of confusion and was deprecated in Gradle 4.8, because it was the only block
-     * that behaved that way.
-     */
-    protected boolean publishTaskSupportingDeferredConfiguration(String gradleVersion) {
-        def tokens = gradleVersion.tokenize('.').toList()
-        def major = tokens.head().toInteger()
-        major <= 4
+    protected boolean fileExists(Path path) {
+        findFile(path.toString()) != null
     }
 
     protected String loadResourceAsText(Map tokens, String path) {

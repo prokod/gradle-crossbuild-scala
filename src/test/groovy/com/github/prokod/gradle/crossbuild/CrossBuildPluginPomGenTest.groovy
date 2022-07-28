@@ -32,6 +32,12 @@ class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
         mavenLocalRepo = directory('.m2')
     }
 
+    /**
+     * Here we check correctness of pom file content.
+     * compileOnly configuration should not appear in the pom file as dependency.
+     *
+     * @return
+     */
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
@@ -66,14 +72,14 @@ publishing {
             from components.java
         }
         crossBuildV210(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV210Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
         crossBuildV211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildV211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -102,17 +108,17 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', 'crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":publishToMavenLocal").outcome == SUCCESS
 
-        def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
-        def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def pom210 = dir.resolve("build${File.separator}generated-pom_2.10.xml").text
+        def pom211 = dir.resolve("build${File.separator}generated-pom_2.11.xml").text
 
         fileExists"*/.m2/*test_2.10*jar"
         fileExists"*/.m2/*test_2.11*jar"
@@ -172,6 +178,14 @@ dependencies {
         '7.3.3'         | '2.10'
     }
 
+    /**
+     * Here we check correctness of pom file content when using pom.withXml.
+     * compileOnly configuration should not appear in the pom file as dependency for scala 2.11
+     * compileOnly configuration should appear in the pom file as provided scope for scala 2.10, according to
+     * pom.withXml block
+     *
+     * @return
+     */
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl and custom withXml handler should  produce expected pom files and their content should be correct"() {
         given:
@@ -207,7 +221,7 @@ publishing {
             from components.java
         }
         crossBuildScala_210(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildScala_210Jar
 
                 pom.withXml { xml ->
@@ -232,12 +246,12 @@ publishing {
                         dependencyNode.appendNode('scope', 'runtime')
                     }
                 }
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
         crossBuildScala_211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildScala_211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -266,17 +280,17 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', 'crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":publishToMavenLocal").outcome == SUCCESS
 
-        def pom210 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.10.xml").text
-        def pom211 = new File("${dir.root.absolutePath}${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def pom210 = dir.resolve("build${File.separator}generated-pom_2.10.xml").text
+        def pom211 = dir.resolve("build${File.separator}generated-pom_2.11.xml").text
 
         fileExists"*/.m2/*test_2.10*jar"
         fileExists"*/.m2/*test_2.11*jar"

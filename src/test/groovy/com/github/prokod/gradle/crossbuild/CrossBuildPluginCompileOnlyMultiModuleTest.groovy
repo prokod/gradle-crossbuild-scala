@@ -114,24 +114,24 @@ subprojects {
             publishing {
                 publications {
                     crossBuildSpark233_211(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark233_211Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                     crossBuildSpark242_212(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark242_212Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                     crossBuildSpark243_211(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark243_211Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                     crossBuildSpark243_212(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark243_212Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                 }
             }
@@ -356,9 +356,9 @@ crossBuild {
 publishing {
     publications {
         crossBuildSpark233_211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildSpark233_211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -375,9 +375,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('build', 'lib:crossBuildV210Jar', 'lib2:crossBuildResolvedConfigs', 'lib3:crossBuildResolvedConfigs', 'app:crossBuildSpark233_211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -393,19 +393,19 @@ dependencies {
         result.task(":app:crossBuildSpark233_211Jar").outcome == SUCCESS
 
         // 'build' task should:
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib-1.0-SNAPSHOT.jar")
-        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2-1.0-SNAPSHOT.jar")
-        fileExists("$dir.root.absolutePath/lib3/build/libs/lib3-1.0-SNAPSHOT.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app-1.0-SNAPSHOT.jar")
+        fileExists(dir.resolve('lib/build/libs/lib-1.0-SNAPSHOT.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2-1.0-SNAPSHOT.jar'))
+        fileExists(dir.resolve('lib3/build/libs/lib3-1.0-SNAPSHOT.jar'))
+        fileExists(dir.resolve('app/build/libs/app-1.0-SNAPSHOT.jar'))
 
         // 'lib:crossBuildV210Jar', 'app:crossBuildSpark233_211Jar' tasks should:
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib-legacy_2.10*.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
-        !fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.12*.jar")
-        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.11*.jar")
-        !fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.12*.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app-all_2.11*.jar")
-        !fileExists("$dir.root.absolutePath/app/build/libs/app-all_2.12*.jar")
+        fileExists(dir.resolve('lib/build/libs/lib-legacy_2.10*.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib_2.11*.jar'))
+        !fileExists(dir.resolve('lib/build/libs/lib_2.12*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2_2.11*.jar'))
+        !fileExists(dir.resolve('lib2/build/libs/lib2_2.12*.jar'))
+        fileExists(dir.resolve('app/build/libs/app-all_2.11*.jar'))
+        !fileExists(dir.resolve('app/build/libs/app-all_2.12*.jar'))
 
         when:
         // Gradle 4 'java' plugin Configuration model is less precise and so firstLevelModuleDependencies are under

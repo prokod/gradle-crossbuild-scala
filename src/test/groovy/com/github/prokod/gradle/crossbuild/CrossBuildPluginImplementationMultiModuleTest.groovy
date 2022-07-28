@@ -18,8 +18,12 @@ package com.github.prokod.gradle.crossbuild
 import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
 import org.skyscreamer.jsonassert.JSONAssert
+import org.spockframework.runtime.model.parallel.ExecutionMode
 import org.xmlunit.diff.Diff
+import spock.lang.Execution
 import spock.lang.Unroll
+
+import java.nio.file.Files
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -123,14 +127,14 @@ subprojects {
     publishing {
         publications {
             crossBuildSpark160_210(MavenPublication) {
-                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                afterEvaluate {
                     artifact crossBuildSpark160_210Jar
-                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                }
             }
             crossBuildSpark240_211(MavenPublication) {
-                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                afterEvaluate {
                     artifact crossBuildSpark240_211Jar
-                ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                }
             }
         }
     }
@@ -202,9 +206,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -214,10 +218,10 @@ dependencies {
         result.task(":app:crossBuildSpark160_210Jar").outcome == SUCCESS
         result.task(":app:crossBuildSpark240_211Jar").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.10*.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.10*.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
+        fileExists(dir.resolve('lib/build/libs/lib_2.10*.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib_2.11*.jar'))
+        fileExists(dir.resolve('app/build/libs/app_2.10*.jar'))
+        fileExists(dir.resolve('app/build/libs/app_2.11*.jar'))
 
         where:
         gradleVersion   | defaultScalaVersion
@@ -343,9 +347,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildSpark160_210Jar', 'crossBuildSpark240_211Jar', '--info', '--stacktrace')
                 .build()
 
@@ -402,14 +406,14 @@ subprojects {
             publishing {
                 publications {
                     crossBuildSpark230_211(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark230_211Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                     crossBuildSpark240_212(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark240_212Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                 }
             }
@@ -539,9 +543,9 @@ crossBuild {
 publishing {
     publications {
         crossBuildSpark230_211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildSpark230_211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -555,24 +559,24 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":app:crossBuildSpark230_211Jar").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.12*.jar")
-        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.11*.jar")
-        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.12*.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
-        !fileExists("$dir.root.absolutePath/app/build/libs/app_2.12*.jar")
+        fileExists(dir.resolve('lib/build/libs/lib_2.11*.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib_2.12*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2_2.11*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2_2.12*.jar'))
+        fileExists(dir.resolve('app/build/libs/app_2.11*.jar'))
+        !fileExists(dir.resolve('app/build/libs/app_2.12*.jar'))
 
-        def pom211 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml").text
-        def pom212 = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.12.xml").text
+        def pom211 = dir.resolve("lib${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def pom212 = dir.resolve("lib${File.separator}build${File.separator}generated-pom_2.12.xml").text
 
         !pom211.contains('2.12.')
         pom211.contains('2.11.12')
@@ -582,8 +586,8 @@ dependencies {
         pom212.contains('2.12.8')
         pom212.contains('18.0')
 
-        def lib2pom211 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.11.xml").text
-        def lib2pom212 = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.12.xml").text
+        def lib2pom211 = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def lib2pom212 = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.12.xml").text
 
         !lib2pom211.contains('2.12.')
         lib2pom211.contains('scala-reflect')
@@ -597,8 +601,8 @@ dependencies {
         lib2pom212.contains('1.0-SNAPSHOT')
         lib2pom212.contains('lib_2.12')
 
-        def appPom211 = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.11.xml").text
-        def appPom212Exist = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.12.xml").exists()
+        def appPom211 = dir.resolve("app${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def appPom212Exist = Files.exists(dir.resolve("app${File.separator}build${File.separator}generated-pom_2.12.xml"))
 
         !appPom211.contains('2.12.')
         appPom211.contains('2.11.12')
@@ -665,14 +669,14 @@ subprojects {
         publishing {
             publications {
                 crossBuildSpark230_211(MavenPublication) {
-                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    afterEvaluate {
                         artifact crossBuildSpark230_211Jar
-                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                    }
                 }
                 crossBuildSpark240_212(MavenPublication) {
-                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                    afterEvaluate {
                         artifact crossBuildSpark240_212Jar
-                    ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                    }
                 }
             }
         }
@@ -793,9 +797,9 @@ crossBuild {
 publishing {
     publications {
         crossBuildSpark230_211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildSpark230_211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -809,9 +813,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildResolvedConfigs', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -819,12 +823,12 @@ dependencies {
         result.task(":app:crossBuildSpark230_211Jar").outcome == SUCCESS
         result.task(":app:crossBuildResolvedConfigs").outcome == SUCCESS
 
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.12*.jar")
-        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.11*.jar")
-        fileExists("$dir.root.absolutePath/lib2/build/libs/lib2_2.12*.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app_2.11*.jar")
-        !fileExists("$dir.root.absolutePath/app/build/libs/app_2.12*.jar")
+        fileExists(dir.resolve('lib/build/libs/lib_2.11*.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib_2.12*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2_2.11*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2_2.12*.jar'))
+        fileExists(dir.resolve('app/build/libs/app_2.11*.jar'))
+        !fileExists(dir.resolve('app/build/libs/app_2.12*.jar'))
 
         when:
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
@@ -840,15 +844,15 @@ dependencies {
         JSONAssert.assertEquals(expectedJsonAsText, actualJsonAsText, false)
 
         when:
-        def pom211File = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.11.xml")
-        def pom212File = new File("${dir.root.absolutePath}${File.separator}lib${File.separator}build${File.separator}generated-pom_2.12.xml")
+        def pom211Path = dir.resolve("lib${File.separator}build${File.separator}generated-pom_2.11.xml")
+        def pom212Path = dir.resolve("lib${File.separator}build${File.separator}generated-pom_2.12.xml")
 
         then:
-        pom211File.exists()
-        pom212File.exists()
+        Files.exists(pom211Path)
+        Files.exists(pom212Path)
 
         when:
-        def pom211 = new XmlSlurper().parse(pom211File)
+        def pom211 = new XmlSlurper().parse(pom211Path.toFile())
 
         then:
         pom211.dependencies.dependency.size() == 2
@@ -862,7 +866,7 @@ dependencies {
         pom211.dependencies.dependency[1].scope == 'runtime'
 
         when:
-        def pom212 = new XmlSlurper().parse(pom212File)
+        def pom212 = new XmlSlurper().parse(pom212Path.toFile())
 
         then:
         pom212.dependencies.dependency.size() == 2
@@ -876,38 +880,38 @@ dependencies {
         pom211.dependencies.dependency[1].scope == 'runtime'
 
         when:
-        def lib2pom211File = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.11.xml")
-        def lib2pom212File = new File("${dir.root.absolutePath}${File.separator}lib2${File.separator}build${File.separator}generated-pom_2.12.xml")
+        def lib2pom211Path = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.11.xml")
+        def lib2pom212Path = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.12.xml")
 
         then:
-        lib2pom211File.exists()
-        lib2pom212File.exists()
+        Files.exists(lib2pom211Path)
+        Files.exists(lib2pom212Path)
 
         when:
         def expectedLib2Pom211 = loadResourceAsText(sv: '2.11', csv: '2.11.12', '/04-pom_lib2-00.xml')
-        Diff d211 = pomDiffFor(expectedLib2Pom211, lib2pom211File)
+        Diff d211 = pomDiffFor(expectedLib2Pom211, lib2pom211Path.toFile())
 
         then:
         !d211.hasDifferences()
 
         when:
         def expectedLib2Pom212 = loadResourceAsText(sv: '2.12', csv: '2.12.8','/04-pom_lib2-00.xml')
-        Diff d212 = pomDiffFor(expectedLib2Pom212, lib2pom212File)
+        Diff d212 = pomDiffFor(expectedLib2Pom212, lib2pom212Path.toFile())
 
         then:
         !d212.hasDifferences()
 
         when:
-        def appPom211File = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.11.xml")
-        def appPom212File = new File("${dir.root.absolutePath}${File.separator}app${File.separator}build${File.separator}generated-pom_2.12.xml")
+        def appPom211File = dir.resolve("app${File.separator}build${File.separator}generated-pom_2.11.xml")
+        def appPom212File = dir.resolve("app${File.separator}build${File.separator}generated-pom_2.12.xml")
 
         then:
-        appPom211File.exists()
-        !appPom212File.exists()
+        Files.exists(appPom211File)
+        !Files.exists(appPom212File)
 
         when:
         def expectedAppPom211 = loadResourceAsText( '/04-pom_app-00.xml')
-        Diff dApp211 = pomDiffFor(expectedAppPom211, appPom211File)
+        Diff dApp211 = pomDiffFor(expectedAppPom211, appPom211File.toFile())
 
         then:
         !dApp211.hasDifferences()
@@ -978,24 +982,24 @@ subprojects {
             publishing {
                 publications {
                     crossBuildSpark233_211(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark233_211Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                     crossBuildSpark242_212(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark242_212Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                     crossBuildSpark243_211(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark243_211Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                     crossBuildSpark243_212(MavenPublication) {
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+                        afterEvaluate {
                             artifact crossBuildSpark243_212Jar
-                        ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+                        }
                     }
                 }
             }
@@ -1113,9 +1117,9 @@ crossBuild {
 publishing {
     publications {
         crossBuildSpark233_211(MavenPublication) {
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : 'afterEvaluate {'}
+            afterEvaluate {
                 artifact crossBuildSpark233_211Jar
-            ${publishTaskSupportingDeferredConfiguration(gradleVersion) ? '' : '}'}
+            }
         }
     }
 }
@@ -1132,9 +1136,9 @@ dependencies {
         Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('build', 'lib:crossBuildV210Jar', 'lib3:jar', 'app:crossBuildSpark233_211Jar', 'app:crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
@@ -1149,16 +1153,16 @@ dependencies {
         result.task(":app:crossBuildSpark233_211Jar").outcome == SUCCESS
 
         // 'build' task should:
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib-1.0-SNAPSHOT.jar")
-        fileExists("$dir.root.absolutePath/lib3/build/libs/lib3-1.0-SNAPSHOT.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app-1.0-SNAPSHOT.jar")
+        fileExists(dir.resolve('lib/build/libs/lib-1.0-SNAPSHOT.jar'))
+        fileExists(dir.resolve('lib3/build/libs/lib3-1.0-SNAPSHOT.jar'))
+        fileExists(dir.resolve('app/build/libs/app-1.0-SNAPSHOT.jar'))
 
         // 'lib:crossBuildV210Jar', 'app:crossBuildSpark233_211Jar' tasks should:
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib-legacy_2.10*.jar")
-        fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.11*.jar")
-        !fileExists("$dir.root.absolutePath/lib/build/libs/lib_2.12*.jar")
-        fileExists("$dir.root.absolutePath/app/build/libs/app-all_2.11*.jar")
-        !fileExists("$dir.root.absolutePath/app/build/libs/app-all_2.12*.jar")
+        fileExists(dir.resolve('lib/build/libs/lib-legacy_2.10*.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib_2.11*.jar'))
+        !fileExists(dir.resolve('lib/build/libs/lib_2.12*.jar'))
+        fileExists(dir.resolve('app/build/libs/app-all_2.11*.jar'))
+        !fileExists(dir.resolve('app/build/libs/app-all_2.12*.jar'))
 
         where:
         gradleVersion   | defaultScalaVersion

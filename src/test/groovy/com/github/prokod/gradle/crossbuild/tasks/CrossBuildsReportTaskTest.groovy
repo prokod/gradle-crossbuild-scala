@@ -52,9 +52,9 @@ crossBuild {
         when:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
-                .withProjectDir(dir.root)
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
+                /*@withDebug@*/
                 .withArguments('crossBuildResolvedDsl')
                 .build()
 

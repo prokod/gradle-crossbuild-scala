@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors
+ * Copyright 2018-2022 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,25 +30,37 @@ class BuildSnapshot {
 
     Set<String> scalaVersions
 
+    Map<String, Object> ext
+
     static BuildSnapshot from(Build other) {
-        new BuildSnapshot(other.name, other.extension, other.archive.appendixPattern, other.scalaVersions)
+        new BuildSnapshot(other.name,
+                          other.extension,
+                          other.archive.appendixPattern,
+                          other.scalaVersions,
+                          other.ext ?: [:])
     }
 
-    BuildSnapshot(String name, CrossBuildExtension extension, String appendixPattern, Set<String> scalaVersions) {
+    BuildSnapshot(String name,
+                  CrossBuildExtension extension,
+                  String appendixPattern,
+                  Set<String> scalaVersions,
+                  Map<String, Object> ext) {
         this.name = name
         this.extension = extension
         this.archive = new ArchiveNamingSnapshot(name, appendixPattern)
         this.scalaVersions = scalaVersions.clone()
+        this.ext = ext.clone()
     }
 
     BuildSnapshot(BuildSnapshot other, ArchiveNamingSnapshot archive) {
-        this(other.name, other.extension, archive.appendixPattern, other.scalaVersions)
+        this(other.name, other.extension, archive.appendixPattern, other.scalaVersions, other.ext)
         assert other.name == archive.name : "While instantiating snapshot build $other.name != $archive.name"
     }
 
     String toString() {
         JsonOutput.toJson([name:name,
                            scalaVersions:scalaVersions,
+                           ext:ext,
                            archive:[appendixPattern:archive?.appendixPattern]])
     }
 }

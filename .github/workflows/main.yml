@@ -11,16 +11,15 @@ on:
   push:
     branches:
       - 'master'
-      - 'release/**'
   pull_request:
     branches:
       - 'master'
-      - 'develop'
 
 jobs:
   checks:
-    name: "Gradle check + Code coverage"
+    name: "Gradle Check"
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - name: setup_jdk
         uses: actions/setup-java@v3
@@ -33,8 +32,22 @@ jobs:
         uses: gradle/wrapper-validation-action@v1
       - name: check
         run: ./gradlew clean check --no-daemon
+  code_coverage:
+    name: "Gradle Check + Code coverage"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: setup_jdk
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: validation
+        uses: gradle/wrapper-validation-action@v1
       - name: code_coverage
-        run: ./gradlew jacocoTestReport
+        run: ./gradlew clean codeCoverageTest jacocoCodeCoverageTestReport
       - name: codecove_integration
         uses: codecov/codecov-action@v2
         with:

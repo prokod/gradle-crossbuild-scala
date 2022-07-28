@@ -27,25 +27,35 @@ class Build {
 
     Set<String> scalaVersions
 
+    Map<String, Object> ext
+
     static Build from(BuildSnapshot snapshot) {
-        new Build(snapshot.name, snapshot.extension, null, ArchiveNaming.from(snapshot.archive), snapshot.scalaVersions)
+        new Build(snapshot.name,
+                snapshot.extension,
+                null,
+                ArchiveNaming.from(snapshot.archive),
+                snapshot.scalaVersions,
+                snapshot.ext)
     }
 
+    @SuppressWarnings('ParameterCount')
     Build(String name,
           CrossBuildExtension extension,
           BuildUpdateEventStore eventStore,
           ArchiveNaming archive,
-          Set<String> scalaVersions) {
+          Set<String> scalaVersions,
+          Map<String, Object> ext) {
         this.name = name
         this.extension = extension
         this.eventStore = eventStore
         this.archive = archive
         this.scalaVersions = scalaVersions
+        this.ext = ext
     }
 
     @Inject
     Build(String name, CrossBuildExtension extension) {
-        this.name = name
+        this.name = name.replaceAll('\\.', '')
         this.extension = extension
         this.eventStore = new BuildUpdateEventStore(extension.project)
         this.archive = extension.project.objects.newInstance(ArchiveNaming, name, '_?', this.eventStore)
@@ -102,9 +112,15 @@ class Build {
         eventStore.store(new BuildUpdateEvent(this, EventType.SCALA_VERSIONS_UPDATE))
     }
 
+    void setExt(Map<String, Object> ext) {
+        this.ext = ext
+        eventStore.store(new ExtUpdateEvent(this.ext))
+    }
+
     String toString() {
         JsonOutput.toJson([name:name,
                            scalaVersions:scalaVersions,
+                           ext:ext,
                            archive:[appendixPattern:archive?.appendixPattern]])
     }
 }

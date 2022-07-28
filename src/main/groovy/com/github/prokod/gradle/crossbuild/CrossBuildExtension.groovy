@@ -1,7 +1,23 @@
+/*
+ * Copyright 2016-2022 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.ArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.Build
+import com.github.prokod.gradle.crossbuild.model.BuildUpdateEvent
 import com.github.prokod.gradle.crossbuild.model.BuildUpdateEventStore
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.model.EventType
@@ -53,7 +69,7 @@ class CrossBuildExtension {
         this.builds = project.container(Build, buildFactory)
     }
 
-    private final Closure buildFactory = { name -> new Build(name, this) }
+    private final Closure buildFactory = { String name -> new Build(name, this) }
 
     @SuppressWarnings(['ConfusingMethodName'])
     void archive(Action<? super ArchiveNaming> action) {
@@ -92,7 +108,7 @@ class CrossBuildExtension {
         def project = build.extension.project
         def sv = ScalaVersions.withDefaultsAsFallback(scalaVersionsCatalog)
 
-        build.eventStore.onEvent { event ->
+        build.eventStore.onEvent { BuildUpdateEvent event ->
             def resolvedBuilds = BuildResolver.resolve(build, sv)
 
             if (event.eventType == EventType.SCALA_VERSIONS_UPDATE) {
@@ -109,10 +125,20 @@ class CrossBuildExtension {
 
                 this.resolvedBuilds.addAll(resolvedBuilds)
 
+                updateExtraProperties(resolvedBuilds)
                 realizeCrossBuildTasks(resolvedBuilds)
             }
             else {
                 updateCrossBuildTasks(resolvedBuilds)
+            }
+        }
+    }
+
+    void updateExtraProperties(Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+        resolvedBuilds.findAll { rb ->
+            def (String sourceSetId, SourceSet sourceSet) = crossBuildSourceSets.findByName(rb.name)
+            for (extraProperty in rb.delegate.ext) {
+                CrossBuildSourceSets.addExtraProperty(sourceSet, extraProperty.key, extraProperty.value)
             }
         }
     }
