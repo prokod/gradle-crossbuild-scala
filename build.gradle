@@ -5,42 +5,32 @@ plugins {
 
 apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 apply plugin: 'codenarc'
 
 group = 'com.github.prokod'
-version = '0.14.0'
+version = '0.14.1-SNAPSHOT'
 
 repositories {
     jcenter()
 }
 
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier = 'sources'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier = 'javadoc'
 }
 
 apply from: 'codecov.gradle'
 
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-
 //Conditional Signing
 ext {
     isReleaseVersion = !version.endsWith("SNAPSHOT")
-}
-
-signing {
-    required { isReleaseVersion  && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
 }
 
 dependencies {
@@ -84,43 +74,70 @@ pluginBundle {
     }
 }
 
-uploadArchives.repositories.mavenDeployer {
-    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar {
+                classifier 'sources'
+            }
+            artifact javadocJar {
+                classifier 'javadoc'
+            }
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'Gradle cross build (Scala) plugin'
+                description = 'Gradle cross build (Scala) plugin.'
+                url = 'https://github.com/prokod/gradle-crossbuild-scala'
+                inceptionYear = '2016'
+                packaging = 'jar'
 
-    snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: ossrhUsername, password: ossrhPassword)
-    }
-
-    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: ossrhUsername, password: ossrhPassword)
-    }
-
-    pom.project {
-        name 'Gradle cross build (Scala) plugin'
-        packaging 'jar'
-        description 'Gradle cross build (Scala) plugin.'
-        url 'https://github.com/prokod/gradle-crossbuild-scala'
-        inceptionYear '2016'
-
-        scm {
-            developerConnection 'git@github.com:prokod/gradle-crossbuild-scala.git'
-            connection 'git://github.com/prokod/gradle-crossbuild-scala.git'
-            url 'https://github.com/prokod/gradle-crossbuild-scala'
-        }
-
-        licenses {
-            license {
-                name 'Apache License 2.0'
-                url 'https://www.apache.org/licenses/LICENSE-2.0'
+                licenses {
+                    license {
+                        name = 'Apache License 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'noamasor'
+                        name = 'Noam Asor'
+                        email = 'noamas@gmail.com'
+                    }
+                }
+                scm {
+                    developerConnection = 'git@github.com:prokod/gradle-crossbuild-scala.git'
+                    connection = 'git://github.com/prokod/gradle-crossbuild-scala.git'
+                    url = 'https://github.com/prokod/gradle-crossbuild-scala'
+                }
             }
         }
-        developers {
-            developer {
-                id 'noamasor'
-                name 'Noam Asor'
-                email 'noamas@gmail.com'
+    }
+    repositories {
+        maven {
+            credentials {
+                username ossrhUsername
+                password ossrhPassword
             }
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         }
+    }
+}
+
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+    if (required) {
+        sign publishing.publications.mavenJava
     }
 }
 
