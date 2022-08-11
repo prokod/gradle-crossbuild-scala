@@ -26,7 +26,21 @@ class ExtUpdateEvent {
     final EventType eventType
 
     ExtUpdateEvent(Map<String, Object> source) {
-        this.source = source == null ? [:] : source.clone()
+        def clone = { Map<String, Object> orig ->
+            def cloneObject = { Object origObj ->
+                def bos = new ByteArrayOutputStream()
+                def oos = new ObjectOutputStream(bos)
+                oos.writeObject(origObj)
+                oos.flush()
+                def bin = new ByteArrayInputStream(bos.toByteArray())
+                def ois = new ObjectInputStream(bin)
+                ois.readObject()
+            }
+
+            orig.collect { new Tuple2<String, Object>(new String(it.key), cloneObject(it.value)) }.collectEntries()
+        }
+
+        this.source = source == null ? [:] : clone(source)
         this.eventType = EventType.EXT_UPDATE
     }
 }
