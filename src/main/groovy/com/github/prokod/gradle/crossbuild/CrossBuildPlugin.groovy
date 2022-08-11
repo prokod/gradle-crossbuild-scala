@@ -27,6 +27,7 @@ import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsights
+import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
@@ -70,6 +71,13 @@ class CrossBuildPlugin implements Plugin<Project> {
             t.extension = extension
 
             t.description = 'Summary report for cross building resolved Configurations'
+        }
+
+        project.task(type:DefaultTask,
+                "${AbstractCrossBuildsReportTask.BASE_TASK_NAME}Assemble") { DefaultTask t ->
+            t.description = 'Assembles all the ' +
+                    AbstractCrossBuildsReportTask.BASE_TASK_NAME + ' outputs of this project'
+            t.group = AbstractCrossBuildsReportTask.TASK_GROUP
         }
 
         project.afterEvaluate {

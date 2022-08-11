@@ -63,6 +63,7 @@ crossBuild {
         result.output.contains("""
 Crossbuilding tasks
 -------------------
+crossBuildAssemble - Assembles all the crossBuild outputs of this project
 crossBuildResolvedConfigs - Summary report for cross building resolved Configurations
 crossBuildResolvedDsl - Summary report for cross building resolved Dsl
 """)
@@ -435,21 +436,21 @@ crossBuild {
         then:
         result.output.contains("""
 crossBuildSpark24_211Classes - Assembles cross build spark24 211 classes.
-crossBuildSpark24_211Jar - Assembles a jar archive containing 211 classes
+crossBuildSpark24_211Jar - Assembles a jar archive containing the crossBuildSpark24_211 classes
 crossBuildSpark24_212Classes - Assembles cross build spark24 212 classes.
-crossBuildSpark24_212Jar - Assembles a jar archive containing 212 classes
+crossBuildSpark24_212Jar - Assembles a jar archive containing the crossBuildSpark24_212 classes
 crossBuildV210Classes - Assembles cross build v210 classes.
-crossBuildV210Jar - Assembles a jar archive containing 210 classes
+crossBuildV210Jar - Assembles a jar archive containing the crossBuildV210 classes
 crossBuildV211_211Classes - Assembles cross build v211 211 classes.
-crossBuildV211_211Jar - Assembles a jar archive containing 211 classes
+crossBuildV211_211Jar - Assembles a jar archive containing the crossBuildV211_211 classes
 crossBuildV211_212Classes - Assembles cross build v211 212 classes.
-crossBuildV211_212Jar - Assembles a jar archive containing 212 classes
+crossBuildV211_212Jar - Assembles a jar archive containing the crossBuildV211_212 classes
 crossBuildV211_A_211Classes - Assembles cross build v211 a 211 classes.
-crossBuildV211_A_211Jar - Assembles a jar archive containing 211 classes
+crossBuildV211_A_211Jar - Assembles a jar archive containing the crossBuildV211_A_211 classes
 crossBuildV212_213Classes - Assembles cross build v212 213 classes.
-crossBuildV212_213Jar - Assembles a jar archive containing 213 classes
+crossBuildV212_213Jar - Assembles a jar archive containing the crossBuildV212_213 classes
 crossBuildV213Classes - Assembles cross build v213 classes.
-crossBuildV213Jar - Assembles a jar archive containing 213 classes
+crossBuildV213Jar - Assembles a jar archive containing the crossBuildV213 classes
 """)
         result.task(":tasks").outcome == SUCCESS
 
