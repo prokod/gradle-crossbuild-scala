@@ -25,7 +25,7 @@
 
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version "0.14.0"
+    id "com.github.prokod.gradle-crossbuild-scala" version "0.14.1"
 }
 ```
 
@@ -34,7 +34,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.14.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.14.1")
     }
 }
 ```
@@ -64,10 +64,13 @@ This is especially true for multi module projects but not just.<br/>
 
   > **NOTE:** cross build artifact naming is governed by `archive.appendixPattern` which by default is `_?` meaning for example, that module `lib` will be resolved to `lib_2.11`/`_2.12`/`...` according to the correlating `crossBuild {}` plugin dsl block
 
-- To test that everything works as expected, both `gradle build` (which also runs the tests) and `gradle publishToMavenLocal` (which goes from cross building, artifact creation and publishing) should succeed.
+- To test that everything works as expected:
+  1. `gradle build` - which runs build and tests for a single Scala version - default one.
+  1. `gradle crossBuildAssemble` - which builds ans assembles **all** cross build into respective artifacts.
+  1. `gradle publishToMavenLocal` - which goes from cross building, artifact creation (as above) and then publishing to local maven.
 
-  > **NOTE:** Look under ~/.m2/repository/... to assert the end result is the one you have wished for.<br/>
-
+  > **NOTE:** Look under `build/libs` , `~/.m2/repository/...` respectively, to assert the end result is the one you have wished for.  `crossBuildAssemble` task is available from version **`0.14.1`**
+  
 ### Multi-module projects and applying cross build plugin only for some
 
 From version **`0.11.x`** the plugin supports multi-module projects where **only** some modules have cross build plugin applied to.<br/>
@@ -379,7 +382,7 @@ dependencies {
 
 - **Cross building DSL programmatically** - In the next code snippet you can observe how programmatically we are generating cross builds using the plugin DSL.
 - **Extra properties per cross build** - Not only the cross building is described in a programmatic manner, you can also observe that specific unique meta data for each cross build permutation is generated using the plugin's `ext` entry
-  > **NOTE:** Supported in the plugin from version `0.14.x` onwards
+  > **NOTE:** The plugin injects a default extra property that holds the value of the respective Scala Compiler Version, named `scalaCompilerVersion`. This feature is supported in the plugin from version `0.14.x` onwards.
   
 ```groovy
 ...
@@ -567,7 +570,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version '0.14.0' apply false
+    id "com.github.prokod.gradle-crossbuild-scala" version '0.14.1' apply false
 }
 
 allprojects {

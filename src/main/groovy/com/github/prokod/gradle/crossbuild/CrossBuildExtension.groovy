@@ -22,6 +22,7 @@ import com.github.prokod.gradle.crossbuild.model.BuildUpdateEventStore
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.model.EventType
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
+import com.github.prokod.gradle.crossbuild.tasks.AbstractCrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
@@ -148,7 +149,10 @@ class CrossBuildExtension {
             def (String sourceSetId, SourceSet sourceSet) =
                                     crossBuildSourceSets.findByName(rb.name)
 
+            def assembleTask = project.tasks.findByName("${AbstractCrossBuildsReportTask.BASE_TASK_NAME}Assemble")
             def scalaJar = createArtifact(sourceSet, rb)
+            assembleTask.dependsOn(scalaJar)
+
             // Runtime
             def outgoingConfigurationRuntime =
                     configureOutgoingConfiguration(sourceSet.getRuntimeElementsConfigurationName(),
@@ -183,8 +187,8 @@ class CrossBuildExtension {
     Jar createArtifact(SourceSet sourceSet, ResolvedBuildAfterEvalLifeCycle rb) {
         def scalaJar = project.tasks.create(sourceSet.getJarTaskName(), Jar) { Jar jar ->
             jar.group = BasePlugin.BUILD_GROUP
-            jar.description = 'Assembles a jar archive containing ' +
-                    "${rb.scalaVersionInsights.strippedArtifactInlinedVersion} classes"
+            jar.description = 'Assembles a jar archive containing the ' +
+                    "${sourceSet.name} classes"
             jar.archiveBaseName.set(archiveBaseName.get() + rb.archive.appendix)
             jar.from sourceSet.output
         }
