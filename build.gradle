@@ -1,5 +1,5 @@
 plugins {
-    id "com.gradle.plugin-publish" version "0.12.0"
+    id "com.gradle.plugin-publish" version "1.0.0"
     id 'jacoco'
 }
 
@@ -34,8 +34,8 @@ ext {
 }
 
 dependencies {
-    implementation gradleApi()
-    implementation localGroovy()
+    // implementation gradleApi()
+    // implementation localGroovy()
 
     testImplementation gradleTestKit()
     testImplementation ('org.spockframework:spock-core:2.1-groovy-2.5') {
@@ -55,6 +55,8 @@ gradlePlugin {
     plugins {
         crossBuildPlugin {
             id = 'com.github.prokod.gradle-crossbuild'
+            displayName = 'Gradle cross build (Scala) plugin'
+            description = 'Adds cross building functionality to Gradle for Scala based projects'
             implementationClass = 'com.github.prokod.gradle.crossbuild.CrossBuildPlugin'
         }
     }
@@ -63,27 +65,19 @@ gradlePlugin {
 pluginBundle {
     website = 'https://github.com/prokod/gradle-crossbuild-scala'
     vcsUrl = 'https://github.com/prokod/gradle-crossbuild-scala'
-    description = 'Adds cross building functionality to Gradle for Scala based projects'
-    tags = ['gradle', 'cross-build-scala-plugins', 'cross-compile', 'scala']
-
-    plugins {
-        crossBuildPlugin {
-            // id is captured from java-gradle-plugin configuration
-            displayName = 'Gradle cross build (Scala) plugin'
-        }
-    }
+    tags = ['cross-build-scala-plugins', 'cross-compile', 'scala', 'cross-building']
 }
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifact sourcesJar {
-                classifier 'sources'
-            }
-            artifact javadocJar {
-                classifier 'javadoc'
-            }
+        pluginMaven(MavenPublication) {
+            // from components.java
+            // artifact sourcesJar {
+            //     classifier 'sources'
+            // }
+            // artifact javadocJar {
+            //     classifier 'javadoc'
+            // }
             versionMapping {
                 usage('java-api') {
                     fromResolutionOf('runtimeClasspath')
@@ -137,7 +131,7 @@ publishing {
 signing {
     def required = { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
     if (required) {
-        sign publishing.publications.mavenJava
+        sign publishing.publications.pluginMaven
     }
 }
 

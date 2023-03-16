@@ -156,19 +156,21 @@ class CrossBuildExtension {
             // Runtime
             def outgoingConfigurationRuntime =
                     configureOutgoingConfiguration(sourceSet.getRuntimeElementsConfigurationName(),
+                            rb.name,
                             rb.scalaVersion,
                             Usage.JAVA_RUNTIME)
             attachArtifact(scalaJar, outgoingConfigurationRuntime.name)
             // Api
             def outgoingConfigurationApi =
                     configureOutgoingConfiguration(sourceSet.getApiElementsConfigurationName(),
+                            rb.name,
                             rb.scalaVersion,
                             Usage.JAVA_API)
             attachArtifact(scalaJar, outgoingConfigurationApi.name)
         }
     }
 
-    Configuration configureOutgoingConfiguration(String outgoingConfigurationName, String scalaVersion, String usage) {
+    Configuration configureOutgoingConfiguration(String outgoingConfigurationName, String buildName, String scalaVersion, String usage) {
         Configuration outgoingConfiguration =
                 project.configurations.getByName(outgoingConfigurationName) { Configuration cnf ->
             cnf.attributes {
@@ -178,7 +180,7 @@ class CrossBuildExtension {
                 it.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                         JavaVersion.current().majorVersion.toInteger())
                 it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                        objects.named(LibraryElements, "scala-${scalaVersion}-jar"))
+                        objects.named(LibraryElements, "scala-${buildName}-${scalaVersion}-jar"))
             }
         }
         outgoingConfiguration

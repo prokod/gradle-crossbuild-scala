@@ -110,8 +110,9 @@ class CrossBuildPlugin implements Plugin<Project> {
             // 1. Adds scala-lib dependency to all sub projects (User convenience)
             // 2. Helps with the creation of the correct dependencies for pom creation
             // see ResolutionStrategyConfigurer::assemble3rdPartyDependencies
-            extension.project.dependencies.add(sourceSetInsight.getCompileName(),
-                    "org.scala-lang:scala-library:${scalaVersionInsights.compilerVersion}")
+            def moduleName = ScalaModuleType.LIBRARY.getName(scalaVersionInsights.majorVersion)
+            def module = "org.scala-lang:${moduleName}:${scalaVersionInsights.compilerVersion}"
+            extension.project.dependencies.add(sourceSetInsight.getCompileName(), module)
         }
     }
 

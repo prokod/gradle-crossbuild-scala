@@ -47,11 +47,11 @@ object HelloWorldA {
    /* This is my first java program.  
    * This will print 'Hello World' as the output
    */
-   def main(args: Array[String]) {
+   def main(args: Array[String]) = {
       println("Hello, world A!")
    }
    
-   def runIt() {
+   def runIt() = {
          println("Visit, world B!")
    }
 }
@@ -85,6 +85,7 @@ crossBuild {
     builds {
         v210
         v211
+        v3
     }
 }
 
@@ -100,6 +101,11 @@ publishing {
                 artifact crossBuildV211Jar
             }
         }
+        crossBuildV3(MavenPublication) {
+            afterEvaluate {
+                artifact crossBuildV3Jar
+            }
+        }
     }
 }
     
@@ -109,6 +115,9 @@ tasks.withType(GenerateMavenPom) { t ->
     }
     if (t.name.contains('CrossBuildV211')) {
         t.destination = file("\$buildDir/generated-pom_2.11.xml")
+    }
+    if (t.name.contains('CrossBuildV3')) {
+        t.destination = file("\$buildDir/generated-pom_3.xml")
     }
 }
 
@@ -124,7 +133,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation "org.scalatest:scalatest_?:3.0.1"
+    implementation "org.scalatest:scalatest_?:3.2.15"
     implementation "com.google.guava:guava:18.0"
     implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
@@ -136,22 +145,24 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
+        .withDebug(true)
                 /*@withDebug@*/
-                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', 'crossBuildV3Jar', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":crossBuildV210Jar").outcome == SUCCESS
         result.task(":crossBuildV211Jar").outcome == SUCCESS
+        result.task(":crossBuildV3Jar").outcome == SUCCESS
 
         fileExists(dir.resolve('build/libs/spock__gradle_*_2.10.jar'))
         fileExists(dir.resolve('build/libs/spock__gradle_*_2.11.jar'))
+        fileExists(dir.resolve('build/libs/spock__gradle_*_3.jar'))
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.11'
-        '6.9.2'         | '2.11'
-        '7.3.3'         | '2.10'
+        '7.6.1'         | '2.10'
+        '8.0.2'         | '2.11'
     }
 
     @Unroll

@@ -1,6 +1,7 @@
 package com.github.prokod.gradle.crossbuild.utils
 
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
+import com.github.prokod.gradle.crossbuild.ScalaModuleType
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import com.github.prokod.gradle.crossbuild.model.DependencyInsight
@@ -380,7 +381,7 @@ class DependencyInsights {
      */
     static List<DependencyInsight> findScalaDependencies(Set<Dependency> dependencySet, ScalaVersions scalaVersions) {
         def isScalaLibDependency = { dependency ->
-            "${dependency.group}:${dependency.name}" == 'org.scala-lang:scala-library'
+            dependency.group == 'org.scala-lang' && dependency.name in ScalaModuleType.LIBRARY.getNames()
         }
         def scalaDeps = dependencySet.findAll(isScalaLibDependency).collect { dep ->
             def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)

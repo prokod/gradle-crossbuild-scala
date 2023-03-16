@@ -42,6 +42,7 @@ crossBuild {
     builds {
         v211
         v212
+        v3
     }
 }
 """
@@ -51,7 +52,7 @@ crossBuild {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                /*@withDebug@*/
+                .withDebug(true)
                 .withArguments('tasks', '--info', '--stacktrace')
                 .build()
 
@@ -60,6 +61,8 @@ crossBuild {
         !result.output.contains('publishCrossBuildV211PublicationToMavenLocal')
         result.output.contains('crossBuildV212Jar')
         !result.output.contains('publishCrossBuildV212PublicationToMavenLocal')
+        result.output.contains('crossBuildV3Jar')
+        !result.output.contains('publishCrossBuildV3PublicationToMavenLocal')
         result.output.contains("""
 Crossbuilding tasks
 -------------------
@@ -72,9 +75,10 @@ crossBuildResolvedDsl - Summary report for cross building resolved Dsl
         // TODO: consider removing/splitting test
         result.output.contains('_2.11]')
         result.output.contains('_2.12]')
+        result.output.contains('_3]')
 
         where:
-        gradleVersion << ['5.6.4', '6.9.2', '7.3.3']
+        gradleVersion << ['7.6.1', '8.0.2']
     }
 
     @Unroll
