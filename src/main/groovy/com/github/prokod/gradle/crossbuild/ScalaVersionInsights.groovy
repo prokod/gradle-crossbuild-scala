@@ -21,6 +21,7 @@ import groovy.transform.TupleConstructor
 /**
  * Scala versioning semantics class
  */
+@SuppressWarnings(['DuplicateNumberLiteral'])
 @ToString(includes = 'baseVersion, underscoredBaseVersion, compilerVersion')
 @TupleConstructor
 class ScalaVersionInsights {
@@ -32,6 +33,7 @@ class ScalaVersionInsights {
     String artifactInlinedVersion
     String underscoredArtifactInlinedVersion
     String strippedArtifactInlinedVersion
+    String scalaCompilerDefaultTargetJvm
 
     ScalaVersionInsights(String targetVersion, ScalaVersions scalaVersions = null) {
         insightFor(targetVersion, scalaVersions)
@@ -40,9 +42,10 @@ class ScalaVersionInsights {
         underscoredCompilerVersion = compilerVersion.replaceAll('\\.', '_')
         underscoredArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '_')
         strippedArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '')
-    }
 
-    String scalaModuleName
+        scalaCompilerDefaultTargetJvm = ScalaCompilerTargetType.from(compilerVersion)
+                .getCompilerTargetJvm(ScalaCompilerTargetStrategyType.DEFAULT, '')
+    }
 
     private void insightFor(String version, ScalaVersions scalaVersions) {
         def dotsCount = version.length() - version.replaceAll('\\.', '').length()
@@ -67,7 +70,8 @@ class ScalaVersionInsights {
         }
         else if (dotsCount == 2) {
             // Scala 3
-            if ((versionAsNumber - 300 >= 0 && versionAsNumber - 300 < 100) || (versionAsNumber - 3000 >= 0 && versionAsNumber - 3000 < 1000)) {
+            if ((versionAsNumber - 300 >= 0 && versionAsNumber - 300 < 100)
+                    || (versionAsNumber - 3000 >= 0 && versionAsNumber - 3000 < 1000)) {
                 // In Scala 3 binary compatibility is maintained across minor Scala compile versions
                 // Scala 3 introduced scalaBinaryVersion=3 for all Scala 3 compiler versions
                 baseVersion = verifiedVersion[0..verifiedVersion.indexOf('.') - 1]

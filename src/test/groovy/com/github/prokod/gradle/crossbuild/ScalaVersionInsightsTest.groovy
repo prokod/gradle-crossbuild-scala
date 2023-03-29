@@ -15,9 +15,6 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
-import com.github.prokod.gradle.crossbuild.utils.ViewType
-
 import spock.lang.Specification
 
 class ScalaVersionInsightsTest extends Specification {
@@ -35,19 +32,25 @@ class ScalaVersionInsightsTest extends Specification {
         insights.compilerVersion == compilerVersion
         and:
         insights.strippedArtifactInlinedVersion == strippedArtifactInlinedVersion
+        and:
+        insights.scalaCompilerDefaultTargetJvm == scalaCompilerDefaultTargetJvm
 
         where:
-        version  | artifactInlinedVersion | baseVersion | compilerVersion | strippedArtifactInlinedVersion
-        '2.9'    | '2.9.3'                | '2.9'       | '2.9.3'         | '293'
-        '2.10'   | '2.10'                 | '2.10'      | '2.10.6'        | '210'
-        '2.10.6' | '2.10'                 | '2.10'      | '2.10.6'        | '210'
-        '2.11'   | '2.11'                 | '2.11'      | '2.11.12'       | '211'
-        '2.11.12'| '2.11'                 | '2.11'      | '2.11.12'       | '211'
-        '2.12'   | '2.12'                 | '2.12'      | '2.12.12'       | '212'
-        '2.12.12'| '2.12'                 | '2.12'      | '2.12.12'       | '212'
-        '2.13'   | '2.13'                 | '2.13'      | '2.13.3'        | '213'
-        '2.13.3' | '2.13'                 | '2.13'      | '2.13.3'        | '213'
-        '3'      | '3'                    | '3'         | '3.2.2'         | '3'
-        '3.2.2'  | '3'                    | '3'         | '3.2.2'         | '3'
+        version  | artifactInlinedVersion | baseVersion | compilerVersion | strippedArtifactInlinedVersion | scalaCompilerDefaultTargetJvm
+        '2.9'    | '2.9.3'                | '2.9'       | '2.9.3'         | '293'                          | 'jvm-1.5'
+        '2.10'   | '2.10'                 | '2.10'      | '2.10.6'        | '210'                          | 'jvm-1.6'
+        '2.10.6' | '2.10'                 | '2.10'      | '2.10.6'        | '210'                          | 'jvm-1.6'
+        '2.11'   | '2.11'                 | '2.11'      | '2.11.12'       | '211'                          | 'jvm-1.6'
+        '2.11.12'| '2.11'                 | '2.11'      | '2.11.12'       | '211'                          | 'jvm-1.6'
+        '2.11.11'| '2.11'                 | '2.11'      | '2.11.11'       | '211'                          | 'jvm-1.6'
+        '2.12'   | '2.12'                 | '2.12'      | '2.12.12'       | '212'                          | 'jvm-1.8'
+        '2.12.12'| '2.12'                 | '2.12'      | '2.12.12'       | '212'                          | 'jvm-1.8'
+        '2.12.16'| '2.12'                 | '2.12'      | '2.12.16'       | '212'                          | 'jvm-1.8'
+        '2.12.17'| '2.12'                 | '2.12'      | '2.12.17'       | '212'                          | 'jvm-1.8'
+        '2.13'   | '2.13'                 | '2.13'      | '2.13.3'        | '213'                          | 'jvm-1.8'
+        '2.13.3' | '2.13'                 | '2.13'      | '2.13.3'        | '213'                          | 'jvm-1.8'
+        '2.13.0' | '2.13'                 | '2.13'      | '2.13.0'        | '213'                          | 'jvm-1.8'
+        '3'      | '3'                    | '3'         | '3.2.2'         | '3'                            | '11'
+        '3.2.2'  | '3'                    | '3'         | '3.2.2'         | '3'                            | '11'
     }
 }

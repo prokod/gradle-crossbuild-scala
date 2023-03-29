@@ -170,7 +170,10 @@ class CrossBuildExtension {
         }
     }
 
-    Configuration configureOutgoingConfiguration(String outgoingConfigurationName, String buildName, String scalaVersion, String usage) {
+    Configuration configureOutgoingConfiguration(String outgoingConfigurationName,
+                                                 String buildName,
+                                                 String scalaVersion,
+                                                 String usage) {
         Configuration outgoingConfiguration =
                 project.configurations.getByName(outgoingConfigurationName) { Configuration cnf ->
             cnf.attributes {

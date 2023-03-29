@@ -19,9 +19,9 @@ package com.github.prokod.gradle.crossbuild
  */
 @SuppressWarnings(['ThisReferenceEscapesConstructor', 'PrivateFieldCouldBeFinal', 'LineLength', 'DuplicateListLiteral'])
 enum ScalaModuleType {
-    LIBRARY(['2': 'scala-library', '3': 'scala3-library_3']),
-    COMPILER(['2': 'scala-compiler', '3': 'scala3-compiler_3']),
-    REFLECT(['2': 'scala-reflect'])
+    LIBRARY(['2':'scala-library', '3':'scala3-library_3']),
+    COMPILER(['2':'scala-compiler', '3':'scala3-compiler_3']),
+    REFLECT(['2':'scala-reflect'])
 
     private final Map<String, String> namingConventionMap
 
@@ -43,7 +43,6 @@ enum ScalaModuleType {
      * @return
      */
     static String convert(String name, String targetScalaVersion) {
-
         def moduleType = values().find { moduleType ->
             moduleType.names.contains(name)
         }
