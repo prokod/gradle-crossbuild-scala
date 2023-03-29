@@ -16,7 +16,7 @@
 package com.github.prokod.gradle.crossbuild
 
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.internal.impldep.org.junit.Assume
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -36,6 +36,8 @@ class CrossBuildPluginScalaVersionSpecificSourceTest extends CrossBuildGradleRun
         appScalaFile = file('app/src/main/scala/com/github/prokod/it/gradleCrossbuildSample/Main.scala')
     }
 
+    @Requires({ System.getProperty("java.version").startsWith('1.8') })
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi cross build aspects (scala / spark) multi-module project with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
@@ -183,9 +185,6 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
-
-        and:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -198,8 +197,6 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         result.task(":tasks").outcome == SUCCESS
         result.task(":app:build").outcome == SUCCESS
         result.task(":app:publishToMavenLocal").outcome == SUCCESS
-
-        println(result.output)
 
         when:
         def libPaths = []
@@ -297,7 +294,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.3'         | '2.13'
-        '7.3.3'         | '2.12'
+        '7.6.1'         | '2.12'
     }
 
     /**
@@ -307,8 +304,10 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
      *
      * @return
      */
+    @Requires({ System.getProperty("java.version").startsWith('11.') })
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi cross build aspects (scala2 + scala3 / spark) multi-module project with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi cross build aspects (scala2 + scala3 / akka) multi-module project with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
         // root project settings.gradle
         settingsFile << """
@@ -358,13 +357,13 @@ subprojects {
                 }
             }
 
-//            for (akka in akkaVersionsForScala2) {
-//                create(akka) {
-//                    scalaVersions = ["2.12", "2.13"]
-//                    archive.appendixPattern = "-\${akka}_?"
-//                    ext = ['akkaVersion':akka]
-//                }
-//            }
+            for (akka in akkaVersionsForScala2) {
+                create(akka) {
+                    scalaVersions = ["2.12", "2.13"]
+                    archive.appendixPattern = "-\${akka}_?"
+                    ext = ['akkaVersion':akka]
+                }
+            }
         }
     }
     
@@ -466,15 +465,11 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
-
-        and:
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
-        /*@withDebug@*/
+                /*@withDebug@*/
                 .withArguments('tasks', 'build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
@@ -482,8 +477,6 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         result.task(":tasks").outcome == SUCCESS
         result.task(":app:build").outcome == SUCCESS
         result.task(":app:publishToMavenLocal").outcome == SUCCESS
-
-        println(result.output)
 
         when:
         def libPaths = []
@@ -505,7 +498,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
 
                 libPaths += [dir.resolve("app/build/libs/app-${akka}_${scalaCompat}*.jar").normalize().toString()]
                 xmlPaths += [dir.resolve("app${File.separator}build${File.separator}generated-pom${akkaStripped}_${scalaCompatStripped}.xml").normalize().toString()]
-                poms += [[akka, scala, scalaCompat]:new XmlSlurper().parseText(new File(xmlPaths.last()).text).dependencies.dependency.collectEntries {
+                poms += [[akka, scala, scalaCompat, scalaVersionInsights.majorVersion]:new XmlSlurper().parseText(new File(xmlPaths.last()).text).dependencies.dependency.collectEntries {
                     [it.groupId.text(), it]
                 }]
                 classPaths += [dir.resolve("app/build/classpath-libs-crossBuild${akkaStripped}_${scalaCompatStripped}").normalize().toString()]
@@ -526,7 +519,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
 
                 libPaths += [dir.resolve("app/build/libs/app-${akka}_${scalaCompat}*.jar").normalize().toString()]
                 xmlPaths += [dir.resolve("app${File.separator}build${File.separator}generated-pom${akkaStripped}_${scalaCompatStripped}.xml").normalize().toString()]
-                poms += [[akka, scala, scalaCompat]: new XmlSlurper().parseText(new File(xmlPaths.last()).text).dependencies.dependency.collectEntries {
+                poms += [[akka, scala, scalaCompat, scalaVersionInsights.majorVersion]: new XmlSlurper().parseText(new File(xmlPaths.last()).text).dependencies.dependency.collectEntries {
                     [it.groupId.text(), it]
                 }]
                 classPaths += [dir.resolve("app/build/classpath-libs-crossBuild${akkaStripped}_${scalaCompatStripped}").normalize().toString()]
@@ -572,7 +565,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         and:
         poms.each {pom ->
             assert pom.value.size() == 2
-            assert pom.value['org.scala-lang'].artifactId == 'scala-library'
+            assert pom.value['org.scala-lang'].artifactId == ScalaModuleType.LIBRARY.getName(pom.key[3])
             assert pom.value['org.scala-lang'].version == pom.key[1]
             assert pom.value['org.scala-lang'].scope == 'runtime'
             assert pom.value['com.typesafe.akka'].groupId == 'com.typesafe.akka'
@@ -583,9 +576,8 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
 
         where:
         gradleVersion   | defaultScalaVersion
-//        '5.6.4'         | '2.12'
-//        '6.9.3'         | '2.13'
-//        '7.3.3'         | '2.12'
-        '8.0.2'           | '3'
+        '6.9.4'         | '2.13'
+        '7.6.1'         | '2.12'
+        '8.0.2'         | '3'
     }
 }

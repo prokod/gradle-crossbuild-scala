@@ -15,8 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -35,6 +35,8 @@ class CrossBuildPluginResolutionStrategyTest extends CrossBuildGradleRunnerSpec 
     }
 
     @Unroll
+    @Requires({ System.getProperty("java.version").startsWith('1.8') })
+    @Requires({ instance.testMavenCentralAccess() })
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
         scalaFile << """
@@ -63,7 +65,7 @@ repositories {
 }
 
 crossBuild {
-    scalaVersionsCatalog = ['2.10':'2.10.6', '2.11':'2.11.11'] 
+    scalaVersionsCatalog = ['2.10':'2.10.7', '2.11':'2.11.11'] 
 
     builds {
         v210 {
@@ -114,11 +116,11 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
+                .withDebug(true)
                 /*@withDebug@*/
                 .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
@@ -129,7 +131,7 @@ dependencies {
         def pom211 = dir.resolve("build${File.separator}generated-pom_2.11.xml").text
 
         !pom210.contains('2.11.')
-        pom210.contains('2.10.6')
+        pom210.contains('2.10.7')
         pom210.contains('18.0')
         pom210.contains('3.0.1')
         !pom211.contains('2.11.+')
@@ -141,10 +143,11 @@ dependencies {
         where:
         gradleVersion | defaultScalaVersion
         '5.6.4'       | '2.11'
-        '6.9.2'       | '2.10'
-        '7.3.3'       | '2.11'
+        '6.9.4'       | '2.10'
+        '7.6.1'       | '2.11'
     }
 
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with qmark deps in test configuration should be resolved correctly"() {
         given:
@@ -216,7 +219,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -232,7 +234,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
-        '6.9.2'         | '2.11'
-        '7.3.3'         | '2.12'
+        '6.9.4'         | '2.11'
+        '7.6.1'         | '2.12'
     }
 }

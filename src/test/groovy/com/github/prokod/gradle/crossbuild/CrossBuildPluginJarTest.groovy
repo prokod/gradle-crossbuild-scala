@@ -15,8 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -37,6 +37,8 @@ class CrossBuildPluginJarTest extends CrossBuildGradleRunnerSpec {
         testScalaFile = file('src/test/scala/helloWorldTest.scala')
     }
 
+    @Requires({ System.getProperty("java.version").startsWith('1.8') })
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with crossBuild dsl should produce expected jars"() {
         given:
@@ -140,12 +142,10 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-        .withDebug(true)
                 /*@withDebug@*/
                 .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', 'crossBuildV3Jar', '--info', '--stacktrace')
                 .build()
@@ -165,6 +165,7 @@ dependencies {
         '8.0.2'         | '2.11'
     }
 
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with java-library configurations should create cross built jars"() {
         given:
@@ -232,7 +233,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -251,7 +251,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
-        '6.9.2'         | '2.12'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.12'
+        '7.6.1'         | '2.11'
     }
 }

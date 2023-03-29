@@ -18,9 +18,9 @@ package com.github.prokod.gradle.crossbuild
 import com.github.prokod.gradle.crossbuild.model.Build
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testkit.runner.GradleRunner
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -65,6 +65,7 @@ class CrossBuildPluginExtensionTest extends CrossBuildGradleRunnerSpec {
      * @param eap2 Expected Appendix Pattern for cross build no. 2
      * @param eap3 Expected Appendix Pattern for cross build no. 3
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with `withPlugin` dsl should propagate the same plugin configuration to all sub projects"(
             String gradleVersion,
@@ -171,7 +172,6 @@ dependencies {
         def expectedReport = '[' + (rb1 + rb2 + rb3).collect { it.toString() }.join(',\n') + ']'
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -197,7 +197,7 @@ dependencies {
         gradleVersion | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
         '5.6.4'       | '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
         '5.6.4'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-        '6.9.2'       | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
-        '7.3.3'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+        '6.9.4'       | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
+        '7.6.1'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
     }
 }

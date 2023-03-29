@@ -15,9 +15,9 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
 import org.skyscreamer.jsonassert.JSONAssert
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -57,6 +57,7 @@ class CrossBuildPluginApiConfigurationMultiModuleTest3 extends CrossBuildGradleR
     /**
      * resource file for the test: app_builds_resolved_configurations-01.json
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and inlined individual appendixPattern with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
@@ -266,7 +267,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -308,8 +308,8 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
-        '6.9.2'         | '2.12'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.12'
+        '7.6.1'         | '2.11'
     }
 
     /**
@@ -322,6 +322,7 @@ dependencies {
      * Here lib3 is a non cross build dependency.
      * This test checks that the transitive dependencies for lib3 are added to dependent lib2
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is applied only to some sub modules should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
@@ -588,7 +589,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -626,7 +626,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
-        '6.9.2'         | '2.12'
-        '7.3.3'         | '2.12'
+        '6.9.4'         | '2.12'
+        '7.6.1'         | '2.12'
     }
 }

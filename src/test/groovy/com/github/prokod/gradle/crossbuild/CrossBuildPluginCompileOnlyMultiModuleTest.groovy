@@ -15,9 +15,9 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
 import org.skyscreamer.jsonassert.JSONAssert
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -67,6 +67,7 @@ class CrossBuildPluginCompileOnlyMultiModuleTest extends CrossBuildGradleRunnerS
      * 2. misalignment in scala-lang dependency - the plugin forgives scala-lang unaligned default-variant dependency
      * by fixing it (update version) in dependency resolution
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 with a more complex inter sub module dependencies and with cross building dsl that is different on each submodule and inlined individual appendixPattern with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
@@ -372,7 +373,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -447,7 +447,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
-        '6.9.2'         | '2.12'
-        '7.3.3'         | '2.12'
+        '6.9.4'         | '2.12'
+        '7.6.1'         | '2.12'
     }
 }
