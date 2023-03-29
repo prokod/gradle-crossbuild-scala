@@ -18,12 +18,14 @@ package com.github.prokod.gradle.crossbuild
 import org.gradle.util.VersionNumber
 
 /**
+ * NOTE: Partially based on https://github.com/scala/scala/blob/v2.x.x/src/compiler/scala/tools/nsc/settings/StandardScalaSettings.scala
+ * v2.x.x should be replaced with a concrete version like v.2.13.9 for instance
  */
 @SuppressWarnings(['ThisReferenceEscapesConstructor', 'BitwiseOperatorInConditional',
         'PrivateFieldCouldBeFinal', 'LineLength', 'DuplicateListLiteral', 'DuplicateNumberLiteral'])
 enum ScalaCompilerTargetType {
     V2_9(VersionNumber.parse('2.9.0'), { v -> "jvm-1.${v}" }, 5, 5),
-    V2_10_0(VersionNumber.parse('2.10.0'), { v -> "jvm-1.${v}" }, 6, 8),
+    V2_10_0(VersionNumber.parse('2.10.0'), { v -> "jvm-1.${v}" }, 6, 7),
     V2_11_0(VersionNumber.parse('2.11.0'), { v -> "jvm-1.${v}" }, 6, 8),
     //V2_11_12(VersionNumber.parse('2.11.12'), { v -> "jvm-1.${v}" }, 8, 8),
     V2_12_0(VersionNumber.parse('2.12.0'), { v -> "jvm-1.${v}" }, 8, 8),

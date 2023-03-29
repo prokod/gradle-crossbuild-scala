@@ -24,23 +24,28 @@ package com.github.prokod.gradle.crossbuild
         'PrivateFieldCouldBeFinal', 'Indentation', 'DuplicateListLiteral'])
 enum ScalaCompilerTargetStrategyType {
     DEFAULT({ ScalaCompilerTargetType t, String targetCompatibility ->
-                t.targetFunction.call(t.defaultTarget.toString())
+        def sanitized = sanitizeTargetCompatibility(targetCompatibility)
+        if (sanitized.second <= t.maxTarget) {
+            return t.targetFunction.call(sanitized.first)
+        } else {
+            return t.targetFunction.call(t.defaultTarget.toString())
+        }
     }),
     SMART({ ScalaCompilerTargetType t, String targetCompatibility ->
         def sanitized = sanitizeTargetCompatibility(targetCompatibility)
         if (sanitized.second <= t.maxTarget) {
             return t.targetFunction.call(sanitized.first)
         } else {
-            return t.targetFunction.call(t.maxTarget)
+            return t.targetFunction.call(t.maxTarget.toString())
         }
     }),
-    STRICT({
+    STRICT({ ScalaCompilerTargetType t, String targetCompatibility ->
         def sanitized = sanitizeTargetCompatibility(targetCompatibility)
         if (sanitized.second <= t.maxTarget) {
             t.targetFunction.call(sanitized.first)
         } else {
             throw new IllegalArgumentException("Requested target JVM [${targetCompatibility}] is not supported " +
-                    "in Scala Compilers range starting with ${this.compilerVersion}.")
+                    "in Scala Compilers range starting with ${t.compilerVersion}.")
         }
     })
 

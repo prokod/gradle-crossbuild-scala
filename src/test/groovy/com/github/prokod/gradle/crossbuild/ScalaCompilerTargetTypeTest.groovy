@@ -31,6 +31,7 @@ class ScalaCompilerTargetTypeTest extends Specification {
 
         where:
         version   | strategy | targetCompatibility  | targetValue
+        '2.10.6'  | 'SMART'  | '8'                  | 'jvm-1.7'
         '2.11.12' | 'SMART'  | '11'                 | 'jvm-1.8'
         '2.11.12' | 'SMART'  | '8'                  | 'jvm-1.8'
         '2.11.12' | 'SMART'  | '1.8'                | 'jvm-1.8'
