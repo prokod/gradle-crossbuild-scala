@@ -44,7 +44,7 @@ buildscript {
 
 ### Recommended cross building apply strategy
 
-This is especially true for multi module projects but not just.<br/>
+This is especially true for multi-module projects but not just.<br/>
 
 - Wire up your build scripts in the project in such a way that you are able to successfully build it for single scala version.
 
@@ -55,7 +55,7 @@ This is especially true for multi module projects but not just.<br/>
   > **NOTE:** If you have to change your dependencies because of applying the plugin and trying explicitly `gradle build`, something is fishy.<br/>
     You see, the plugin is designed in such a way that it borrows from the state of the project's dependency tree already in place without changing it. It then adds a somewhat parallel dependency tree for each of the cross building variants.
 
-- To configure the plugin efficiently please see recommended [multi module projects apply patterns](#multi_module_apply_patterns).
+- To configure the plugin efficiently please see recommended [Multi module projects apply patterns](#multi_module_apply_patterns).
 
   > **NOTE:** From version `0.12.x` there is no need to have any special glob pattern to express cross build dependency for `implementation`/`api`/`runtime`/`...` configurations - the plugin will add a correct dependency resolution according to the provided `crossBuild {}` plugin dsl block.<br/>
     Up to version `0.11.x` (inclusive) use the '?' question mark to express cross build dependency inside `implementation`/`api`/`runtime`/`...` configurations.<br/>
@@ -219,7 +219,8 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
             }
         }
     }
-    ...
+   
+    // ...
     ```
 
 1. `gradle tasks`
@@ -315,7 +316,7 @@ In this example, we override default behaviour, dropping provided scope dependen
 apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 
 crossBuild {
-    scalaVersionsCatalog = ['2.10': '2.10.6', '2.11': '2.11.12', '2.12':'2.12.8' ...]
+    scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.17', '2.13':'2.13.10', '3':'3.2.2']
 
     archive.appendixPattern = '_?'                  // Default appendix pattern for all builds
 
@@ -392,7 +393,7 @@ dependencies {
   > **NOTE:** The plugin injects a default extra property that holds the value of the respective Scala Compiler Version, named `scalaCompilerVersion`. This feature is supported in the plugin from version `0.14.x` onwards.
   
 ```groovy
-...
+// ...
 
 subprojects {
     apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
@@ -512,7 +513,7 @@ The following table shows some commonly build scenarios expressed through the pl
 ## <a name="java_library"></a>`implementation` configuration and `java-library` plugin
 
 - `implementation` configuration (java plugin) and `api` configuration (java-library plugin) are both supported by the cross build plugin. Cross build variants for the `implementation`/`api` configurations will be added to the cross build projects. <br/> 
-- When using the cross build plugin in a multi module project, a suggestion is to read [java-library plugin doc](https://docs.gradle.org/current/userguide/java_library_plugin.html) beforehand, to better understand how Gradle treats dependencies with relation to configurations. This is highly recommended also for newcomers from Maven, where `compile`/`runtime` concepts are used. <br/>
+- When using the cross build plugin in a Multi module project, a suggestion is to read [java-library plugin doc](https://docs.gradle.org/current/userguide/java_library_plugin.html) beforehand, to better understand how Gradle treats dependencies with relation to configurations. This is highly recommended also for newcomers from Maven, where `compile`/`runtime` concepts are used. <br/>
 - `api` configuration is supported from version **`0.13.0`**
 
 ## <a name="multi_module_apply_patterns"></a>Multi-module project plugin apply patterns
@@ -568,7 +569,8 @@ allprojects {
 
 ```groovy
 apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
-...
+
+// ...
 ```
 
 ### Layout 2 (a.k.a eager apply)
