@@ -44,7 +44,7 @@ class TargetCompatibility {
         def newValue = strategy
 
         if (oldValue != newValue) {
-            eventStore?.store(new ArchiveNamingUpdateEvent(this))
+            eventStore?.store(new TargetCompatibilityUpdateEvent(this))
         }
     }
 }
