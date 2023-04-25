@@ -310,7 +310,8 @@ class CrossBuildPlugin implements Plugin<Project> {
             def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
 
             ScalaCompileTasks
-                    .tuneCrossBuildScalaCompileTask(extension.project, sourceSetInsights, rb.scalaVersionInsights)
+                    .tuneCrossBuildScalaCompileTask(extension.project,
+                            sourceSetInsights, rb.scalaVersionInsights, rb.targetCompatibility)
         }
     }
 }

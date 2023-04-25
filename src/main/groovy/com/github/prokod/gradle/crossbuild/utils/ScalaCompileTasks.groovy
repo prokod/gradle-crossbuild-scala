@@ -1,8 +1,8 @@
 package com.github.prokod.gradle.crossbuild.utils
 
-import com.github.prokod.gradle.crossbuild.ScalaCompilerTargetStrategyType
+import com.github.prokod.gradle.crossbuild.model.ResolvedTargetCompatibility
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
-import com.github.prokod.gradle.crossbuild.ScalaCompilerTargetType
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetType
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.tasks.scala.ScalaCompile
@@ -16,7 +16,10 @@ import java.nio.file.Paths
 class ScalaCompileTasks {
 
     @SuppressWarnings(['LineLength', 'UnnecessaryReturnKeyword'])
-    static void tuneCrossBuildScalaCompileTask(Project project, SourceSetInsights sourceSetInsights, ScalaVersionInsights scalaVersionInsights) {
+    static void tuneCrossBuildScalaCompileTask(Project project,
+                                               SourceSetInsights sourceSetInsights,
+                                               ScalaVersionInsights scalaVersionInsights,
+                                               ResolvedTargetCompatibility targetCompatibility) {
         // Classpath debugging by collecting classpath property and printing out may cause ana exception similar to:
         // org.gradle.api.UncheckedIOException: Failed to capture fingerprint of input files for task ':app:compileScala' property 'scalaClasspath' during up-to-date check.
         // So this should be avoided ...
@@ -31,7 +34,7 @@ class ScalaCompileTasks {
                 }
 
                 def targetType = ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion)
-                def target = targetType.getCompilerTargetJvm(ScalaCompilerTargetStrategyType.SMART, t.targetCompatibility)
+                def target = targetType.getCompilerTargetJvm(targetCompatibility.inferredStrategy, t.targetCompatibility)
                 if (t.scalaCompileOptions.additionalParameters != null) {
                     t.scalaCompileOptions.additionalParameters
                             .add("-target:$target".toString())

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.prokod.gradle.crossbuild
+package com.github.prokod.gradle.crossbuild.model
 
 import org.gradle.util.VersionNumber
 
@@ -82,6 +82,9 @@ enum ScalaCompilerTargetType {
         strategy.strategyFunction.call(this, targetCompatibility)
     }
 
+    String getCompilerTargetJvm(ScalaCompilerTargetStrategyType strategy) {
+        strategy.strategyFunction.call(this, '')
+    }
     /**
      * Convert any Scala Compiler version to matching ScalaCompilerTargetType
      *

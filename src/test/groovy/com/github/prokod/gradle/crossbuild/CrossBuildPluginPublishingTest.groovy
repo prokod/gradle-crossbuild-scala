@@ -59,7 +59,8 @@ class CrossBuildPluginPublishingTest extends CrossBuildGradleRunnerSpec {
      * * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Eager</li>
-     *     <li> Gradle compatibility matrix: 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 6.x, 7.x</li>
+     *     <li>Creating withSourceJar/JavadocJar for non app modules</li>
      * </ul>
      * resource file/s for the test:
      * 04-app_builds_resolved_configurations.json
@@ -68,9 +69,8 @@ class CrossBuildPluginPublishingTest extends CrossBuildGradleRunnerSpec {
      */
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl, should produce expected jars and pom files and should have correct pom files content blah"() {
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl which includes source/javadoc jars, should produce expected jars and pom files and should have correct pom files content"() {
         given:
-        // root project settings.gradle
         settingsFile << """
 include 'lib'
 include 'lib2'
@@ -121,6 +121,9 @@ subprojects {
                     afterEvaluate {
                         artifact crossBuildSpark240_212Jar
                     }
+                }
+                mavenJava(MavenPublication) {
+                    from components.java
                 }
             }
         }
@@ -247,7 +250,7 @@ publishing {
         }
     }
 }
-        
+
 dependencies {
     implementation project(':lib2')
 }
@@ -268,8 +271,12 @@ dependencies {
 
         fileExists(dir.resolve('lib/build/libs/lib_2.11*.jar'))
         fileExists(dir.resolve('lib/build/libs/lib_2.12*.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib*-sources.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib*-javadoc.jar'))
         fileExists(dir.resolve('lib2/build/libs/lib2_2.11*.jar'))
         fileExists(dir.resolve('lib2/build/libs/lib2_2.12*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2*-sources.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2*-javadoc.jar'))
         fileExists(dir.resolve('app/build/libs/app_2.11*.jar'))
         !fileExists(dir.resolve('app/build/libs/app_2.12*.jar'))
 

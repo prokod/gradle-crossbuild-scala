@@ -21,5 +21,6 @@ package com.github.prokod.gradle.crossbuild.model;
 public enum EventType {
     SCALA_VERSIONS_UPDATE,
     EXT_UPDATE,
-    ARCHIVE_APPENDIX_PATTERN_UPDATE
+    ARCHIVE_APPENDIX_PATTERN_UPDATE,
+    TARGET_COMPATIBILITY_STRATEGY_UPDATE
 }

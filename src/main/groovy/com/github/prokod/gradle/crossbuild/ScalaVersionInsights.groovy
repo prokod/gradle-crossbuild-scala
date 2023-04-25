@@ -15,6 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetStrategyType
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetType
 import groovy.transform.ToString
 import groovy.transform.TupleConstructor
 
@@ -44,7 +46,7 @@ class ScalaVersionInsights {
         strippedArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '')
 
         scalaCompilerDefaultTargetJvm = ScalaCompilerTargetType.from(compilerVersion)
-                .getCompilerTargetJvm(ScalaCompilerTargetStrategyType.DEFAULT, '')
+                .getCompilerTargetJvm(ScalaCompilerTargetStrategyType.DEFAULT)
     }
 
     private void insightFor(String version, ScalaVersions scalaVersions) {

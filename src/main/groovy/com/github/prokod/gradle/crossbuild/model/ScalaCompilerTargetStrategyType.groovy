@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.prokod.gradle.crossbuild
+package com.github.prokod.gradle.crossbuild.model
 
 /**
  * DEFAULT - Choose default target JVM for the current Scala Compiler version
@@ -24,11 +24,15 @@ package com.github.prokod.gradle.crossbuild
         'PrivateFieldCouldBeFinal', 'Indentation', 'DuplicateListLiteral'])
 enum ScalaCompilerTargetStrategyType {
     DEFAULT({ ScalaCompilerTargetType t, String targetCompatibility ->
-        def sanitized = sanitizeTargetCompatibility(targetCompatibility)
-        if (sanitized.second <= t.maxTarget) {
-            return t.targetFunction.call(sanitized.first)
-        } else {
+        if (targetCompatibility.isEmpty()) {
             return t.targetFunction.call(t.defaultTarget.toString())
+        } else {
+            def sanitized = sanitizeTargetCompatibility(targetCompatibility)
+            if (sanitized.second <= t.maxTarget) {
+                return t.targetFunction.call(sanitized.first)
+            } else {
+                return t.targetFunction.call(t.defaultTarget.toString())
+            }
         }
     }),
     SMART({ ScalaCompilerTargetType t, String targetCompatibility ->

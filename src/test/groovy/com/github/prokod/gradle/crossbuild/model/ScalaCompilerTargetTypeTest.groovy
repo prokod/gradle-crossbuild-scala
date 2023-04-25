@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.prokod.gradle.crossbuild
+package com.github.prokod.gradle.crossbuild.model
 
+import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
+import com.github.prokod.gradle.crossbuild.ScalaVersions
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetStrategyType
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetType
 import spock.lang.Specification
 
 class ScalaCompilerTargetTypeTest extends Specification {
@@ -39,5 +43,9 @@ class ScalaCompilerTargetTypeTest extends Specification {
         '2.12.17' | 'SMART'  | '1.8'                | 'jvm-1.8'
         '2.12.10' | 'SMART'  | '8'                  | 'jvm-1.8'
         '2.12.10' | 'SMART'  | '1.8'                | 'jvm-1.8'
+        '2.13.1'  | 'SMART'  | '12'                 | 'jvm-12'
+        '2.13.1'  | 'DEFAULT'| '12'                 | 'jvm-12'
+        '2.13.1'  | 'SMART'  | '17'                 | 'jvm-12'
+        '2.13.1'  | 'DEFAULT'| '17'                 | 'jvm-1.8'
     }
 }

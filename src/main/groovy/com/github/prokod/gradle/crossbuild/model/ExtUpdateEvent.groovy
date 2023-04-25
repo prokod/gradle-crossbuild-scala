@@ -16,16 +16,17 @@
 package com.github.prokod.gradle.crossbuild.model
 
 /**
- * Event to create when {@link ArchiveNaming} appendixPattern is set/updated
+ * Event to create when {@code ext} is set/updated
  *
  * Used to communicate change in observable {@link ArchiveNaming} to observer
  * {@link com.github.prokod.gradle.crossbuild.CrossBuildExtension}
  */
 class ExtUpdateEvent {
+    final String name
     final Map<String, Object> source
     final EventType eventType
 
-    ExtUpdateEvent(Map<String, Object> source) {
+    ExtUpdateEvent(String name, Map<String, Object> source) {
         def clone = { Map<String, Object> orig ->
             def cloneObject = { Object origObj ->
                 def bos = new ByteArrayOutputStream()
@@ -40,6 +41,7 @@ class ExtUpdateEvent {
             orig.collect { new Tuple2<String, Object>(new String(it.key), cloneObject(it.value)) }.collectEntries()
         }
 
+        this.name = name
         this.source = source == null ? [:] : clone(source)
         this.eventType = EventType.EXT_UPDATE
     }

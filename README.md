@@ -1,4 +1,4 @@
-# gradle crossbuild scala plugin
+# Gradle crossbuild Scala plugin
 
 [![Build Status](https://github.com/prokod/gradle-crossbuild-scala/actions/workflows/main.yml/badge.svg)](https://github.com/prokod/gradle-crossbuild-scala/actions)
 [![codecov](https://codecov.io/gh/prokod/gradle-crossbuild-scala/branch/master/graph/badge.svg)](https://codecov.io/gh/prokod/gradle-crossbuild-scala)
@@ -7,12 +7,13 @@
 
 ## Features
 
+- **Scala3 support** Seamlessly cross building of both Scala 2.x and Scala 3.x with unified DSL.
 - **Multi-module projects support** Supports both simple projects and multi-module projects.<br/>In multi-module projects support mixed cases where only some of the modules needs cross compiling.
-- **Powerful DSL** Plugin DSL can be written once for all sub projects using `subprojects {}` block.<br/>Specific DSL definition can be afterwards added to individual sub projects.<br/>It supports shorthands to avoid repetitions.<br/>Operates in both eager and lazy (wrapped in `pluginManager.withPlugin {}` block) `apply` modes.
+- **Powerful DSL** Plugin DSL can be written once for all subprojects using `subprojects {}` block.<br/>Specific DSL definition can be afterward added to individual subprojects.<br/>It supports shorthands to avoid repetitions.<br/>Operates in both eager and lazy (wrapped in `pluginManager.withPlugin {}` block) `apply` modes.
 - **Multi-aspect cross building** Supports cross building for Scala aspect and on top of that any other custom aspect, for instance Spark. Further details [multi-aspect cross building](#multi_aspect_cross_building)
 - **Integrates with maven-publish plugin** When used, can be leveraged to publish cross building artifacts.
 - **Implicit/Explicit scala lib dependency declaration** Supports declaring both<br/>simple case implicit `implementation 3rd-party-scala-lib_2.12` type of dependencies<br/>and also finer granular explicit `crossBuildSpark24_212Implementation spark-streaming-kafka-0-10_2.12` type of dependencies.
-- **Applied easily on existing projects** As the plugin maintains a strict separation between `main` source set configurations and <code>crossBuild*XYZ*</code> ones, a simple non cross build project can be easily and gradually transformed to a cross build one.
+- **Applied easily on existing projects** As the plugin maintains a strict separation between `main` source set configurations and <code>crossBuild*XYZ*</code> ones, a simple non-cross build project can be easily and gradually transformed to a cross build one.
 - **Testing support**  As mentioned above strict separation of source sets, keeps `main` source set test configurations intact.
 
 ## Shortcomings
@@ -557,7 +558,7 @@ allprojects {
 }
 ```
 
-- In sub projects' build.gradle:
+- In subprojects' build.gradle:
 
 ```groovy
 apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
@@ -619,15 +620,16 @@ subprojects {
 
 ## Supported Gradle versions
 
-| plugin version | Tested Gradle versions |
-|----------------|------------------------|
-| 0.14.x         | 5.6.4, 6.9.2, 7.3.3    |
-| 0.13.x         | 5.6.4, 6.9.2, 7.3.3    |
-| 0.12.x         | 4.10.3, 5.6.4, 6.5     |
-| 0.11.x         | 4.10.3, 5.6.4, 6.5     |
-| 0.10.x         | 4.10.3, 5.6.4, 6.0.1   |
-| 0.9.x          | 4.2, 4.10.3, 5.4.1     |
-| 0.4.x          | 2.14, 3.0, 4.1         |
+| plugin version | Tested Gradle versions     | Tested JVM | Tested Scala Compilers      |
+|----------------|----------------------------|------------|-----------------------------|
+| 0.15.x         | 5.6.4, 6.9.4, 7.6.1, 8.0.2 | 8, 11      | 2.10.0-2.13.x 3.0.0 - 3.2.x |
+| 0.14.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x               |
+| 0.13.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x               |
+| 0.12.x         | 4.10.3, 5.6.4, 6.5         | 8          |                             |
+| 0.11.x         | 4.10.3, 5.6.4, 6.5         | 8          |                             |
+| 0.10.x         | 4.10.3, 5.6.4, 6.0.1       | 8          |                             |
+| 0.9.x          | 4.2, 4.10.3, 5.4.1         | 8          |                             |
+| 0.4.x          | 2.14, 3.0, 4.1             | 8          |                             |
 
 ## Contributing
 
