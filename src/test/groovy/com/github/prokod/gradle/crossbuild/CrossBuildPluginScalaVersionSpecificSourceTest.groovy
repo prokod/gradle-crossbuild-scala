@@ -293,7 +293,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
-        '6.9.3'         | '2.13'
+        '6.9.4'         | '2.13'
         '7.6.1'         | '2.12'
     }
 
