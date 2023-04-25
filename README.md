@@ -19,6 +19,7 @@
 ## Shortcomings
 
 - *Cross building for test/check tasks* are not supported.
+- *Publishing limitations* source/javadoc jars are currently supported for [default-variant](#default-variant) Scala version only
 
 ## <a name="getting_plugin"></a>Getting the plugin
 
@@ -378,13 +379,33 @@ dependencies {
 >  }
 >  ```
 >  
-> The plugin DSL defines in the above `crossBuild {}` block two cross building variants. One for Scala **2.10** and one for **2.11**.<br/>
-  When declaring **explicit** cross building dependency, for instance when using Spark or Kafka 3rd party libraries, when dependency library name contains platform version, All the different variants should be declared, like shown above.  
+>  The plugin DSL defines in the above `crossBuild {}` block two cross building variants. One for Scala **2.10** and one for **2.11**.<br/>
+>  When declaring **explicit** cross building dependency, for instance when using Spark or Kafka 3rd party libraries, when dependency library name contains platform version, All the different variants should be declared, like shown above.  
 >
-> - **default-variant** - In the above example, spark version of the dependency specified for `compileOnly` configuration which we refer here as **default-variant**, is important for `build`, `test/check` tasks.<br/>
+> - <a name="default_variant"></a>**default-variant** - In the above example, spark version of the dependency specified for `compileOnly` configuration which we refer here as **default-variant**, is important for `build`, `test/check` tasks.<br/>
   The other dependency specified for Scala versions **2.10**, **2.11** respectively (`crossBuild210CompileOnly`, `crossBuild211CompileOnly`), will be used only for `crossBuild210Jar`, `crossBuild211Jar` tasks, and other corresponding task variants (`publishCrossBuild210PublicationToMavenLocal`, `publishCrossBuild211PublicationToMavenLocal` ...)<br/>
 > - The plugin provides predefined sourceSets and configurations which are linked to the matching pre generated Jar tasks like so:<br/>
   `(sourceSet)crossBuild211 -> (task)crossBuild211Jar -> (configuration)crossBuild211Implementation, (configuration)crossBuild211CompileOnly, ...`
+
+### <a name="scala_3_cross_building"></a>Scala 3 cross building
+From plugin version `0.15.0` Scala 3 is supported
+
+#### `targetCompatibilty.strategy`
+As Scala 3 default JVM for later Scala 3.x versions changed to Java 11 and to support any new developments in that area,</br>
+the plugin DSL was extended to support JVM targetCompatibility through strategy
+- The available values: `default`/`smart`/`strict`
+- `default` **strategy**
+  In this strategy, the Scala compiler will try to adhere to the targetCompatibility JVM version.</br>
+  If the targetCompatibility is not supported by the Scala version to be compiled, the default JVM for that compilation is changed to the **default** JVM for that specific Scala version.
+- `smart` **strategy**
+  In this strategy, if the targetCompatibility is not supported by the Scala version to be compiled, the default JVM for that compilation is changed to the **latest** JVM for that specific Scala version.
+- `strict` **strategy**
+  In this strategy, if the targetCompatibility is not supported by the Scala version to be compiled, the build is stopped
+
+#### Notes
+> 1. Gradle supports scala 3 compilation (via zinc) - beware that Gradle 5.x is not supporting Scala 3 compilation
+> 1. If you want to use Scala 3 instead of the scala-library dependency you should add the scala3-library_3 dependency.  
+>    However, for the sake of the cross building across Scala 2/3 the plugin takes care of modifying the scala library dependency accordingly, internally
 
 ### <a name="multi_aspect_cross_building"></a>Multi-aspect cross building and Extra Properties propagation per aspects combination
 
