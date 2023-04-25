@@ -26,7 +26,7 @@
 
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version "0.14.1"
+    id "com.github.prokod.gradle-crossbuild-scala" version "0.15.0"
 }
 ```
 
@@ -35,7 +35,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.14.1")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.15.0")
     }
 }
 ```
@@ -70,7 +70,7 @@ This is especially true for multi module projects but not just.<br/>
   1. `gradle crossBuildAssemble` - which builds ans assembles **all** cross build into respective artifacts.
   1. `gradle publishToMavenLocal` - which goes from cross building, artifact creation (as above) and then publishing to local maven.
 
-  > **NOTE:** Look under `build/libs` , `~/.m2/repository/...` respectively, to assert the end result is the one you have wished for.  `crossBuildAssemble` task is available from version **`0.14.1`**
+  > **NOTE:** Look under `build/libs` , `~/.m2/repository/...` respectively, to assert the end result is the one you have wished for.  `crossBuildAssemble` task is available from version **`0.15.0`**
   
 ### Multi-module projects and applying cross build plugin only for some
 
@@ -317,17 +317,23 @@ apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 crossBuild {
     scalaVersionsCatalog = ['2.10': '2.10.6', '2.11': '2.11.12', '2.12':'2.12.8' ...]
 
-    archive.appendixPattern = '_?'          // Default appendix pattern for all builds
+    archive.appendixPattern = '_?'                  // Default appendix pattern for all builds
 
+    targetCompatibility.strategy = 'default'        // Default JVM target compatibility strategy oneof
+                                                    // default/smart/strict
     builds {
         v210
         v211 {
-            scalaVersions = ['2.11']        // By default derived from build name in short hand build name
-            archive.appendixPattern = '_?'  // By default the value is "_?"
-                                            // In the default case will yield '_2.11')
-                                            // If different from upper level config, it will override it.
-            ext = [:]                       // By defualt empty Map
-                                            // Once populated entries are propagated as SourceSet ExtraProperties
+            scalaVersions = ['2.11']                // By default derived from build name in short hand
+                                                    // build name
+            archive.appendixPattern = '_?'          // By default the value is "_?"
+                                                    // In the default case will yield '_2.11'
+                                                    // If different from upper level config, it will override it.
+            targetCompatibility.strategy = 'default'// By default the value is 'default'
+                                                    // If different from upper level config, it will override it.
+            ext = [:]                               // By default empty Map
+                                                    // Once populated entries are propagated
+                                                    // as SourceSet ExtraProperties
         }
     }
 }
@@ -571,7 +577,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
 
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version '0.14.1' apply false
+    id "com.github.prokod.gradle-crossbuild-scala" version '0.15.0' apply false
 }
 
 allprojects {
@@ -620,16 +626,16 @@ subprojects {
 
 ## Supported Gradle versions
 
-| plugin version | Tested Gradle versions     | Tested JVM | Tested Scala Compilers      |
-|----------------|----------------------------|------------|-----------------------------|
-| 0.15.x         | 5.6.4, 6.9.4, 7.6.1, 8.0.2 | 8, 11      | 2.10.0-2.13.x 3.0.0 - 3.2.x |
-| 0.14.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x               |
-| 0.13.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x               |
-| 0.12.x         | 4.10.3, 5.6.4, 6.5         | 8          |                             |
-| 0.11.x         | 4.10.3, 5.6.4, 6.5         | 8          |                             |
-| 0.10.x         | 4.10.3, 5.6.4, 6.0.1       | 8          |                             |
-| 0.9.x          | 4.2, 4.10.3, 5.4.1         | 8          |                             |
-| 0.4.x          | 2.14, 3.0, 4.1             | 8          |                             |
+| plugin version | Tested Gradle versions     | Tested JVM | Tested Scala Compilers          |
+|----------------|----------------------------|------------|---------------------------------|
+| 0.15.x         | 5.6.4, 6.9.4, 7.6.1, 8.0.2 | 8, 11      | 2.10.0-2.13.x</br>3.0.0 - 3.2.x |
+| 0.14.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x                   |
+| 0.13.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x                   |
+| 0.12.x         | 4.10.3, 5.6.4, 6.5         | 8          |                                 |
+| 0.11.x         | 4.10.3, 5.6.4, 6.5         | 8          |                                 |
+| 0.10.x         | 4.10.3, 5.6.4, 6.0.1       | 8          |                                 |
+| 0.9.x          | 4.2, 4.10.3, 5.4.1         | 8          |                                 |
+| 0.4.x          | 2.14, 3.0, 4.1             | 8          |                                 |
 
 ## Contributing
 
