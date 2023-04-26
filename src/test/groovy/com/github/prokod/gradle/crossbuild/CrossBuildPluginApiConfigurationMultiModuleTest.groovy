@@ -112,7 +112,7 @@ allprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         crossBuild {
             
-            scalaVersionsCatalog = ['2.11':'2.11.11']
+            scalaVersionsCatalog = ['2.10':'2.10.6', '2.11':'2.11.11']
 
             builds {
                 spark160_210 

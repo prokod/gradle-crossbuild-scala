@@ -399,7 +399,7 @@ subprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         if (!project.name.endsWith('app')) {
             crossBuild {
-                scalaVersionsCatalog = ['2.12':'2.12.8']
+                scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
                 builds {
                     spark233_211
                     spark242_212
@@ -475,6 +475,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 apply plugin: 'maven-publish'
 
 crossBuild {
+    scalaVersionsCatalog = ['2.10':'2.10.6']
     builds {
         v210 {
             archive.appendixPattern = '-legacy_?'
@@ -586,6 +587,8 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 apply plugin: 'maven-publish'
 
 crossBuild {
+    scalaVersionsCatalog = ['2.11':'2.11.12']
+
     builds {
         spark233_211 {
             archive.appendixPattern = '-all_?'
