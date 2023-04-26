@@ -18,8 +18,8 @@
 
 ## Shortcomings
 
-- *Cross building for test/check tasks* are not supported.
-- *Publishing limitations* source/javadoc jars are currently supported for [default-variant](#default-variant) Scala version only
+- **test/check tasks** are supported for [default-variant](#default_variant) of Scala version only.
+- **publishing for source/javadoc jars** are supported for [default-variant](#default_variant) of Scala version only.
 
 ## <a name="getting_plugin"></a>Getting the plugin
 
@@ -354,6 +354,10 @@ dependencies {
 }
 ```
 
+#### <a name="default_variant"></a>default-variant
+In the above example, spark version of the dependency specified for `compileOnly` configuration which we refer here as **default-variant**, is important for `build`, `test/check` standard tasks.<br/>
+The other dependencies specified for Scala versions **2.10**, **2.11** respectively (`crossBuild210CompileOnly`, `crossBuild211CompileOnly`), will be used only for `crossBuild210Jar`, `crossBuild211Jar` tasks, and other corresponding task variants (`publishCrossBuild210PublicationToMavenLocal`, `publishCrossBuild211PublicationToMavenLocal` ...) which can be referred as **cross-build-variants**
+
 #### Notes
 
 > - **Backward compatibility** maintained behaviours (still):
@@ -382,8 +386,6 @@ dependencies {
 >  The plugin DSL defines in the above `crossBuild {}` block two cross building variants. One for Scala **2.10** and one for **2.11**.<br/>
 >  When declaring **explicit** cross building dependency, for instance when using Spark or Kafka 3rd party libraries, when dependency library name contains platform version, All the different variants should be declared, like shown above.  
 >
-> - <a name="default_variant"></a>**default-variant** - In the above example, spark version of the dependency specified for `compileOnly` configuration which we refer here as **default-variant**, is important for `build`, `test/check` tasks.<br/>
-  The other dependency specified for Scala versions **2.10**, **2.11** respectively (`crossBuild210CompileOnly`, `crossBuild211CompileOnly`), will be used only for `crossBuild210Jar`, `crossBuild211Jar` tasks, and other corresponding task variants (`publishCrossBuild210PublicationToMavenLocal`, `publishCrossBuild211PublicationToMavenLocal` ...)<br/>
 > - The plugin provides predefined sourceSets and configurations which are linked to the matching pre generated Jar tasks like so:<br/>
   `(sourceSet)crossBuild211 -> (task)crossBuild211Jar -> (configuration)crossBuild211Implementation, (configuration)crossBuild211CompileOnly, ...`
 
