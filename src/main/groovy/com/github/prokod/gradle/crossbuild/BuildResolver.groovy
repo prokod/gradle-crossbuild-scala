@@ -4,6 +4,7 @@ import com.github.prokod.gradle.crossbuild.model.Build
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
 import com.github.prokod.gradle.crossbuild.model.ResolvedArchiveNaming
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
+import com.github.prokod.gradle.crossbuild.model.ResolvedTargetCompatibility
 import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
 
 /**
@@ -49,8 +50,9 @@ class BuildResolver {
     static ResolvedBuildAfterEvalLifeCycle resolveConfigPhaseBuild(ResolvedBuildConfigLifecycle build) {
         def resolvedAppendix = resolveAppendix(build)
         def resolvedArchiveNaming = new ResolvedArchiveNaming(build.delegate.archive.appendixPattern, resolvedAppendix)
+        def resolvedTargetCompatibility = new ResolvedTargetCompatibility(build.delegate.targetCompatibility.strategy, )
 
-        new ResolvedBuildAfterEvalLifeCycle(build, resolvedArchiveNaming)
+        new ResolvedBuildAfterEvalLifeCycle(build, resolvedArchiveNaming, resolvedTargetCompatibility)
     }
 
     private static String resolveAppendix(ResolvedBuildConfigLifecycle build) {

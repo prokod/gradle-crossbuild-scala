@@ -21,6 +21,7 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -152,8 +153,8 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
 
         def pub = pubs.head()
 
-        def jarBaseName = project.tasks.findByName(crossBuildSourceSet.jarTaskName).baseName
-        pub.artifactId = jarBaseName
+        Property jarBaseName = project.tasks.findByName(crossBuildSourceSet.jarTaskName).archiveBaseName
+        pub.artifactId = jarBaseName.get()
 
         // todo try to replace internal api DefaultMavenPom getXmlAction ... with stable external api
         def defaultMavenPom = pub.getPom() as DefaultMavenPom

@@ -22,6 +22,7 @@ import com.github.prokod.gradle.crossbuild.model.BuildUpdateEventStore
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.model.EventType
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
+import com.github.prokod.gradle.crossbuild.model.TargetCompatibility
 import com.github.prokod.gradle.crossbuild.tasks.AbstractCrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Action
@@ -40,7 +41,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 
 /**
- * Extension class impl. for thec cross build plugin
+ * Extension class impl. for the cross build plugin
  */
 class CrossBuildExtension {
 
@@ -49,6 +50,8 @@ class CrossBuildExtension {
     final ObjectFactory objects
 
     Map<String, String> scalaVersionsCatalog = [:]
+
+    TargetCompatibility targetCompatibility
 
     ArchiveNaming archive
 
@@ -62,8 +65,13 @@ class CrossBuildExtension {
         this.project = project
         this.objects = objectFactory
 
+        def eventStore = new BuildUpdateEventStore(project)
+
         this.archive = project.objects.newInstance(ArchiveNaming,
-                'DefaultArchiveNaming', '_?', new BuildUpdateEventStore(project))
+                'DefaultArchiveNaming', '_?', eventStore)
+
+        this.targetCompatibility = project.objects.newInstance(TargetCompatibility,
+                'DefaultTargetCompatibilityNaming', 'default', eventStore)
 
         this.crossBuildSourceSets = new CrossBuildSourceSets(project, objects)
 
@@ -84,6 +92,18 @@ class CrossBuildExtension {
         }
     }
 
+    @SuppressWarnings(['ConfusingMethodName'])
+    void targetCompatibility(Action<? super TargetCompatibility> action) {
+        action.execute(targetCompatibility)
+
+        def alreadyResolved = resolvedBuilds*.delegate
+        builds.all { Build build ->
+            if (!alreadyResolved.contains(build)) {
+                applyTargetCompatibilityDefaults(build)
+            }
+        }
+    }
+
     @SuppressWarnings(['ConfusingMethodName', 'BuilderMethodWithSideEffects', 'FactoryMethodName'])
     void builds(Action<? super NamedDomainObjectContainer<Build>> action) {
         action.execute(builds)
@@ -98,6 +118,10 @@ class CrossBuildExtension {
 
     void applyArchiveDefaults(Build build) {
         build.archive.appendixPattern = this.archive.appendixPattern
+    }
+
+    void applyTargetCompatibilityDefaults(Build build) {
+        build.targetCompatibility.strategy = this.targetCompatibility.strategy
     }
 
     /**
@@ -156,19 +180,24 @@ class CrossBuildExtension {
             // Runtime
             def outgoingConfigurationRuntime =
                     configureOutgoingConfiguration(sourceSet.getRuntimeElementsConfigurationName(),
+                            rb.name,
                             rb.scalaVersion,
                             Usage.JAVA_RUNTIME)
             attachArtifact(scalaJar, outgoingConfigurationRuntime.name)
             // Api
             def outgoingConfigurationApi =
                     configureOutgoingConfiguration(sourceSet.getApiElementsConfigurationName(),
+                            rb.name,
                             rb.scalaVersion,
                             Usage.JAVA_API)
             attachArtifact(scalaJar, outgoingConfigurationApi.name)
         }
     }
 
-    Configuration configureOutgoingConfiguration(String outgoingConfigurationName, String scalaVersion, String usage) {
+    Configuration configureOutgoingConfiguration(String outgoingConfigurationName,
+                                                 String buildName,
+                                                 String scalaVersion,
+                                                 String usage) {
         Configuration outgoingConfiguration =
                 project.configurations.getByName(outgoingConfigurationName) { Configuration cnf ->
             cnf.attributes {
@@ -178,7 +207,7 @@ class CrossBuildExtension {
                 it.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                         JavaVersion.current().majorVersion.toInteger())
                 it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                        objects.named(LibraryElements, "scala-${scalaVersion}-jar"))
+                        objects.named(LibraryElements, "scala-${buildName}-${scalaVersion}-jar"))
             }
         }
         outgoingConfiguration

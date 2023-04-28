@@ -13,7 +13,6 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.io.File
 import java.util.regex.Pattern
 
 abstract class CrossBuildGradleRunnerSpec extends Specification {

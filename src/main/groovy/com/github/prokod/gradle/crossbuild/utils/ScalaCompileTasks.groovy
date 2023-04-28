@@ -1,5 +1,8 @@
 package com.github.prokod.gradle.crossbuild.utils
 
+import com.github.prokod.gradle.crossbuild.model.ResolvedTargetCompatibility
+import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetType
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.tasks.scala.ScalaCompile
@@ -13,7 +16,10 @@ import java.nio.file.Paths
 class ScalaCompileTasks {
 
     @SuppressWarnings(['LineLength', 'UnnecessaryReturnKeyword'])
-    static void tuneCrossBuildScalaCompileTask(Project project, SourceSetInsights sourceSetInsights) {
+    static void tuneCrossBuildScalaCompileTask(Project project,
+                                               SourceSetInsights sourceSetInsights,
+                                               ScalaVersionInsights scalaVersionInsights,
+                                               ResolvedTargetCompatibility targetCompatibility) {
         // Classpath debugging by collecting classpath property and printing out may cause ana exception similar to:
         // org.gradle.api.UncheckedIOException: Failed to capture fingerprint of input files for task ':app:compileScala' property 'scalaClasspath' during up-to-date check.
         // So this should be avoided ...
@@ -26,6 +32,18 @@ class ScalaCompileTasks {
                                     "${sourceSetInsights.crossBuild.sourceSet.name}/${project.name}.analysis")
                     )
                 }
+
+                def targetType = ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion)
+                def target = targetType.getCompilerTargetJvm(targetCompatibility.inferredStrategy, t.targetCompatibility)
+                if (t.scalaCompileOptions.additionalParameters != null) {
+                    t.scalaCompileOptions.additionalParameters
+                            .add("-target:$target".toString())
+                } else {
+                    t.scalaCompileOptions.additionalParameters = ["-target:$target".toString()]
+                }
+                project.logger.info(LoggerUtils.logTemplate(project,
+                        lifecycle:'task',
+                        msg:"Setting Scala compiler -target:$target [JVM tagetCompatibility: ${t.targetCompatibility}]"))
 
                 t.exclude { FileTreeElement fte ->
                     def tested = fte.file.toPath()

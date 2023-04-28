@@ -11,9 +11,14 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
 
     final ResolvedArchiveNaming archive
 
-    ResolvedBuildAfterEvalLifeCycle(ResolvedBuildConfigLifecycle resolvedBuild, ResolvedArchiveNaming archive) {
+    final ResolvedTargetCompatibility targetCompatibility
+
+    ResolvedBuildAfterEvalLifeCycle(ResolvedBuildConfigLifecycle resolvedBuild,
+                                    ResolvedArchiveNaming archive,
+                                    ResolvedTargetCompatibility targetCompatibility) {
         super(resolvedBuild)
         this.archive = archive
+        this.targetCompatibility = targetCompatibility
     }
 
     String toString() {
@@ -23,6 +28,7 @@ class ResolvedBuildAfterEvalLifeCycle extends ResolvedBuildConfigLifecycle {
                            scalaVersion:scalaVersion,
                            archive:[appendixPattern:archive.appendixPattern,
                                      appendix:archive.appendix],
+                           targetCompatibility:[strategy:targetCompatibility.strategy],
                            scalaVersionInsights:[baseVersion:scalaVersionInsights.baseVersion,
                                                   compilerVersion:scalaVersionInsights.compilerVersion,
                                                   artifactInlinedVersion:scalaVersionInsights.artifactInlinedVersion,

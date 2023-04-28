@@ -25,6 +25,8 @@ class Build {
 
     final ArchiveNaming archive
 
+    final TargetCompatibility targetCompatibility
+
     Set<String> scalaVersions
 
     Map<String, Object> ext
@@ -34,6 +36,7 @@ class Build {
                 snapshot.extension,
                 null,
                 ArchiveNaming.from(snapshot.archive),
+                TargetCompatibility.from(snapshot.targetCompatibility),
                 snapshot.scalaVersions,
                 snapshot.ext)
     }
@@ -43,22 +46,32 @@ class Build {
           CrossBuildExtension extension,
           BuildUpdateEventStore eventStore,
           ArchiveNaming archive,
+          TargetCompatibility targetCompatibility,
           Set<String> scalaVersions,
           Map<String, Object> ext) {
         this.name = name
         this.extension = extension
         this.eventStore = eventStore
         this.archive = archive
+        this.targetCompatibility = targetCompatibility
         this.scalaVersions = scalaVersions
         this.ext = ext
     }
 
+    /**
+     * Defaults for DSL object Build
+     *
+     * @param name
+     * @param extension
+     */
     @Inject
     Build(String name, CrossBuildExtension extension) {
         this.name = name.replaceAll('\\.', '')
         this.extension = extension
         this.eventStore = new BuildUpdateEventStore(extension.project)
         this.archive = extension.project.objects.newInstance(ArchiveNaming, name, '_?', this.eventStore)
+        this.targetCompatibility =
+                extension.project.objects.newInstance(TargetCompatibility, name, 'default', this.eventStore)
         trySettingScalaVersionImplicitlyFrom(name)
     }
 
@@ -97,6 +110,41 @@ class Build {
         }
     }
 
+    @SuppressWarnings(['ConfusingMethodName'])
+    void targetCompatibility(Action<? super TargetCompatibility> action) {
+        action.execute(targetCompatibility)
+    }
+
+    /**
+     * Triggered when a DSL of the following form appears:
+     * <pre>
+     *     crossBuild {
+     *         builds {
+     *             v213 {
+     *                 targetCompatibility {
+     *                     strategy = ...
+     *                 }
+     *             }
+     *         }
+     *     }
+     * </pre>
+     *
+     * NOTE: This is needed for Gradle 4.x. Gradle 5.x already solves this and this method is not needed any more when
+     * the plugin is being used with Gradle 5.x
+     *
+     * @param c
+     */
+    @SuppressWarnings(['ConfusingMethodName'])
+    void targetCompatibility(Closure c) {
+        def oldValue = targetCompatibility.strategy
+        org.gradle.util.ConfigureUtil.configure(c, targetCompatibility)
+        def newValue = targetCompatibility.strategy
+
+        if (oldValue != newValue) {
+            eventStore.store(new BuildUpdateEvent(this, EventType.TARGET_COMPATIBILITY_STRATEGY_UPDATE))
+        }
+    }
+
     private void trySettingScalaVersionImplicitlyFrom(String name) {
         def catalog = extension.scalaVersionsCatalog
         def resolvedCatalog = ScalaVersions.withDefaultsAsFallback(catalog)
@@ -114,13 +162,14 @@ class Build {
 
     void setExt(Map<String, Object> ext) {
         this.ext = ext
-        eventStore.store(new ExtUpdateEvent(this.ext))
+        eventStore.store(new ExtUpdateEvent(this.name, this.ext))
     }
 
     String toString() {
         JsonOutput.toJson([name:name,
                            scalaVersions:scalaVersions,
                            ext:ext,
-                           archive:[appendixPattern:archive?.appendixPattern]])
+                           archive:[appendixPattern:archive?.appendixPattern],
+                           targetCompatibility:[strategy:targetCompatibility?.strategy]])
     }
 }
