@@ -15,8 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -37,6 +37,8 @@ class CrossBuildPluginJarTest extends CrossBuildGradleRunnerSpec {
         testScalaFile = file('src/test/scala/helloWorldTest.scala')
     }
 
+    @Requires({ System.getProperty("java.version").startsWith('1.8') })
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with crossBuild dsl should produce expected jars"() {
         given:
@@ -47,11 +49,11 @@ object HelloWorldA {
    /* This is my first java program.  
    * This will print 'Hello World' as the output
    */
-   def main(args: Array[String]) {
+   def main(args: Array[String]) = {
       println("Hello, world A!")
    }
    
-   def runIt() {
+   def runIt() = {
          println("Visit, world B!")
    }
 }
@@ -85,6 +87,7 @@ crossBuild {
     builds {
         v210
         v211
+        v3
     }
 }
 
@@ -100,6 +103,11 @@ publishing {
                 artifact crossBuildV211Jar
             }
         }
+        crossBuildV3(MavenPublication) {
+            afterEvaluate {
+                artifact crossBuildV3Jar
+            }
+        }
     }
 }
     
@@ -109,6 +117,9 @@ tasks.withType(GenerateMavenPom) { t ->
     }
     if (t.name.contains('CrossBuildV211')) {
         t.destination = file("\$buildDir/generated-pom_2.11.xml")
+    }
+    if (t.name.contains('CrossBuildV3')) {
+        t.destination = file("\$buildDir/generated-pom_3.xml")
     }
 }
 
@@ -124,36 +135,37 @@ sourceSets {
 }
 
 dependencies {
-    implementation "org.scalatest:scalatest_?:3.0.1"
+    implementation "org.scalatest:scalatest_?:3.2.15"
     implementation "com.google.guava:guava:18.0"
     implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
 }
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
                 /*@withDebug@*/
-                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildV210Jar', 'crossBuildV211Jar', 'crossBuildV3Jar', '--info', '--stacktrace')
                 .build()
 
         then:
         result.task(":crossBuildV210Jar").outcome == SUCCESS
         result.task(":crossBuildV211Jar").outcome == SUCCESS
+        result.task(":crossBuildV3Jar").outcome == SUCCESS
 
         fileExists(dir.resolve('build/libs/spock__gradle_*_2.10.jar'))
         fileExists(dir.resolve('build/libs/spock__gradle_*_2.11.jar'))
+        fileExists(dir.resolve('build/libs/spock__gradle_*_3.jar'))
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.11'
-        '6.9.2'         | '2.11'
-        '7.3.3'         | '2.10'
+        '7.6.1'         | '2.10'
+        '8.0.2'         | '2.11'
     }
 
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with java-library configurations should create cross built jars"() {
         given:
@@ -221,7 +233,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -240,7 +251,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
-        '6.9.2'         | '2.12'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.12'
+        '7.6.1'         | '2.11'
     }
 }

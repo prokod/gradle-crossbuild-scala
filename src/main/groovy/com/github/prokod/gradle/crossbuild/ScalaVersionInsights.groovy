@@ -15,22 +15,27 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetStrategyType
+import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetType
 import groovy.transform.ToString
 import groovy.transform.TupleConstructor
 
 /**
  * Scala versioning semantics class
  */
+@SuppressWarnings(['DuplicateNumberLiteral'])
 @ToString(includes = 'baseVersion, underscoredBaseVersion, compilerVersion')
 @TupleConstructor
 class ScalaVersionInsights {
     String baseVersion
+    String majorVersion
     String underscoredBaseVersion
     String compilerVersion
     String underscoredCompilerVersion
     String artifactInlinedVersion
     String underscoredArtifactInlinedVersion
     String strippedArtifactInlinedVersion
+    String scalaCompilerDefaultTargetJvm
 
     ScalaVersionInsights(String targetVersion, ScalaVersions scalaVersions = null) {
         insightFor(targetVersion, scalaVersions)
@@ -39,24 +44,49 @@ class ScalaVersionInsights {
         underscoredCompilerVersion = compilerVersion.replaceAll('\\.', '_')
         underscoredArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '_')
         strippedArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '')
+
+        scalaCompilerDefaultTargetJvm = ScalaCompilerTargetType.from(compilerVersion)
+                .getCompilerTargetJvm(ScalaCompilerTargetStrategyType.DEFAULT)
     }
 
     private void insightFor(String version, ScalaVersions scalaVersions) {
         def dotsCount = version.length() - version.replaceAll('\\.', '').length()
         def (verifiedVersion, versionAsNumber) = parseTargetVersion(version, dotsCount, scalaVersions)
 
-        if (dotsCount == 1 && scalaVersions != null) {
+        // In Scala 3 binary compatibility is maintained across minor Scala compile versions
+        // Scala 3 introduced scalaBinaryVersion=3 for all Scala 3 compiler versions
+        if (dotsCount == 0 && versionAsNumber == 3 && scalaVersions != null) {
             baseVersion = verifiedVersion
+            majorVersion = verifiedVersion
+            compilerVersion = scalaVersions.getCompilerVersion(baseVersion)
+            // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
+            artifactInlinedVersion = baseVersion
+        }
+        // Scala 2
+        else if (dotsCount == 1 && scalaVersions != null) {
+            baseVersion = verifiedVersion
+            majorVersion = verifiedVersion[0..verifiedVersion.indexOf('.') - 1]
             compilerVersion = scalaVersions.getCompilerVersion(baseVersion)
             // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
             artifactInlinedVersion = versionAsNumber < 100 ? compilerVersion : baseVersion
         }
         else if (dotsCount == 2) {
-            baseVersion = verifiedVersion[0..verifiedVersion.lastIndexOf('.') - 1]
-            compilerVersion = verifiedVersion
-            // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
-            artifactInlinedVersion = versionAsNumber > 1000 ?
-                    compilerVersion[0..compilerVersion.lastIndexOf('.') - 1] : compilerVersion
+            // Scala 3
+            if ((versionAsNumber - 300 >= 0 && versionAsNumber - 300 < 100)
+                    || (versionAsNumber - 3000 >= 0 && versionAsNumber - 3000 < 1000)) {
+                // In Scala 3 binary compatibility is maintained across minor Scala compile versions
+                // Scala 3 introduced scalaBinaryVersion=3 for all Scala 3 compiler versions
+                baseVersion = verifiedVersion[0..verifiedVersion.indexOf('.') - 1]
+                majorVersion = verifiedVersion[0..verifiedVersion.indexOf('.') - 1]
+                compilerVersion = verifiedVersion
+                artifactInlinedVersion = baseVersion
+            } else {
+                baseVersion = verifiedVersion[0..verifiedVersion.lastIndexOf('.') - 1]
+                majorVersion = baseVersion[0..baseVersion.indexOf('.') - 1]
+                compilerVersion = verifiedVersion
+                // Before scala 2.10 3rd party scala libs used compiler-version inlined artifact name
+                artifactInlinedVersion = versionAsNumber > 1000 ? baseVersion : compilerVersion
+            }
         } else {
             throw new IllegalArgumentException('Too many dot separator chars ' +
                     "in targetVersion [${version}].")

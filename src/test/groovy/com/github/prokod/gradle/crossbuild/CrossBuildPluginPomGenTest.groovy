@@ -15,8 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -38,6 +38,7 @@ class CrossBuildPluginPomGenTest extends CrossBuildGradleRunnerSpec {
      *
      * @return
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl should produce expected pom files and their content should be correct"() {
         given:
@@ -105,7 +106,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -174,8 +174,8 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
-        '6.9.2'         | '2.11'
-        '7.3.3'         | '2.10'
+        '6.9.4'         | '2.11'
+        '7.6.1'         | '2.10'
     }
 
     /**
@@ -186,6 +186,7 @@ dependencies {
      *
      * @return
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl and custom withXml handler should  produce expected pom files and their content should be correct"() {
         given:
@@ -277,7 +278,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -346,7 +346,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
-        '6.9.2'         | '2.11'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.11'
+        '7.6.1'         | '2.11'
     }
 }

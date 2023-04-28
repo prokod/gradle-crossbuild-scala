@@ -15,9 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
-import org.skyscreamer.jsonassert.JSONAssert
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -85,6 +84,8 @@ class CrossBuildPluginApiConfigurationMultiModuleTest extends CrossBuildGradleRu
      * </ul>
      * @return
      */
+    @Requires({ System.getProperty("java.version").startsWith('1.8') })
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
@@ -111,7 +112,7 @@ allprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         crossBuild {
             
-            scalaVersionsCatalog = ['2.11':'2.11.11']
+            scalaVersionsCatalog = ['2.10':'2.10.6', '2.11':'2.11.11']
 
             builds {
                 spark160_210 
@@ -207,7 +208,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -241,8 +241,8 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
-        '6.9.2'         | '2.11'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.11'
+        '7.6.1'         | '2.11'
     }
 
     /**
@@ -260,6 +260,8 @@ dependencies {
      *     scala-library dependency in all modules using implementation configuration as the plugin ONLY takes care of this behind the scenes for cross compile configurations.</li>
      * </ul>
      */
+    @Requires({ System.getProperty("java.version").startsWith('1.8') })
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
         given:
@@ -409,7 +411,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -508,7 +509,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
-        '6.9.2'         | '2.11'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.11'
+        '7.6.1'         | '2.11'
     }
 }

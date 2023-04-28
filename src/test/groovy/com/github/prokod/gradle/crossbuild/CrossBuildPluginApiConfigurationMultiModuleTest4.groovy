@@ -15,9 +15,9 @@
  */
 package com.github.prokod.gradle.crossbuild
 
-import org.gradle.internal.impldep.org.junit.Assume
 import org.gradle.testkit.runner.GradleRunner
 import org.skyscreamer.jsonassert.JSONAssert
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -68,6 +68,7 @@ class CrossBuildPluginApiConfigurationMultiModuleTest4 extends CrossBuildGradleR
      *
      * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/90">issue #90</a>
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with a single scala-lib dependency in lib1 should compile correctly lib2 without errors"() {
         given:
@@ -308,7 +309,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -346,8 +346,8 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
-        '6.9.2'         | '2.12'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.12'
+        '7.6.1'         | '2.11'
     }
 
     /**
@@ -369,6 +369,7 @@ dependencies {
      *
      * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/90">issue #80</a>
      */
+    @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with no _? scala tag results in correct resolved scala deps"() {
         given:
@@ -398,7 +399,7 @@ subprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         if (!project.name.endsWith('app')) {
             crossBuild {
-                scalaVersionsCatalog = ['2.12':'2.12.8']
+                scalaVersionsCatalog = ['2.11':'2.11.12', '2.12':'2.12.8']
                 builds {
                     spark233_211
                     spark242_212
@@ -474,6 +475,7 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 apply plugin: 'maven-publish'
 
 crossBuild {
+    scalaVersionsCatalog = ['2.10':'2.10.6']
     builds {
         v210 {
             archive.appendixPattern = '-legacy_?'
@@ -585,6 +587,8 @@ apply plugin: 'com.github.prokod.gradle-crossbuild'
 apply plugin: 'maven-publish'
 
 crossBuild {
+    scalaVersionsCatalog = ['2.11':'2.11.12']
+
     builds {
         spark233_211 {
             archive.appendixPattern = '-all_?'
@@ -611,7 +615,6 @@ dependencies {
 """
 
         when:
-        Assume.assumeTrue(testMavenCentralAccess())
         def result = GradleRunner.create()//.forwardOutput()
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
@@ -653,14 +656,14 @@ dependencies {
         def expectedLibJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_12_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '2.12.15' : '',
-                _2_12_: '2.12.15',
+                _2_12_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '2.12.17' : '',
+                _2_12_: '2.12.17',
                 _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
                 _2_10_7_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.10.7' : '',
                 _7_2_plus_for_2_10_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '7.2.30' : '',
                 _7_2_plus_for_2_10_: '7.2.30',
-                _7_2_plus_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '7.2.34' : '',
-                _7_2_plus_: '7.2.34',
+                _7_2_plus_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '7.2.35' : '',
+                _7_2_plus_: '7.2.35',
                 dashOrEmpty: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-' : '',
                 '/lib_builds_resolved_configurations-04.json')
         def libResolvedConfigurationReportFile = findFile("*/lib_builds_resolved_configurations.json")
@@ -683,8 +686,8 @@ dependencies {
                 _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
                 _skuber_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.5.0' : '',
                 _play_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.7.4' : '',
-                _scalaz_v_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-7.2.34' : '',
-                _scalaz_v_: '7.2.34',
+                _scalaz_v_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-7.2.35' : '',
+                _scalaz_v_: '7.2.35',
                 _akka_http_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-10.1.11' : '',
                 _akka_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.5.29' : '',
                 _ssl_config_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-0.3.8' : '',
@@ -712,7 +715,7 @@ dependencies {
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
-        '6.9.2'         | '2.12'
-        '7.3.3'         | '2.11'
+        '6.9.4'         | '2.12'
+        '7.6.1'         | '2.11'
     }
 }

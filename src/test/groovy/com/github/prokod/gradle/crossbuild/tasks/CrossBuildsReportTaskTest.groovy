@@ -25,7 +25,7 @@ plugins {
 }
 
 crossBuild {
-    scalaVersionsCatalog = ['2.12':'2.12.8', '2.13':'2.13.0']
+    scalaVersionsCatalog = ['2.10':'2.10.6', '2.11':'2.11.12', '2.12':'2.12.8', '2.13':'2.13.0']
     builds {
         v210
         v211 {
@@ -74,6 +74,6 @@ crossBuild {
         JSONAssert.assertEquals(expectedJsonAsText, actualJsonAsText, false)
 
         where:
-        gradleVersion << ['5.6.4', '6.9.2', '7.3.3']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
     }
 }

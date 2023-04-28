@@ -28,6 +28,8 @@ class BuildSnapshot {
 
     final ArchiveNamingSnapshot archive
 
+    final TargetCompatibilitySnapshot targetCompatibility
+
     Set<String> scalaVersions
 
     Map<String, Object> ext
@@ -36,31 +38,57 @@ class BuildSnapshot {
         new BuildSnapshot(other.name,
                           other.extension,
                           other.archive.appendixPattern,
+                          other.targetCompatibility.strategy,
                           other.scalaVersions,
                           other.ext ?: [:])
     }
 
+    @SuppressWarnings('ParameterCount')
     BuildSnapshot(String name,
                   CrossBuildExtension extension,
                   String appendixPattern,
+                  String strategy,
                   Set<String> scalaVersions,
                   Map<String, Object> ext) {
         this.name = name
         this.extension = extension
         this.archive = new ArchiveNamingSnapshot(name, appendixPattern)
+        this.targetCompatibility = new TargetCompatibilitySnapshot(name, strategy)
         this.scalaVersions = scalaVersions.clone()
         this.ext = ext.clone()
     }
 
     BuildSnapshot(BuildSnapshot other, ArchiveNamingSnapshot archive) {
-        this(other.name, other.extension, archive.appendixPattern, other.scalaVersions, other.ext)
+        this(other.name, other.extension,
+                archive.appendixPattern,
+                other.targetCompatibility.strategy,
+                other.scalaVersions, other.ext)
         assert other.name == archive.name : "While instantiating snapshot build $other.name != $archive.name"
+    }
+
+    BuildSnapshot(BuildSnapshot other, TargetCompatibilitySnapshot targetCompatibility) {
+        this(other.name, other.extension,
+                other.archive.appendixPattern,
+                targetCompatibility.strategy,
+                other.scalaVersions, other.ext)
+        assert other.name == targetCompatibility.name : 'While instantiating snapshot build ' +
+                "$other.name != $targetCompatibility.name"
+    }
+
+    BuildSnapshot(BuildSnapshot other, Map<String, Object> ext) {
+        this(other.name, other.extension,
+                other.archive.appendixPattern,
+                other.targetCompatibility.strategy,
+                other.scalaVersions, ext)
+        assert other.name == targetCompatibility.name : 'While instantiating snapshot build ' +
+                "$other.name != $targetCompatibility.name"
     }
 
     String toString() {
         JsonOutput.toJson([name:name,
                            scalaVersions:scalaVersions,
                            ext:ext,
-                           archive:[appendixPattern:archive?.appendixPattern]])
+                           archive:[appendixPattern:archive?.appendixPattern],
+                           targetCompatibility:[strategy:targetCompatibility?.strategy]])
     }
 }

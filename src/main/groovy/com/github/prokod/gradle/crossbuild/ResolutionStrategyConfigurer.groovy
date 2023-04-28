@@ -123,14 +123,8 @@ class ResolutionStrategyConfigurer {
         def crossBuildConfigurationName = crossBuildConfiguration.name
         def requested = details.requested
 
-        // Not a cross built dependency
-        if (supposedScalaVersion == null) {
-            if (requested.group == 'org.scala-lang') {
-                details.useVersion(scalaVersionInsights.compilerVersion)
-            }
-        }
         // Replace 3d party scala dependency which ends with '_?' in cross build config scope
-        else {
+        if (supposedScalaVersion != null && requested.group != 'org.scala-lang') {
             // A cross built dependency - explicit
             // Try correcting offending target dependency only if contains wrong scala version
             // and only in cross build config context.
@@ -138,12 +132,22 @@ class ResolutionStrategyConfigurer {
                 tryCorrectingTargetDependencyName(details, scalaVersionInsights.artifactInlinedVersion, insightsView)
 
                 project.logger.info(LoggerUtils.logTemplate(project,
-                    lifecycle:'afterEvaluate',
-                    configuration:crossBuildConfigurationName,
-                    msg:'Dependency Scan ' +
-                        "| Found polluting dependency ${requested.name}:${requested.version}. Replacing all " +
-                        "together with [${details.target.name}:${details.target.version}]"
+                        lifecycle:'afterEvaluate',
+                        configuration:crossBuildConfigurationName,
+                        msg:'Dependency Scan ' +
+                                "| Found polluting dependency ${requested.name}:${requested.version}. Replacing all " +
+                                "together with [${details.target.name}:${details.target.version}]"
                 ))
+            }
+        }
+
+        // Not a cross built dependency
+        else {
+            if (requested.group == 'org.scala-lang') {
+                def targetModuleName = ScalaModuleType.convert(requested.name, scalaVersionInsights.majorVersion)
+                def targetModule = "${requested.group}:${targetModuleName}:${scalaVersionInsights.compilerVersion}"
+                details.useTarget(targetModule)
+                details.because('Cross compilation')
             }
         }
     }
@@ -257,6 +261,11 @@ class ResolutionStrategyConfigurer {
             offenderDetails.useTarget requested.group + ':' + correctDependency.name + ':' + correctDependency.version
         }
         else {
+//            def targetModuleName = ScalaModuleType.convert(requested.name, scalaVersionInsights.majorVersion)
+//            def targetModule = "${requested.group}:${targetModuleName}:${scalaVersionInsights.compilerVersion}"
+//            offenderDetails.useTarget(targetModule)
+//            details.because('Cross compilation')
+
             def preRegex = scalaVersions.mkRefTargetVersions().collect { '_' + it }.join('|')
             def regex = "($preRegex)"
             offenderDetails.useTarget requested.group + ':' +

@@ -1,5 +1,5 @@
 plugins {
-    id "com.gradle.plugin-publish" version "0.12.0"
+    id "com.gradle.plugin-publish" version "1.0.0"
     id 'jacoco'
 }
 
@@ -10,7 +10,7 @@ apply plugin: 'signing'
 apply plugin: 'codenarc'
 
 group = 'com.github.prokod'
-version = '0.14.1'
+version = '0.15.0'
 
 repositories {
     jcenter()
@@ -34,9 +34,6 @@ ext {
 }
 
 dependencies {
-    implementation gradleApi()
-    implementation localGroovy()
-
     testImplementation gradleTestKit()
     testImplementation ('org.spockframework:spock-core:2.1-groovy-2.5') {
         exclude module: 'groovy'
@@ -49,12 +46,20 @@ dependencies {
 test {
     useJUnitPlatform()
     systemProperty 'spock.configuration', rootProject.file('config/spock/SpockConfig.groovy').absolutePath
+
+//    if (project.hasProperty('testTargetCompatibility'))
+//        project.property('testTargetCompatibility') == '11' ? exclude('**/LegacyTest.class') : exclude('')
+//    else {
+//
+//    }
 }
 
 gradlePlugin {
     plugins {
         crossBuildPlugin {
             id = 'com.github.prokod.gradle-crossbuild'
+            displayName = 'Gradle cross build (Scala) plugin'
+            description = 'Adds cross building functionality to Gradle for Scala based projects'
             implementationClass = 'com.github.prokod.gradle.crossbuild.CrossBuildPlugin'
         }
     }
@@ -63,27 +68,12 @@ gradlePlugin {
 pluginBundle {
     website = 'https://github.com/prokod/gradle-crossbuild-scala'
     vcsUrl = 'https://github.com/prokod/gradle-crossbuild-scala'
-    description = 'Adds cross building functionality to Gradle for Scala based projects'
-    tags = ['gradle', 'cross-build-scala-plugins', 'cross-compile', 'scala']
-
-    plugins {
-        crossBuildPlugin {
-            // id is captured from java-gradle-plugin configuration
-            displayName = 'Gradle cross build (Scala) plugin'
-        }
-    }
+    tags = ['cross-build-scala-plugins', 'cross-compile', 'scala', 'cross-building']
 }
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifact sourcesJar {
-                classifier 'sources'
-            }
-            artifact javadocJar {
-                classifier 'javadoc'
-            }
+        pluginMaven(MavenPublication) {
             versionMapping {
                 usage('java-api') {
                     fromResolutionOf('runtimeClasspath')
@@ -137,7 +127,7 @@ publishing {
 signing {
     def required = { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
     if (required) {
-        sign publishing.publications.mavenJava
+        sign publishing.publications.pluginMaven
     }
 }
 
@@ -157,15 +147,16 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 tasks.withType(Test) {
     testLogging {
         // set options for log level LIFECYCLE
-        events TestLogEvent.FAILED,
-                TestLogEvent.PASSED,
-                TestLogEvent.SKIPPED,
-                TestLogEvent.STANDARD_OUT
-        exceptionFormat TestExceptionFormat.FULL
-        showExceptions true
-        showCauses true
-        showStackTraces true
-
+        lifecycle {
+            events TestLogEvent.FAILED,
+                    TestLogEvent.PASSED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_OUT
+            exceptionFormat TestExceptionFormat.FULL
+            showExceptions true
+            showCauses true
+            showStackTraces true
+        }
         // set options for log level DEBUG and INFO
         debug {
             events TestLogEvent.STARTED,
@@ -178,14 +169,13 @@ tasks.withType(Test) {
         }
         info.events = debug.events
         info.exceptionFormat = debug.exceptionFormat
-
-        afterSuite { desc, result ->
-            if (!desc.parent) { // will match the outermost suite
-                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
-                def startItem = '|  ', endItem = '  |'
-                def repeatLength = startItem.length() + output.length() + endItem.length()
-                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
-            }
+    }
+    afterSuite { desc, result ->
+        if (!desc.parent) { // will match the outermost suite
+            def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            def startItem = '|  ', endItem = '  |'
+            def repeatLength = startItem.length() + output.length() + endItem.length()
+            println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
         }
     }
 }

@@ -20,12 +20,15 @@ jobs:
     name: "Gradle Check"
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        java: [ '8', '11' ]
     steps:
       - name: setup_jdk
         uses: actions/setup-java@v3
         with:
-          java-version: '8'
           distribution: 'temurin'
+          java-version: ${{ matrix.java }}
       - name: checkout
         uses: actions/checkout@v3
       - name: validation
