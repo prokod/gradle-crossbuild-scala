@@ -3,7 +3,6 @@
     {
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}"
       ],
       "name": "crossBuildSpark233_211Api"
@@ -100,7 +99,6 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}"
         ],
         "name": "crossBuildSpark242_212Api"
@@ -197,7 +195,6 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}"
         ],
         "name": "crossBuildSpark243_211Api"
@@ -294,7 +291,6 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}"
         ],
         "name": "crossBuildSpark243_212Api"

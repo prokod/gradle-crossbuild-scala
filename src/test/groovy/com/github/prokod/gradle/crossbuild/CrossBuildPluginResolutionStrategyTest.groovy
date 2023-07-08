@@ -81,12 +81,12 @@ publishing {
     publications {
         crossBuildV210(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV210Jar
+                from components.crossBuildV210
             }
         }
         crossBuildV211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV211Jar
+                from components.crossBuildV211
             }
         }
     }
@@ -120,7 +120,6 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withDebug(true)
                 /*@withDebug@*/
                 .withArguments('build', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()

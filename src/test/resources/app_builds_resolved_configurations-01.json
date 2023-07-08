@@ -2,7 +2,6 @@
   {
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scalaz', name='scalaz-core_@dsv@', version='7.2.28', configuration='default'}"
       ],
       "name": "crossBuildSpark230_211Api"

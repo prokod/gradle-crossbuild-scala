@@ -627,7 +627,7 @@ dependencies {
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
                 /*@withDebug@*/
-                .withArguments('lib:crossBuildV210Jar', 'app:crossBuildSpark230_211Jar', '--info', '--stacktrace')
+                .withArguments('crossBuildResolvedConfigs', 'lib:crossBuildV210Jar', 'app:crossBuildSpark230_211Jar', '--info', '--stacktrace')
                 .build()
 
         then:

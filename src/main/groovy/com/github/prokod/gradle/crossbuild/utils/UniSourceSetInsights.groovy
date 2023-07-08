@@ -40,6 +40,8 @@ class UniSourceSetInsights {
                 return getRuntimeName()
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyName()
+            case ViewType.RUNTIME_ELEMENTS:
+                return getRuntimeElementsName()
             case ViewType.RUNTIME_CLASSPATH:
                 return getRuntimeClasspathName()
             default:
@@ -65,6 +67,8 @@ class UniSourceSetInsights {
                 return getRuntimeConfiguration()
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyConfiguration()
+            case ViewType.RUNTIME_ELEMENTS:
+                return getRuntimeElementsConfiguration()
             case ViewType.RUNTIME_CLASSPATH:
                 return getRuntimeClasspathConfiguration()
             default:
@@ -92,6 +96,8 @@ class UniSourceSetInsights {
                 return getRuntimeDependencySet(dependencySetType)
             case ViewType.RUNTIME_ONLY:
                 return getRuntimeOnlyDependencySet(dependencySetType)
+            case ViewType.RUNTIME_ELEMENTS:
+                return getRuntimeElementsDependencySet(dependencySetType)
             case ViewType.RUNTIME_CLASSPATH:
                 return getRuntimeClasspathDependencySet(dependencySetType)
             default:
@@ -182,6 +188,7 @@ class UniSourceSetInsights {
         getDependencySetUsing(dependencySetType) { it -> getImplementationConfiguration() }
     }
 
+    @Deprecated
     String getRuntimeName() {
         getConfigurationNameUsing { SourceSet srcSet -> srcSet.getRuntimeElementsConfigurationName() }
     }
@@ -198,12 +205,25 @@ class UniSourceSetInsights {
         getConfigurationNameUsing { SourceSet srcSet -> srcSet.getRuntimeOnlyConfigurationName() }
     }
 
+    String getRuntimeElementsName() {
+        getConfigurationNameUsing { SourceSet srcSet ->
+            srcSet.getRuntimeElementsConfigurationName() }
+    }
+
     Configuration getRuntimeOnlyConfiguration() {
         getConfigurationUsing { it -> getRuntimeOnlyName() }
     }
 
+    Configuration getRuntimeElementsConfiguration() {
+        getConfigurationUsing { it -> getRuntimeElementsName() }
+    }
+
     DependencySet getRuntimeOnlyDependencySet(DependencySetType dependencySetType) {
         getDependencySetUsing(dependencySetType) { it -> getRuntimeOnlyConfiguration() }
+    }
+
+    DependencySet getRuntimeElementsDependencySet(DependencySetType dependencySetType) {
+        getDependencySetUsing(dependencySetType) { it -> getRuntimeElementsConfiguration() }
     }
 
     String getRuntimeClasspathName() {

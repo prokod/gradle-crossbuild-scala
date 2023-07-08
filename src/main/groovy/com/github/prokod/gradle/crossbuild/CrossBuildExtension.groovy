@@ -30,11 +30,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.SourceSet
@@ -48,6 +50,7 @@ class CrossBuildExtension {
     final Project project
     final CrossBuildSourceSets crossBuildSourceSets
     final ObjectFactory objects
+    final SoftwareComponentFactory components
 
     Map<String, String> scalaVersionsCatalog = [:]
 
@@ -61,9 +64,15 @@ class CrossBuildExtension {
 
     Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds = []
 
-    CrossBuildExtension(Project project, ObjectFactory objectFactory) {
+    final static Attribute<Usage> SCALA_USAGE_ATTRIBUTE =
+            Attribute.of('com.github.prokod.crossbuild.usage.attribute', Usage)
+
+    CrossBuildExtension(Project project,
+                        ObjectFactory objectFactory,
+                        SoftwareComponentFactory softwareComponentFactory) {
         this.project = project
         this.objects = objectFactory
+        this.components = softwareComponentFactory
 
         def eventStore = new BuildUpdateEventStore(project)
 
@@ -169,9 +178,21 @@ class CrossBuildExtension {
     }
 
     void realizeCrossBuildTasks(Collection<ResolvedBuildAfterEvalLifeCycle> resolvedBuilds) {
+        // Register Usage Attribute
+        project.dependencies.attributesSchema {
+            it.attribute(SCALA_USAGE_ATTRIBUTE)
+        }
+
         resolvedBuilds.findAll { rb ->
             def (String sourceSetId, SourceSet sourceSet) =
                                     crossBuildSourceSets.findByName(rb.name)
+
+            // Publishing POM - cross-build Scala component
+            // This is where the "journey" toward auto Scala cross built POM starts
+            // Create an adhoc scala component for the cross-build Scala source-set
+            def adhocComponent = components.adhoc("${CrossBuildSourceSets.SOURCESET_BASE_NAME}${rb.name}")
+            // add it to the list of components that this project declares
+            project.components.add(adhocComponent)
 
             def assembleTask = project.tasks.findByName("${AbstractCrossBuildsReportTask.BASE_TASK_NAME}Assemble")
             def scalaJar = createArtifact(sourceSet, rb)
@@ -184,6 +205,13 @@ class CrossBuildExtension {
                             rb.scalaVersion,
                             Usage.JAVA_RUNTIME)
             attachArtifact(scalaJar, outgoingConfigurationRuntime.name)
+
+            // Publishing POM - Pom file runtime dependencies
+            // Register a variant from runtimeElements to Maven scope Runtime dependencies
+            adhocComponent.addVariantsFromConfiguration(outgoingConfigurationRuntime) {
+                it.mapToMavenScope('runtime')
+            }
+
             // Api
             def outgoingConfigurationApi =
                     configureOutgoingConfiguration(sourceSet.getApiElementsConfigurationName(),
@@ -191,6 +219,25 @@ class CrossBuildExtension {
                             rb.scalaVersion,
                             Usage.JAVA_API)
             attachArtifact(scalaJar, outgoingConfigurationApi.name)
+
+            // Publishing POM - Pom file compile dependencies
+            // Register a variant from apiElements to Maven scope Compile dependencies
+            adhocComponent.addVariantsFromConfiguration(outgoingConfigurationApi) {
+                it.mapToMavenScope('compile')
+            }
+
+//            project.components.findAll {it.name == adhocComponent.name && it.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)}.each {
+//                try {
+//                    it.withVariantsFromConfiguration(project.configurations["${sourceSet.getRuntimeElementsConfigurationName()}"]) {
+//                        it.skip()
+//                    }
+////                    it.withVariantsFromConfiguration(project.configurations["${sourceSet.getApiElementsConfigurationName()}"]) {
+////                        it.skip()
+////                    }
+//                } catch (Exception e) {
+//                    println('>>>' + e.message)
+//                }
+//            }
         }
     }
 
@@ -201,13 +248,17 @@ class CrossBuildExtension {
         Configuration outgoingConfiguration =
                 project.configurations.getByName(outgoingConfigurationName) { Configuration cnf ->
             cnf.attributes {
-                it.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
-                it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, usage))
-                it.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-                it.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-                        JavaVersion.current().majorVersion.toInteger())
-                it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                        objects.named(LibraryElements, "scala-${buildName}-${scalaVersion}-jar"))
+                it.with {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, usage))
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                            JavaVersion.current().majorVersion.toInteger())
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                            objects.named(LibraryElements, LibraryElements.JAR))
+                    attribute(SCALA_USAGE_ATTRIBUTE,
+                            objects.named(Usage, "scala-${buildName}-${scalaVersion}-jar"))
+                }
             }
         }
         outgoingConfiguration
@@ -229,6 +280,9 @@ class CrossBuildExtension {
         scalaJar
     }
 
+    // Publishing POM - linking jar task to publication related configuration
+    // Adding to project artifacts mapping from publication front facing configuration
+    // to a jar task for cross-build Scala artifact
     void attachArtifact(Jar scalaJar, String configurationName) {
         project.artifacts.add(configurationName, scalaJar)
     }

@@ -74,12 +74,12 @@ publishing {
         }
         crossBuildV210(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV210Jar
+                from components.crossBuildV210
             }
         }
         crossBuildV211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV211Jar
+                from components.crossBuildV211
             }
         }
     }
@@ -176,6 +176,7 @@ dependencies {
         '5.6.4'         | '2.10'
         '6.9.4'         | '2.11'
         '7.6.1'         | '2.10'
+        '8.0.2'         | '2.11'
     }
 
     /**
@@ -223,7 +224,7 @@ publishing {
         }
         crossBuildScala_210(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildScala_210Jar
+                from components.crossBuildScala_210
 
                 pom.withXml { xml ->
                     def dependenciesNode = xml.asNode().dependencies?.getAt(0)
@@ -231,27 +232,27 @@ publishing {
                         dependenciesNode = xml.asNode().appendNode('dependencies')
                     }
 
-                    project.configurations.crossBuildScala_210MavenCompileScope.allDependencies.each { dep ->
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', dep.group)
-                        dependencyNode.appendNode('artifactId', dep.name)
-                        dependencyNode.appendNode('version', dep.version)
-                        dependencyNode.appendNode('scope', 'compile')
-                    }
-
-                    project.configurations.crossBuildScala_210MavenRuntimeScope.allDependencies.each { dep ->
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', dep.group)
-                        dependencyNode.appendNode('artifactId', dep.name)
-                        dependencyNode.appendNode('version', dep.version)
-                        dependencyNode.appendNode('scope', 'runtime')
-                    }
+//                    project.configurations.crossBuildScala_210MavenCompileScope.allDependencies.each { dep ->
+//                        def dependencyNode = dependenciesNode.appendNode('dependency')
+//                        dependencyNode.appendNode('groupId', dep.group)
+//                        dependencyNode.appendNode('artifactId', dep.name)
+//                        dependencyNode.appendNode('version', dep.version)
+//                        dependencyNode.appendNode('scope', 'compile')
+//                    }
+//
+//                    project.configurations.crossBuildScala_210MavenRuntimeScope.allDependencies.each { dep ->
+//                        def dependencyNode = dependenciesNode.appendNode('dependency')
+//                        dependencyNode.appendNode('groupId', dep.group)
+//                        dependencyNode.appendNode('artifactId', dep.name)
+//                        dependencyNode.appendNode('version', dep.version)
+//                        dependencyNode.appendNode('scope', 'runtime')
+//                    }
                 }
             }
         }
         crossBuildScala_211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildScala_211Jar
+                from components.crossBuildScala_211
             }
         }
     }
@@ -348,5 +349,148 @@ dependencies {
         '5.6.4'         | '2.10'
         '6.9.4'         | '2.11'
         '7.6.1'         | '2.11'
+    }
+
+    /**
+     * Source issue: https://github.com/prokod/gradle-crossbuild-scala/issues/128
+     *
+     * Here we check correctness of pom file content.
+     * api configuration should appear in the pom file as compile scope for both scala 2.12/3
+     *
+     * @return
+     */
+    @Requires({ instance.testMavenCentralAccess() })
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin with publishing dsl and api configuration should produce expected pom files and their content should be correct"() {
+        given:
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild'
+    id 'maven-publish'
+}
+
+group = 'com.github.prokod.it'
+version = '1.0'
+archivesBaseName = 'test'
+
+repositories {
+    mavenCentral()
+}
+
+def scala2_13 = '2.13.10'
+def scala2_12 = '2.12.17'
+
+crossBuild {
+    builds {
+        scala {
+            scalaVersions = [scala2_12, scala2_13]
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.gradle.sample'
+            artifactId = 'project1-sample'
+            version = '1.1'
+
+            from components.java
+        }
+        crossBuildScala_212(MavenPublication) {
+            afterEvaluate {
+                from components.crossBuildScala_212
+            }
+        }
+        crossBuildScala_213(MavenPublication) {
+            afterEvaluate {
+                from components.crossBuildScala_213
+            }
+        }
+    }
+}
+
+tasks.withType(GenerateMavenPom) { t ->
+    if (t.name.contains('CrossBuildScala_212')) {
+        t.destination = file("\$buildDir/generated-pom_2.12.xml")
+    }
+    if (t.name.contains('CrossBuildScala_213')) {
+        t.destination = file("\$buildDir/generated-pom_2.13.xml")
+    }
+}
+
+dependencies {
+    api "io.github.cquiroz:scala-java-time_2.13:2.5.0"
+
+    implementation "org.scala-lang:scala-library:\${scala2_13}"
+    implementation "io.circe:circe-core_2.13:0.14.2"
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.toFile())
+                .withPluginClasspath()
+        .withDebug(true)
+        /*@withDebug@*/
+                .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', 'crossBuildResolvedConfigs', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.task(":publishToMavenLocal").outcome == SUCCESS
+
+        def pom212 = dir.resolve("build${File.separator}generated-pom_2.12.xml").text
+        def pom213 = dir.resolve("build${File.separator}generated-pom_2.13.xml").text
+
+        fileExists"*/.m2/*test_2.12*jar"
+        fileExists"*/.m2/*test_2.13*jar"
+
+        when:
+        def project212 = new XmlSlurper().parseText(pom212).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
+
+        then:
+        project212.size() == 3
+        project212['org.scala-lang'].groupId == 'org.scala-lang'
+        project212['org.scala-lang'].artifactId == 'scala-library'
+        project212['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
+        project212['org.scala-lang'].scope == 'runtime'
+        project212['io.github.cquiroz'].groupId == 'io.github.cquiroz'
+        project212['io.github.cquiroz'].artifactId == 'scala-java-time_2.12'
+        project212['io.github.cquiroz'].version == '2.5.0'
+        project212['io.github.cquiroz'].scope == 'compile'
+        project212['io.circe'].groupId == 'io.circe'
+        project212['io.circe'].artifactId == 'circe-core_2.12'
+        project212['io.circe'].version == '0.14.2'
+        project212['io.circe'].scope == 'runtime'
+
+        when:
+        def project213 = new XmlSlurper().parseText(pom213).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
+
+        then:
+        project213.size() == 3
+        project213['org.scala-lang'].groupId == 'org.scala-lang'
+        project213['org.scala-lang'].artifactId == 'scala-library'
+        project213['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.13']
+        project213['org.scala-lang'].scope == 'runtime'
+        project213['io.github.cquiroz'].groupId == 'io.github.cquiroz'
+        project213['io.github.cquiroz'].artifactId == 'scala-java-time_2.13'
+        project213['io.github.cquiroz'].version == '2.5.0'
+        project213['io.github.cquiroz'].scope == 'compile'
+        project213['io.circe'].groupId == 'io.circe'
+        project213['io.circe'].artifactId == 'circe-core_2.13'
+        project213['io.circe'].version == '0.14.2'
+        project213['io.circe'].scope == 'runtime'
+
+        where:
+        gradleVersion   | defaultScalaVersion
+        '5.6.4'         | '2.10'
+        '6.9.4'         | '2.11'
+        '7.6.1'         | '2.11'
+        '8.0.2'         | '2.11'
     }
 }

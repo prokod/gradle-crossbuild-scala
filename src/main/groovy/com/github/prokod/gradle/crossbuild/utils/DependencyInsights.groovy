@@ -53,10 +53,11 @@ class DependencyInsights {
     }
 
     /**
-     * This method acts as a more granular replacement to {@link Configuration#extendsFrom} where
-     * {@code crossBuildConfiguration.extendsFrom(configuration)} and both {@code crossBuildConfiguration},
-     * {@code configuration} are {@link SourceSetInsightsView#getConfigurations} {@code crossBuild}, {@code main}
-     * respectively.
+     * This method is similar in its intent to {@link Configuration#extendsFrom}
+     * The mapping {@code crossBuildConfiguration.extendsFrom(configuration)} to
+     * {@link SourceSetInsightsView#getConfigurations} is as follows:
+     * {@code crossBuildConfiguration} {@code ->} {@code crossBuild}
+     * {@code configuration} {@code ->} {@code main}
      *
      * Granular 'extendsFrom' comes down to:
      * 1. Leaving out module dependencies (of type {@link ProjectDependency}) which crossbuild plugin is applied to
@@ -201,7 +202,7 @@ class DependencyInsights {
     }
 
     /**
-     * Valid (= projects that cross build gradle plugin was applies to) Projects 'default' dependency set
+     * Valid Projects' (= projects that cross build gradle plugin was applied to) 'default' dependency set
      * is being searched for other project type dependencies by searching the dependency tree.
      * All the 'default' configurations for the found {@link ProjectDependency#getDependencyProject} are being
      * accumulated recursively and returned.
