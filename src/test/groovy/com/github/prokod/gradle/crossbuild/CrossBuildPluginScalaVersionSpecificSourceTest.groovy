@@ -449,7 +449,8 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         publications {
             create("crossBuild\${akkaStripped}_\${scalaCompatStripped}", MavenPublication) {
                 afterEvaluate {
-                    artifact project.tasks.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}Jar")
+                    from components.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}")
+//                    artifact project.tasks.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}Jar")
                 }
             }
         }

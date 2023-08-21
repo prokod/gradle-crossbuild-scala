@@ -16,6 +16,7 @@
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.Build
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.testfixtures.ProjectBuilder
@@ -150,17 +151,18 @@ dependencies {
         project.pluginManager.apply(JavaPlugin)
 
         ObjectFactory objects = project.services.get(ObjectFactory)
-        def build1 = new Build('spark160', new CrossBuildExtension(project, objects)).with { b ->
+        SoftwareComponentFactory softwareComponentFactory = project.services.get(SoftwareComponentFactory)
+        def build1 = new Build('spark160', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.10']
             archive.appendixPattern = eap1
             b
         }
-        def build2 = new Build('spark240', new CrossBuildExtension(project, objects)).with { b ->
+        def build2 = new Build('spark240', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.11']
             archive.appendixPattern = eap2
             b
         }
-        def build3 = new Build('spark241', new CrossBuildExtension(project, objects)).with { b ->
+        def build3 = new Build('spark241', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.12']
             archive.appendixPattern = eap3
             b

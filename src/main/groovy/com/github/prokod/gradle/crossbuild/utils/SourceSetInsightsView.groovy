@@ -1,12 +1,10 @@
 package com.github.prokod.gradle.crossbuild.utils
 
-import com.github.prokod.gradle.crossbuild.CrossBuildExtension
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.tasks.SourceSet
 
 /**
  * A wrapper on top of {@link SourceSetInsights} giving a limited more detailed view on a specific config type
@@ -35,7 +33,8 @@ class SourceSetInsightsView {
      * @throws AssertionError in case sourceSet container is not present for the project
      */
     SourceSetInsightsView switchTo(Project project) {
-        def buildName = CrossBuildSourceSets.convertSourceSetIdToBuildName(this.sourceSetInsights.crossBuild.sourceSet.name)
+        def buildName =
+                CrossBuildSourceSets.convertSourceSetIdToBuildName(this.sourceSetInsights.crossBuild.sourceSet.name)
         def newSourceSetInsights = new SourceSetInsights.Builder(buildName)
                 .fromPrj(project)
                 .withMainSourceSetName(this.sourceSetInsights.main.sourceSet.name)

@@ -52,6 +52,7 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
         extension.crossBuildSourceSets.findByName(resolvedBuild.name).second
     }
 
+    @SuppressWarnings(['LineLength'])
     /**
      * This method actively sets {@link DefaultMavenPublication#alias } accordingly
      * Accordingly means:
@@ -61,12 +62,13 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
      * NOTE:
      * This is where the FIRST piece of "magic" happens and the following error is avoided
      * {@code Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates }
-     * For more details see https://stackoverflow.com/questions/51247830/publishing-is-not-able-to-resolve-a-dependency-on-a-project-with-multiple-public
+     *
+     * https://stackoverflow.com/questions/51247830/publishing-is-not-able-to-resolve-a-dependency-on-a-project-with-multiple-public
      *
      * @return
      */
     @Internal
-    protected applyPublicationAliasStrategy() {
+    protected void applyPublicationAliasStrategy() {
         def sourceSetInsights = new SourceSetInsights.Builder(resolvedBuild.name)
                 .fromPrj(project)
                 .build()
@@ -97,6 +99,11 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
                 }
             }
         }
+    }
+
+    @Internal
+    protected static boolean probablyRelatedPublication(MavenPublication pub, String sourceSetId) {
+        pub.name.contains(sourceSetId)
     }
 
     private static String getMavenScopeSuffix(ScopeType scopeType) {

@@ -84,11 +84,13 @@ class SourceSetInsights {
             SourceSetInsights build() {
                 def extension = project.extensions.findByType(CrossBuildExtension)
                 assert extension != null: "Cannot add task ${this.name} of type AbstractCrossBuildPomTask to " +
-                        "project ${project.name}. Reason: Tasks of that type can be added only to a cross build applied project"
+                        "project ${project.name}. Reason: Tasks of that type can be added only to a cross build " +
+                        'applied project'
 
                 def mainName = mainSourceSetName ?: 'main'
                 def main = mainSourceSet ?: extension.crossBuildSourceSets.container.findByName(mainName)
-                def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(crossBuildName)
+                def (String sourceSetId, SourceSet sourceSet) =
+                                            extension.crossBuildSourceSets.findByName(crossBuildName)
                 def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
 
                 sourceSetInsights
@@ -113,7 +115,8 @@ class SourceSetInsights {
 
             SourceSetInsights build() {
                 def main = mainSourceSet ?: extension.crossBuildSourceSets.container.findByName('main')
-                def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(crossBuildName)
+                def (String sourceSetId, SourceSet sourceSet) =
+                                                extension.crossBuildSourceSets.findByName(crossBuildName)
                 def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
 
                 sourceSetInsights

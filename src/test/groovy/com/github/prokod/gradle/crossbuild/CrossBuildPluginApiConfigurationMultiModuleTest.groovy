@@ -126,12 +126,14 @@ allprojects {
             publications {
                 crossBuildSpark160_210(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark160_210Jar
+                        from components.crossBuildSpark160_210
+                        // artifact crossBuildSpark160_210Jar
                     }
                 }
                 crossBuildSpark240_211(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark240_211Jar
+                        from components.crossBuildSpark240_211
+                        // artifact crossBuildSpark240_211Jar
                     }
                 }
             }
@@ -242,7 +244,8 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.2'           | '2.11'
     }
 
     /**
@@ -303,14 +306,12 @@ subprojects {
     publishing {
         publications {
             crossBuildSpark160_210(MavenPublication) {
-                afterEvaluate {
-                    artifact crossBuildSpark160_210Jar
-                }
+                from components.crossBuildSpark160_210
+                // artifact crossBuildSpark160_210Jar
             }
             crossBuildSpark240_211(MavenPublication) {
-                afterEvaluate {
-                    artifact crossBuildSpark240_211Jar
-                }
+                from components.crossBuildSpark240_211
+                // artifact crossBuildSpark240_211Jar
             }
         }
     }
@@ -480,7 +481,7 @@ dependencies {
         }
 
         then:
-        projectLib2_210.size() == 2
+        projectLib2_210.size() == 4
         projectLib2_210['org.scala-lang'].groupId == 'org.scala-lang'
         projectLib2_210['org.scala-lang'].artifactId == 'scala-library'
         projectLib2_210['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
@@ -489,14 +490,21 @@ dependencies {
         projectLib2_210['com.github.prokod.it'].artifactId == 'lib_2.10'
         projectLib2_210['com.github.prokod.it'].version == '1.0-SNAPSHOT'
         projectLib2_210['com.github.prokod.it'].scope == 'runtime'
-
+        projectLib2_210['com.google.guava'].groupId == 'com.google.guava'
+        projectLib2_210['com.google.guava'].artifactId == 'guava'
+        projectLib2_210['com.google.guava'].version == '18.0'
+        projectLib2_210['com.google.guava'].scope == 'runtime'
+        projectLib2_210['org.scalatest'].groupId == 'org.scalatest'
+        projectLib2_210['org.scalatest'].artifactId == 'scalatest_2.10'
+        projectLib2_210['org.scalatest'].version == '3.0.1'
+        projectLib2_210['org.scalatest'].scope == 'runtime'
         when:
         def projectLib2_211 = new XmlSlurper().parseText(lib2pom211).dependencies.dependency.collectEntries{
             [it.groupId.text(), it]
         }
 
         then:
-        projectLib2_211.size() == 2
+        projectLib2_211.size() == 4
         projectLib2_211['org.scala-lang'].groupId == 'org.scala-lang'
         projectLib2_211['org.scala-lang'].artifactId == 'scala-library'
         projectLib2_211['org.scala-lang'].version == '2.11.11'
@@ -505,11 +513,20 @@ dependencies {
         projectLib2_211['com.github.prokod.it'].artifactId == 'lib_2.11'
         projectLib2_211['com.github.prokod.it'].version == '1.0-SNAPSHOT'
         projectLib2_211['com.github.prokod.it'].scope == 'runtime'
+        projectLib2_211['com.google.guava'].groupId == 'com.google.guava'
+        projectLib2_211['com.google.guava'].artifactId == 'guava'
+        projectLib2_211['com.google.guava'].version == '18.0'
+        projectLib2_211['com.google.guava'].scope == 'runtime'
+        projectLib2_211['org.scalatest'].groupId == 'org.scalatest'
+        projectLib2_211['org.scalatest'].artifactId == 'scalatest_2.10'
+        projectLib2_211['org.scalatest'].version == '3.0.1'
+        projectLib2_211['org.scalatest'].scope == 'runtime'
 
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.2'           | '2.10'
     }
 }

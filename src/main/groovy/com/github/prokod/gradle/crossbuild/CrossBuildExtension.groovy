@@ -225,19 +225,6 @@ class CrossBuildExtension {
             adhocComponent.addVariantsFromConfiguration(outgoingConfigurationApi) {
                 it.mapToMavenScope('compile')
             }
-
-//            project.components.findAll {it.name == adhocComponent.name && it.name.startsWith(CrossBuildSourceSets.SOURCESET_BASE_NAME)}.each {
-//                try {
-//                    it.withVariantsFromConfiguration(project.configurations["${sourceSet.getRuntimeElementsConfigurationName()}"]) {
-//                        it.skip()
-//                    }
-////                    it.withVariantsFromConfiguration(project.configurations["${sourceSet.getApiElementsConfigurationName()}"]) {
-////                        it.skip()
-////                    }
-//                } catch (Exception e) {
-//                    println('>>>' + e.message)
-//                }
-//            }
         }
     }
 

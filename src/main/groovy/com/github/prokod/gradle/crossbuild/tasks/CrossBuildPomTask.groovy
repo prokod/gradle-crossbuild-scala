@@ -16,9 +16,6 @@
 package com.github.prokod.gradle.crossbuild.tasks
 
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
-import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
-import com.github.prokod.gradle.crossbuild.utils.ViewType
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedDependency
@@ -26,7 +23,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.StopExecutionException
@@ -91,17 +87,19 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def pub = pubs.head()
 
         Property jarBaseName = project.tasks.findByName(crossBuildSourceSet.jarTaskName).archiveBaseName
-        pub.artifactId = jarBaseName.get()
+        project.afterEvaluate {
+            pub.artifactId = jarBaseName.get()
+        }
 
         // Publishing POM - Set non matching cross built pub to be alias = true
         // This is where the FIRST piece of "magic" happens and the following error is avoided
-        // Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates
-        // For more details see https://stackoverflow.com/questions/51247830/publishing-is-not-able-to-resolve-a-dependency-on-a-project-with-multiple-public
-
+        // Publishing is not able to resolve a dependency on a project with multiple publications that have
+        // different coordinates
         applyPublicationAliasStrategy()
 
         // Publishing POM - overlay dependency resolution
-        // This is where the SECOND piece of "magic" happens and the correct dependencies resolved from compileClasspath configuration
+        // This is where the SECOND piece of "magic" happens and the correct dependencies resolved from
+        // compileClasspath configuration
         // are overlaid on top of:
         // - Compile scope apiElements dependencies
         // - Runtime scope runtimeElements dependencies
@@ -112,10 +110,6 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
                 it.fromResolutionOf(crossBuildSourceSet.compileClasspathConfigurationName)
             }
         }
-    }
-
-    static boolean probablyRelatedPublication(MavenPublication pub, String sourceSetId) {
-        pub.name.contains(sourceSetId)
     }
 
     static boolean probablyRelatedPublicationTask(String name, String sourceSetId) {

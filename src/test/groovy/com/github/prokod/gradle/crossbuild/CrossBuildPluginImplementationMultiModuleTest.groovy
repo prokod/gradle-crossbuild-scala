@@ -834,7 +834,7 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
