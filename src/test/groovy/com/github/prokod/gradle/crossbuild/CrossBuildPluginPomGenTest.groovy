@@ -129,15 +129,11 @@ dependencies {
         }
 
         then:
-        project210.size() == 4
+        project210.size() == 3
         project210['org.scala-lang'].groupId == 'org.scala-lang'
         project210['org.scala-lang'].artifactId == 'scala-library'
         project210['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
         project210['org.scala-lang'].scope == 'runtime'
-        project210['org.apache.spark'].groupId == 'org.apache.spark'
-        project210['org.apache.spark'].artifactId == 'spark-sql_2.10'
-        project210['org.apache.spark'].version == '1.6.3'
-        project210['org.apache.spark'].scope == 'compile'
         project210['com.google.guava'].groupId == 'com.google.guava'
         project210['com.google.guava'].artifactId == 'guava'
         project210['com.google.guava'].version == '18.0'
@@ -153,15 +149,11 @@ dependencies {
         }
 
         then:
-        project211.size() == 4
+        project211.size() == 3
         project211['org.scalatest'].groupId == 'org.scalatest'
         project211['org.scalatest'].artifactId == 'scalatest_2.11'
         project211['org.scalatest'].version == '3.0.1'
         project211['org.scalatest'].scope == 'runtime'
-        project211['org.apache.spark'].groupId == 'org.apache.spark'
-        project211['org.apache.spark'].artifactId == 'spark-sql_2.11'
-        project211['org.apache.spark'].version == '2.2.1'
-        project211['org.apache.spark'].scope == 'compile'
         project211['org.scala-lang'].groupId == 'org.scala-lang'
         project211['org.scala-lang'].artifactId == 'scala-library'
         project211['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
@@ -175,8 +167,8 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.10'
-        '8.0.2'         | '2.11'
+        '7.6.2'         | '2.10'
+        '8.3'           | '2.11'
     }
 
     /**
@@ -228,25 +220,12 @@ publishing {
 
                 pom.withXml { xml ->
                     def dependenciesNode = xml.asNode().dependencies?.getAt(0)
-                    if (dependenciesNode == null) {
-                        dependenciesNode = xml.asNode().appendNode('dependencies')
-                    }
 
-//                    project.configurations.crossBuildScala_210MavenCompileScope.allDependencies.each { dep ->
-//                        def dependencyNode = dependenciesNode.appendNode('dependency')
-//                        dependencyNode.appendNode('groupId', dep.group)
-//                        dependencyNode.appendNode('artifactId', dep.name)
-//                        dependencyNode.appendNode('version', dep.version)
-//                        dependencyNode.appendNode('scope', 'compile')
-//                    }
-//
-//                    project.configurations.crossBuildScala_210MavenRuntimeScope.allDependencies.each { dep ->
-//                        def dependencyNode = dependenciesNode.appendNode('dependency')
-//                        dependencyNode.appendNode('groupId', dep.group)
-//                        dependencyNode.appendNode('artifactId', dep.name)
-//                        dependencyNode.appendNode('version', dep.version)
-//                        dependencyNode.appendNode('scope', 'runtime')
-//                    }
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', 'org.apache.spark')
+                    dependencyNode.appendNode('artifactId', 'spark-sql_2.10')
+                    dependencyNode.appendNode('version', '1.6.3')
+                    dependencyNode.appendNode('scope', 'provided')
                 }
             }
         }
@@ -310,7 +289,7 @@ dependencies {
         project210['org.apache.spark'].groupId == 'org.apache.spark'
         project210['org.apache.spark'].artifactId == 'spark-sql_2.10'
         project210['org.apache.spark'].version == '1.6.3'
-        project210['org.apache.spark'].scope == 'compile'
+        project210['org.apache.spark'].scope == 'provided'
         project210['com.google.guava'].groupId == 'com.google.guava'
         project210['com.google.guava'].artifactId == 'guava'
         project210['com.google.guava'].version == '18.0'
@@ -326,15 +305,11 @@ dependencies {
         }
 
         then:
-        project211.size() == 4
+        project211.size() == 3
         project211['org.scalatest'].groupId == 'org.scalatest'
         project211['org.scalatest'].artifactId == 'scalatest_2.11'
         project211['org.scalatest'].version == '3.0.1'
         project211['org.scalatest'].scope == 'runtime'
-        project211['org.apache.spark'].groupId == 'org.apache.spark'
-        project211['org.apache.spark'].artifactId == 'spark-sql_2.11'
-        project211['org.apache.spark'].version == '2.2.1'
-        project211['org.apache.spark'].scope == 'compile'
         project211['org.scala-lang'].groupId == 'org.scala-lang'
         project211['org.scala-lang'].artifactId == 'scala-library'
         project211['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
@@ -348,16 +323,16 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.10'
     }
 
     /**
-     * Source issue: https://github.com/prokod/gradle-crossbuild-scala/issues/128
-     *
      * Here we check correctness of pom file content.
      * api configuration should appear in the pom file as compile scope for both scala 2.12/3
      *
-     * @return
+     * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/128">issue #128</a>
+     *
      */
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
@@ -432,8 +407,7 @@ dependencies {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-        .withDebug(true)
-        /*@withDebug@*/
+                /*@withDebug@*/
                 .withArguments("-Dmaven.repo.local=${mavenLocalRepo.absolutePath}", 'publishToMavenLocal', 'crossBuildResolvedConfigs', '--info', '--stacktrace')
                 .build()
 
@@ -490,7 +464,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.11'
-        '8.0.2'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 }

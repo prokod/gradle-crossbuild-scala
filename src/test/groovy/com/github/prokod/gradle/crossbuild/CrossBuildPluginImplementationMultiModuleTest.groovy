@@ -128,12 +128,14 @@ subprojects {
         publications {
             crossBuildSpark160_210(MavenPublication) {
                 afterEvaluate {
-                    artifact crossBuildSpark160_210Jar
+//                    artifact crossBuildSpark160_210Jar
+                    from components.crossBuildSpark160_210
                 }
             }
             crossBuildSpark240_211(MavenPublication) {
                 afterEvaluate {
-                    artifact crossBuildSpark240_211Jar
+//                    artifact crossBuildSpark240_211Jar
+                    from components.crossBuildSpark240_211
                 }
             }
         }
@@ -1084,14 +1086,14 @@ publishing {
     publications {
         crossBuildSpark230_211(MavenPublication) {
             afterEvaluate {
-                //from components.crossBuildSpark230_211
-                artifact crossBuildSpark230_211Jar
+                from components.crossBuildSpark230_211
+//                artifact crossBuildSpark230_211Jar
             }
         }
         crossBuildSpark240_212(MavenPublication) {
             afterEvaluate {
-                //from components.crossBuildSpark240_212
-                artifact crossBuildSpark240_212Jar
+                from components.crossBuildSpark240_212
+//                artifact crossBuildSpark240_212Jar
             }
         }
     }
@@ -1129,8 +1131,8 @@ publishing {
     publications {
         crossBuildSpark230_211(MavenPublication) {
             afterEvaluate {
-                //from components.crossBuildSpark230_211
-                artifact crossBuildSpark230_211Jar
+                from components.crossBuildSpark230_211
+//                artifact crossBuildSpark230_211Jar
             }
         }
     }
@@ -1257,7 +1259,7 @@ dependencies {
         '5.6.4'       | '2.11'
         '6.9.4'       | '2.12'
         '7.6.2'       | '2.11'
-        '8.1.1'       | '2.12'
+        '8.2'         | '2.12'
     }
 
     /**
@@ -1321,22 +1323,26 @@ subprojects {
                 publications {
                     crossBuildSpark233_211(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark233_211Jar
+//                            artifact crossBuildSpark233_211Jar
+                            from components.crossBuildSpark233_211
                         }
                     }
                     crossBuildSpark242_212(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark242_212Jar
+//                            artifact crossBuildSpark242_212Jar
+                            from components.crossBuildSpark242_212
                         }
                     }
                     crossBuildSpark243_211(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark243_211Jar
+//                            artifact crossBuildSpark243_211Jar
+                            from components.crossBuildSpark243_211
                         }
                     }
                     crossBuildSpark243_212(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark243_212Jar
+//                            artifact crossBuildSpark243_212Jar
+                            from components.crossBuildSpark243_212
                         }
                     }
                 }
@@ -1456,7 +1462,8 @@ publishing {
     publications {
         crossBuildSpark233_211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildSpark233_211Jar
+//                artifact crossBuildSpark233_211Jar
+                from components.crossBuildSpark233_211
             }
         }
     }

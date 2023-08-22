@@ -95,17 +95,20 @@ publishing {
     publications {
         crossBuildV210(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV210Jar
+//                artifact crossBuildV210Jar
+                from components.crossBuildV210
             }
         }
         crossBuildV211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV211Jar
+//                artifact crossBuildV211Jar
+                from components.crossBuildV210
             }
         }
         crossBuildV3(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV3Jar
+//                artifact crossBuildV3Jar
+                from components.crossBuildV3
             }
         }
     }
@@ -161,8 +164,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '7.6.1'         | '2.10'
-        '8.0.2'         | '2.11'
+        '7.6.2'         | '2.10'
+        '8.3'           | '2.11'
     }
 
     @Requires({ instance.testMavenCentralAccess() })
@@ -252,6 +255,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 }
