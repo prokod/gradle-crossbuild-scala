@@ -57,7 +57,7 @@ class CrossBuildPluginApiConfigurationMultiModuleTest2 extends CrossBuildGradleR
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Eager</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      *     <li>Running tasks that triggers main sourceset configurations: Yes</li>
      * </ul>
      * @return
@@ -169,7 +169,8 @@ dependencies {
         gradleVersion | defaultScalaVersion
         '5.6.4'       | '2.11'
         '6.9.4'       | '2.12'
-        '7.6.1'       | '2.11'
+        '7.6.2'       | '2.11'
+        '8.3'         | '2.12'
     }
 
     /**
@@ -402,10 +403,12 @@ dependencies {
         gradleVersion   | defaultScalaVersion | scalazQmarked
         '5.6.4'         | '2.12'              | false
         '6.9.4'         | '2.12'              | false
-        '7.6.1'         | '2.11'              | false
+        '7.6.2'         | '2.11'              | false
+        '8.3'           | '2.11'              | false
         '5.6.4'         | '2.12'              | true
         '6.9.4'         | '2.12'              | true
-        '7.6.1'         | '2.11'              | true
+        '7.6.2'         | '2.11'              | true
+        '8.3'           | '2.11'              | true
     }
 
     @Requires({ instance.testMavenCentralAccess() })
@@ -646,6 +649,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 }
