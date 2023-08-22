@@ -16,6 +16,7 @@
 package com.github.prokod.gradle.crossbuild.tasks
 
 import com.github.prokod.gradle.crossbuild.CrossBuildExtension
+import com.github.prokod.gradle.crossbuild.ResolutionStrategyHandler
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
@@ -172,27 +173,35 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
         XmlProvider xmlProvider, Map<String, String> prjToJarNamesMap ->
             Node dependenciesNode = xmlProvider.asNode()['dependencies']?.getAt(0)
             if (dependenciesNode != null) {
-                dependenciesNode.children().collectMany { Node dependency -> dependency.children() }
-                        .flatten()
-                        .findAll { Node coordinate ->
-                            // Here we could use more elegantly ((QName)coordinate.name()).getLocalPart()) see above doc for why not
-                            coordinate.name().toString().contains('artifactId')
-                        }
-                        .each { Node coordinate ->
-                            def newValue = prjToJarNamesMap.get(coordinate.text())
+                dependenciesNode.children().collect { Node dependency -> dependency.children() }
+                        .each { List<Node> coordinates ->
+                            def newValue = prjToJarNamesMap.get(coordinates[1].text())
                             // Replacing offending local dependency
                             if (newValue != null) {
-                                coordinate.setValue(newValue)
+                                coordinates[1].setValue(newValue)
+                            }
+                            // Replacing Scala module name/version
+                            if (coordinates[0].text() == 'org.scala-lang') {
+                                def newCoordinates =
+                                        ResolutionStrategyHandler.handleScalaModuleCase(
+                                                ResolutionStrategyHandler.Coordinates.fromXmlNodes(coordinates),
+                                                resolvedBuild.scalaVersionInsights)
+                                coordinates[1].setValue(newCoordinates.name.id)
+                                coordinates[2].setValue(newCoordinates.version.id)
                             }
                             // Replace offending default configuration 3rd party scala lib
                             def extension = project.extensions.findByType(CrossBuildExtension)
                             def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
-                            def dependencyInsight = DependencyLimitedInsight.parseByDependencyName(coordinate.text(), scalaVersions)
+                            def dependencyInsight =
+                                    DependencyLimitedInsight.parseByDependencyName(coordinates[1].text(), scalaVersions)
                             def targetScalaVersion = resolvedBuild.scalaVersionInsights.artifactInlinedVersion
                             if (dependencyInsight.supposedScalaVersion != targetScalaVersion) {
-                                def preRegex = scalaVersions.mkRefTargetVersions().collect { '_' + it }.join('|')
-                                def regex = "($preRegex)"
-                                coordinate.setValue(coordinate.text().replaceFirst(regex, "_${targetScalaVersion}"))
+                                def newCoordinates =
+                                        ResolutionStrategyHandler.handle3rdPartyScalaLibCase(
+                                                ResolutionStrategyHandler.Coordinates.fromXmlNodes(coordinates),
+                                                targetScalaVersion, scalaVersions)
+
+                                coordinates[1].setValue(newCoordinates.name.id)
                             }
                         }
             }

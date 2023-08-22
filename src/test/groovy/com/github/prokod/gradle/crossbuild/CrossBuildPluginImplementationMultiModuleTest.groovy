@@ -227,6 +227,7 @@ dependencies {
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.10'
         '7.6.1'         | '2.11'
+        '8.3'           | '2.12'
     }
 
     /**
@@ -361,6 +362,7 @@ dependencies {
         '5.6.4'         | '2.11'
         '6.9.4'         | '2.11'
         '7.6.1'         | '2.12'
+        '8.3'           | '2.12'
     }
 
     @Requires({ instance.testMavenCentralAccess() })
@@ -612,7 +614,8 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 
     /**
@@ -925,7 +928,7 @@ dependencies {
 //        '5.6.4'       | '2.11'
 //        '6.9.4'       | '2.12'
 //        '7.6.1'       | '2.11'
-        '8.1.1'       | '2.12'
+        '8.3'        | '2.12'
     }
 
     /**
@@ -1251,9 +1254,9 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-//        '5.6.4'       | '2.11'
-//        '6.9.4'       | '2.12'
-//        '7.6.1'       | '2.11'
+        '5.6.4'       | '2.11'
+        '6.9.4'       | '2.12'
+        '7.6.2'       | '2.11'
         '8.1.1'       | '2.12'
     }
 
@@ -1261,7 +1264,7 @@ dependencies {
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Lazy</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      * </ul>
      * Here lib3 is a non cross build dependency.
      * This test checks that when lib3 is added to dependent app module, while using 'implementation' configuration,
@@ -1270,7 +1273,7 @@ dependencies {
      *
      * @return
      */
-    // todo add pom checks
+    // todo add pom checks, add resolved builds checks
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is applied only to some sub modules should produce expected: jars, pom files; and pom files content should be correct"() {
@@ -1502,6 +1505,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 }
