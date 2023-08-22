@@ -15,15 +15,10 @@
  */
 package com.github.prokod.gradle.crossbuild.tasks
 
-import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
-import org.gradle.api.XmlProvider
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.attributes.Usage
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskAction
@@ -37,28 +32,6 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
     @TaskAction
     void update() {
         def crossBuildSourceSet = getCrossBuildSourceSet()
-
-        def originatedFromCrossBuildConfiguration = { ResolvedDependency dep ->
-            dep.configuration.contains(CrossBuildSourceSets.SOURCESET_BASE_NAME)
-        }
-
-        def dependencyNameSelectorFunction = { ResolvedDependency dep ->
-            originatedFromCrossBuildConfiguration(dep) ? dep.moduleArtifacts[0].name : dep.moduleName
-        }
-
-        def gradleClasspathConfigurationBasedDependencySetFunction = { Configuration configuration ->
-            // If this is called and there were no repositories defined, an Exception will be raised
-            // Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Cannot resolve external
-            // dependency org.scala-lang:scala-library:2.10.6 because no repositories are defined.
-            def deps = configuration.resolvedConfiguration.firstLevelModuleDependencies.collect { m ->
-                project.dependencies.create(
-                        group:m.moduleGroup,
-                        name:dependencyNameSelectorFunction(m),
-                        version:m.moduleVersion)
-            }
-            deps.toSet()
-        }
-
         updateCrossBuildPublications(crossBuildSourceSet)
     }
 
@@ -87,9 +60,7 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
         def pub = pubs.head()
 
         Property jarBaseName = project.tasks.findByName(crossBuildSourceSet.jarTaskName).archiveBaseName
-        project.afterEvaluate {
-            pub.artifactId = jarBaseName.get()
-        }
+        pub.artifactId = jarBaseName.get()
 
         // Publishing POM - Set non matching cross built pub to be alias = true
         // This is where the FIRST piece of "magic" happens and the following error is avoided
@@ -114,28 +85,5 @@ class CrossBuildPomTask extends AbstractCrossBuildPomTask {
 
     static boolean probablyRelatedPublicationTask(String name, String sourceSetId) {
         name.contains(sourceSetId.capitalize())
-    }
-
-    @Deprecated
-    @Internal
-    Closure<Void> withXmlHandler = {
-        XmlProvider xmlProvider, Configuration pomAidingConfiguration, ScopeType scopeType ->
-        def dependenciesNodeFunction = { XmlProvider xml ->
-            def dependenciesNode = xml.asNode()['dependencies']?.getAt(0)
-            if (dependenciesNode == null) {
-                return xmlProvider.asNode().appendNode('dependencies')
-            }
-            dependenciesNode
-        }
-
-        def dependenciesNode = dependenciesNodeFunction(xmlProvider)
-
-        pomAidingConfiguration.allDependencies.each { dep ->
-            def dependencyNode = dependenciesNode.appendNode('dependency')
-            dependencyNode.appendNode('groupId', dep.group)
-            dependencyNode.appendNode('artifactId', dep.name)
-            dependencyNode.appendNode('version', dep.version)
-            dependencyNode.appendNode('scope', scopeType.toString().toLowerCase())
-        }
     }
 }

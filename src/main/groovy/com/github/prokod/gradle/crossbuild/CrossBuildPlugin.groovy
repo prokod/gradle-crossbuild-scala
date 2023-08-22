@@ -284,7 +284,9 @@ class CrossBuildPlugin implements Plugin<Project> {
 
             di.with {
                 // for 'api' configuration
-                addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_BACKEND, sv)
+                // TODO: why COMPILE_BACKEND (apiElements) and not COMPILE_FRONTEND (api) which is the user facing config
+//                addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_BACKEND, sv)
+                addMainConfigurationToCrossBuildCounterPart(ViewType.COMPILE_FRONTEND, sv)
                 // for 'implementation' configuration
                 addMainConfigurationToCrossBuildCounterPart(ViewType.IMPLEMENTATION, sv)
                 // for 'compileOnly' configuration
