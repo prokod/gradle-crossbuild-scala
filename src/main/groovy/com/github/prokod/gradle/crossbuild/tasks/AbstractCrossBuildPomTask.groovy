@@ -128,7 +128,6 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
         null
     }
 
-    @Internal
     protected static boolean probablyRelatedPublication(MavenPublication pub, String sourceSetId) {
         pub.name.contains(sourceSetId)
     }
