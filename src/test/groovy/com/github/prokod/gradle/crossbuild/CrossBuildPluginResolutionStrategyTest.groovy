@@ -143,7 +143,8 @@ dependencies {
         gradleVersion | defaultScalaVersion
         '5.6.4'       | '2.11'
         '6.9.4'       | '2.10'
-        '7.6.1'       | '2.11'
+        '7.6.2'       | '2.11'
+        '8.3'         | '2.10'
     }
 
     @Requires({ instance.testMavenCentralAccess() })
@@ -234,6 +235,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.12'
+        '7.6.2'         | '2.12'
+        '8.3'           | '2.11'
     }
 }
