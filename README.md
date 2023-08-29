@@ -20,6 +20,7 @@
 
 - **test/check tasks** are supported for [default-variant](#default_variant) of Scala version only.
 - **publishing for source/javadoc jars** are supported for [default-variant](#default_variant) of Scala version only.
+- **incremental building** not supported yet
 
 ## <a name="getting_plugin"></a>Getting the plugin
 
@@ -27,7 +28,7 @@
 
 ```groovy
 plugins {
-    id "com.github.prokod.gradle-crossbuild-scala" version "0.15.0"
+    id "com.github.prokod.gradle-crossbuild-scala" version "0.16.0"
 }
 ```
 
@@ -36,7 +37,7 @@ plugins {
 ```groovy
 buildscript {
     dependencies {
-        classpath("com.github.prokod:gradle-crossbuild-scala:0.15.0")
+        classpath("com.github.prokod:gradle-crossbuild-scala:0.16.0")
     }
 }
 ```
@@ -49,29 +50,34 @@ This is especially true for multi-module projects but not just.<br/>
 
 - Wire up your build scripts in the project in such a way that you are able to successfully build it for single scala version.
 
-  > **NOTE:** Do not worry in this stage about publishing artifacts as cross building with publishing is supported by the plugin.<br/>It will be somewhat wasted effort to do that here and then modify it to the cross build scenario.
+  > **Note**
+  > Do not worry in this stage about publishing artifacts as cross building with publishing is supported by the plugin.<br/>It will be somewhat wasted effort to do that here and then modify it to the cross build scenario.
 
 - After that add the cross building plugin without changing any of the internal and external dependencies. Follow base step - [getting the plugin](#getting_plugin) and then configure it further using the following guidelines: [plugin configuration options](#plugin_configuration_options) and [basic plugin configuration](#basic_plugin_configuration)
 
-  > **NOTE:** If you have to change your dependencies because of applying the plugin and trying explicitly `gradle build`, something is fishy.<br/>
+  > **Note**
+  > If you have to change your dependencies because of applying the plugin and trying explicitly `gradle build`, something is fishy.<br/>
     You see, the plugin is designed in such a way that it borrows from the state of the project's dependency tree already in place without changing it. It then adds a somewhat parallel dependency tree for each of the cross building variants.
 
-- To configure the plugin efficiently please see recommended [Multi module projects apply patterns](#multi_module_apply_patterns).
+- To configure the plugin efficiently please follow [Multi module projects apply patterns](#multi_module_apply_patterns).
 
-  > **NOTE:** From version `0.12.x` there is no need to have any special glob pattern to express cross build dependency for `implementation`/`api`/`runtime`/`...` configurations - the plugin will add a correct dependency resolution according to the provided `crossBuild {}` plugin dsl block.<br/>
+  > **Note**
+  > From version `0.12.x` there is no need to have any special glob pattern to express cross build dependency for `implementation`/`api`/`runtime`/`...` configurations - the plugin will add a correct dependency resolution according to the provided `crossBuild {}` plugin dsl block.<br/>
     Up to version `0.11.x` (inclusive) use the '?' question mark to express cross build dependency inside `implementation`/`api`/`runtime`/`...` configurations.<br/>
     Use the provided explicit <code>crossBuild*XYZ*</code>`Implementation`/`api`/`Runtime`/`...` configuration when you need a finer granularity in expressing the cross build dependencies
 
-- Publish cross building artifacts, for that please have a look on [publishing](#publishing)
+- Publish cross building artifacts, for that please take a look at [publishing](#publishing)
 
-  > **NOTE:** cross build artifact naming is governed by `archive.appendixPattern` which by default is `_?` meaning for example, that module `lib` will be resolved to `lib_2.11`/`_2.12`/`...` according to the correlating `crossBuild {}` plugin dsl block
+  > **Note**
+  > cross build artifact naming is governed by `archive.appendixPattern` which by default is `_?` meaning for example, that module `lib` will be resolved to `lib_2.11`/`_2.12`/`...` according to the correlating `crossBuild {}` plugin dsl block
 
 - To test that everything works as expected:
   1. `gradle build` - which runs build and tests for a single Scala version - default one.
   1. `gradle crossBuildAssemble` - which builds ans assembles **all** cross build into respective artifacts.
   1. `gradle publishToMavenLocal` - which goes from cross building, artifact creation (as above) and then publishing to local maven.
 
-  > **NOTE:** Look under `build/libs` , `~/.m2/repository/...` respectively, to assert the end result is the one you have wished for.  `crossBuildAssemble` task is available from version **`0.15.0`**
+  > **Note**
+  > Look under `build/libs` , `~/.m2/repository/...` respectively, to assert the end result is the one you have wished for.  `crossBuildAssemble` task is available from version **`0.15.0`**
   
 ### Multi-module projects and applying cross build plugin only for some
 
@@ -98,7 +104,8 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
     }
     ```
 
-   > **NOTE:** Another variant which might appeal aesthetically better to some
+   > **Note**
+   > Another variant which might appeal aesthetically better to some
    >
    > ```groovy
    > archivesBaseName = 'lib'
@@ -124,8 +131,9 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
     }
     ```
 
-   > **NOTE:** **Up to** version `0.11.x` (inclusive) 3rd party Scala lib dependencies are expressed using '?'
-   >             question mark (implicit pattern)
+   > **Note**
+   > **Up to** version `0.11.x` (inclusive) 3rd party Scala lib dependencies are expressed using '?'
+   > question mark (when using implicit pattern type dependencies)
    >
    > ```groovy
    > dependencies {
@@ -179,8 +187,7 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
     lib_2.11.jar  lib_2.12.jar
     ```
 
-#### Notes
-
+> **Note**
 > - <a name="builds_dsl_shorthand"></a>When defining `builds {}` block, a shorthand convention can be used for default values.<br/>
   To be able to use that, `build` item should be named by the following convention, for example:<br/>
   `xyz211` is translated to `{ "build": { "scalaVersions": ["2.11"], "name": "xyz211" ... }`
@@ -215,8 +222,8 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
                 groupId = 'x.y.z'
                 // By default artifactId is set to crossBuildJar task `baseName`
                 artifactId = 'lib_2.11'
-                // actual artifact for this publication as a Jar task from crossbuild plugin
-                artifact crossBuildV211Jar
+                // crossbuild plugin provide with a software component per crossbuild version
+                from components.crossBuildV211
             }
         }
     }
@@ -253,61 +260,68 @@ Thanks [borissmidt](https://github.com/borissmidt) for the collaboration on that
     ...
     ```
 
-#### Gradle configurations -> Maven Scopes
+> **Note**
+> - **Using `pluginManager`** 'gradle-crossbuild' plugin leverages Gradle's `pluginManager` To update 'maven-publish' cross-build related publications
+> - Beware, Behind the scenes the software components and the publications are decoupled, the logical linkage between a cross built software component and the publication is made by giving the publication item a name of the following convention <code>crossBuild*XYZ*(MavenPublication)</code> where XYZ is the build name from `builds {}` block following the pattern examples in [table](#build_scenarios) under **SourceSet/s** column.
 
-The plugin handles pom generation for the different user defined publications.
-The transformation from Gradle's own Configurations to Maven's Scopes is done using the following transformation matrix
-  
-| Maven Scope | Gradle transformation function |
-|-------------|--------------------------------|
-| `RUNTIME`   | `GRC` $\cap$ `GCC`                    |
-| `COMPILE`   | `GCC - (GRC` $\cap$ `GCC)`            |
-| `PROVIDED`  | `{}`                           |
+#### Gradle software components for Scala
 
-Where `GCC` is Gradle's CompileClasspath dependency set; `GRC`is Gradle's RuntimeClasspath dependency set
+The `java` plugin is providing the users with a `java` software component that later can be used to publish artifacts.<br>
+Similarly the `cross build plugin` does the same and provide the users with a software component per scala version.<br>
+The plugin is relying on maven-publish plugin to generate pom file based on the software component you have indicated in your publication.<br>
+The provided software component names for each Scala version is exactly matching the provided sourceset for each Scala version defined see [Build scenarios table](#build_scenarios).<br>
+
+> **Note**
+> Up to plugin version 0.15.x included, adding a publication required the user to add an artifact entry to the publication block.
+> From plugin version 0.16.x onward, adding a publication requires using `from components` instead
 
 #### overriding plugin's internal pom.withXml
 
-The plugin as seen above handles pom generation in an opinionated way. If one wants to override this behavior, he can do that by providing his own `pom.withXml` handler for the relevant publications.<br/>
-When the plugin detects custom `pom.withXml` handler, the internal handler is skipped altogether.
+The plugin handles pom generation in an opinionated way and augment the output pom xml as needed per Scala version.<br>
+If one wants to add more transformations on top, he can do that by providing his own `pom.withXml` handler for the relevant publications.<br/>
 
 An example for a custom `pom.withXml` handler:
 
 ```groovy
-  pom.withXml { xml ->
-      def dependenciesNode = xml.asNode().dependencies?.getAt(0)
-      if (dependenciesNode == null) {
-          dependenciesNode = xml.asNode().appendNode('dependencies')
-      }
+crossBuild {
+    builds {
+        scala {
+            scalaVersions = ['2.10', '2.11']
+        }
+    }
+}
 
-      project.configurations.crossBuildScala_210MavenCompileScope.allDependencies.each { dep ->
-          def dependencyNode = dependenciesNode.appendNode('dependency')
-          dependencyNode.appendNode('groupId', dep.group)
-          dependencyNode.appendNode('artifactId', dep.name)
-          dependencyNode.appendNode('version', dep.version)
-          dependencyNode.appendNode('scope', 'compile')
-      }
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+        crossBuildScala_210(MavenPublication) {
+            from components.crossBuildScala_210
 
-      project.configurations.crossBuildScala_210MavenRuntimeScope.allDependencies.each { dep ->
-          def dependencyNode = dependenciesNode.appendNode('dependency')
-          dependencyNode.appendNode('groupId', dep.group)
-          dependencyNode.appendNode('artifactId', dep.name)
-          dependencyNode.appendNode('version', dep.version)
-          dependencyNode.appendNode('scope', 'runtime')
-      }
-  }
+            pom.withXml { xml ->
+                def dependenciesNode = xml.asNode().dependencies?.getAt(0)
+
+                def dependencyNode = dependenciesNode.appendNode('dependency')
+                dependencyNode.appendNode('groupId', 'org.apache.spark')
+                dependencyNode.appendNode('artifactId', 'spark-sql_2.10')
+                dependencyNode.appendNode('version', '1.6.3')
+                dependencyNode.appendNode('scope', 'provided')
+            }
+        }
+        crossBuildScala_211(MavenPublication) {
+            from components.crossBuildScala_211
+        }
+    }
+}
 ```
 
-In this example, we override default behaviour, dropping provided scope dependencies from generated pom.
+In this example, we add some arbitrary provided scope dependency to the generated pom.
 
-#### Notes
-
-> - **Using `pluginManager`** 'gradle-crossbuild' plugin leverages Gradle's `pluginManager` To update 'maven-publish' cross-build related publications
-> - Behind the scenes Configurations <code>crossBuild*XYZ*MavenCompileScope</code>, <code>crossBuild*XYZ*MavenRuntimeScope</code> are being populated from corresponding <code>crossBuild*XYZ*CompileClasspath</code>, <code>crossBuild*XYZ*RuntimeClasspath</code> and afterwards being used within `pom.withXml {}` block.<br/>
-    It follows a similar line of thought as `conf2ScopeMappings.addMapping()` in Gradle's maven plugin.<br/>
-    Beware, Behind the scenes the jars and the publications are decoupled, the logical linkage between a cross built Jar and the publication is made by giving the publication item a name of the following convention <code>crossBuild*XYZ*(MavenPublication)</code> where XYZ is the build name from `builds {}` block following the pattern examples in [table](#build_scenarios) under **SourceSet/s** column.
-> - For Gradle 5.x beware that `publishing {}` block does not support deferred configuration anymore and in that case `artifact crossBuild211Jar` should be wrapped in `afterEvaluate {}` block<br/>
-    Please see Gradle documentation on [publishing and deferred configuration](https://docs.gradle.org/current/userguide/publishing_maven.html#publishing_maven:deferred_configuration)
+> **Note**
+> - Up to plugin version 0.15.x included, publishing was handled almost exclusively by the plugin when it comes to generating the pom xml dependencies section.
+> - From plugin version 0.16.x onward this has been changed and now most of the heavy lifting is done by the maven-publish plugin.
+> - As a result, from plugin 0.16.x onward, when providing your own `pom.withXml` handler, the crossbild plugin does not skip its internal handler anymore
 
 ### <a name="plugin_configuration_options"></a>Cross building - configuration options (DSL Reference)
 
@@ -358,8 +372,7 @@ dependencies {
 In the above example, spark version of the dependency specified for `compileOnly` configuration which we refer here as **default-variant**, is important for `build`, `test/check` standard tasks.<br/>
 The other dependencies specified for Scala versions **2.10**, **2.11** respectively (`crossBuild210CompileOnly`, `crossBuild211CompileOnly`), will be used only for `crossBuild210Jar`, `crossBuild211Jar` tasks, and other corresponding task variants (`publishCrossBuild210PublicationToMavenLocal`, `publishCrossBuild211PublicationToMavenLocal` ...) which can be referred as **cross-build-variants**
 
-#### Notes
-
+> **Note**
 > - **Backward compatibility** maintained behaviours (still):
 >   - Dependency with question mark Scala tag e.g. `org.scalaz:scalaz_?:$scalazVersion` is being replaced based on the Scala version being built
 >   - Derived from previous point, `scala-library` library is needed for test/check tasks in case '?' dependencies are declared
@@ -404,7 +417,7 @@ the plugin DSL was extended to support JVM targetCompatibility through strategy
 - `strict` **strategy**
   In this strategy, if the targetCompatibility is not supported by the Scala version to be compiled, the build is stopped
 
-#### Notes
+> **Note**
 > 1. Gradle supports scala 3 compilation (via zinc) - beware that Gradle 5.x is not supporting Scala 3 compilation
 > 1. If you want to use Scala 3 instead of the scala-library dependency you should add the scala3-library_3 dependency.  
 >    However, for the sake of the cross building across Scala 2/3 the plugin takes care of modifying the scala library dependency accordingly, internally
@@ -413,7 +426,8 @@ the plugin DSL was extended to support JVM targetCompatibility through strategy
 
 - **Cross building DSL programmatically** - In the next code snippet you can observe how programmatically we are generating cross builds using the plugin DSL.
 - **Extra properties per cross build** - Not only the cross building is described in a programmatic manner, you can also observe that specific unique meta data for each cross build permutation is generated using the plugin's `ext` entry
-  > **NOTE:** The plugin injects a default extra property that holds the value of the respective Scala Compiler Version, named `scalaCompilerVersion`. This feature is supported in the plugin from version `0.14.x` onwards.
+  > **Note**
+  > The plugin injects a default extra property that holds the value of the respective Scala Compiler Version, named `scalaCompilerVersion`. This feature is supported in the plugin from version `0.14.x` onwards.
   
 ```groovy
 // ...
@@ -456,11 +470,13 @@ subprojects {
 ### Scala Version Specific Source
 
 - Each sourceSet that the plugin creates based on the DSL is assigned with its own `main` Scala source dir.
-  > **NOTE:** Gradle's intrinsic convention. Supported in the plugin from version `0.14.x` onwards
+  > **Note**
+  > Gradle's intrinsic convention. Supported in the plugin from version `0.14.x` onwards
   
   For instance, if a sourceSet id is `crossBuild211` then the source dir by convention is `src/crossBuild211/scala`
 - We can now combine the previous topic of [multi-aspect cross building](#multi_aspect_cross_building) with the current topic and provide powerful way of maintaing differnet cross builds not only with their differences in library dependencies but also with their code differences
-  > **NOTE:** The plugin handles cases where some class is present in both `/src/main/scala` and `/src/<crossBuildSourceSetId>/scala`. The original class in `/src/main/scala` is being excluded from the compile task for the relevant cross build
+  > **Note**
+  > The plugin handles cases where some class is present in both `/src/main/scala` and `/src/<crossBuildSourceSetId>/scala`. The original class in `/src/main/scala` is being excluded from the compile task for the relevant cross build
 - Together with previous code snippet, the following one shows an example of leveraging jcp plugin to modify code per given cross build `ext` based meta data
 
 ```groovy
@@ -651,16 +667,19 @@ subprojects {
 
 ## Supported Gradle versions
 
-| plugin version | Tested Gradle versions     | Tested JVM | Tested Scala Compilers          |
-|----------------|----------------------------|------------|---------------------------------|
-| 0.15.x         | 5.6.4, 6.9.4, 7.6.1, 8.0.2 | 8, 11      | 2.10.0-2.13.x</br>3.0.0 - 3.2.x |
-| 0.14.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x                   |
-| 0.13.x         | 5.6.4, 6.9.2, 7.3.3        | 8          | 2.10.0-2.13.x                   |
-| 0.12.x         | 4.10.3, 5.6.4, 6.5         | 8          |                                 |
-| 0.11.x         | 4.10.3, 5.6.4, 6.5         | 8          |                                 |
-| 0.10.x         | 4.10.3, 5.6.4, 6.0.1       | 8          |                                 |
-| 0.9.x          | 4.2, 4.10.3, 5.4.1         | 8          |                                 |
-| 0.4.x          | 2.14, 3.0, 4.1             | 8          |                                 |
+| plugin version | Tested Gradle versions       | Tested JVM | Tested Scala Compilers          |
+|----------------|------------------------------|------------|---------------------------------|
+| 0.16.x         | 5.6.4*, 6.9.4*, 7.6.2, 8.3   | 8, 11      | 2.10.0-2.13.x</br>3.0.0 - 3.2.x |
+| 0.15.x         | 5.6.4*, 6.9.4*, 7.6.1, 8.0.2 | 8, 11      | 2.10.0-2.13.x</br>3.0.0 - 3.2.x |
+| 0.14.x         | 5.6.4, 6.9.2, 7.3.3          | 8          | 2.10.0-2.13.x                   |
+| 0.13.x         | 5.6.4, 6.9.2, 7.3.3          | 8          | 2.10.0-2.13.x                   |
+| 0.12.x         | 4.10.3, 5.6.4, 6.5           | 8          |                                 |
+| 0.11.x         | 4.10.3, 5.6.4, 6.5           | 8          |                                 |
+| 0.10.x         | 4.10.3, 5.6.4, 6.0.1         | 8          |                                 |
+| 0.9.x          | 4.2, 4.10.3, 5.4.1           | 8          |                                 |
+| 0.4.x          | 2.14, 3.0, 4.1               | 8          |                                 |
+
+- * Scala 3 is supported officially by Gradle from version 7.3 onward 
 
 ## Contributing
 
@@ -669,4 +688,4 @@ subprojects {
 
 ## Building
 
-- `./gradlew clean build`
+- refer to github actions used by this repo
