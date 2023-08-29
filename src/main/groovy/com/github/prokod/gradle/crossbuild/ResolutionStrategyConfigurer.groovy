@@ -15,6 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+import static com.github.prokod.gradle.crossbuild.ResolutionStrategyHandler.*
+
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
@@ -26,7 +28,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.DependencySet
-import static com.github.prokod.gradle.crossbuild.ResolutionStrategyHandler.*
 
 /**
  * Crossbuild Configuration resolution strategy configurer

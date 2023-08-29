@@ -55,6 +55,8 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
     }
 
     @SuppressWarnings(['LineLength'])
+    @SuppressWarnings(['UnnecessarySetter'])
+    @SuppressWarnings(['BracesForMethod'])
     /**
      * This method actively sets {@link DefaultMavenPublication#alias } accordingly
      * Accordingly means:
@@ -132,6 +134,8 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
     }
 
     @SuppressWarnings(['LineLength'])
+    @SuppressWarnings(['UnnecessarySetter'])
+    @SuppressWarnings(['UnnecessaryCollectCall'])
     /**
      * This method takes care of modifying cross build pom file dependencies artifactId
      * Current Gradle maven-publish plugin (up to 8.x) is very limited when it comes to generating dependency tree for
@@ -169,41 +173,38 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
      *
      */
     @Internal
-    Closure<Void> withXmlHandler = {
-        XmlProvider xmlProvider, Map<String, String> prjToJarNamesMap ->
-            Node dependenciesNode = xmlProvider.asNode()['dependencies']?.getAt(0)
-            if (dependenciesNode != null) {
-                dependenciesNode.children().collect { Node dependency -> dependency.children() }
-                        .each { List<Node> coordinates ->
-                            def newValue = prjToJarNamesMap.get(coordinates[1].text())
-                            // Replacing offending local dependency
-                            if (newValue != null) {
-                                coordinates[1].setValue(newValue)
-                            }
-                            // Replacing Scala module name/version
-                            if (coordinates[0].text() == 'org.scala-lang') {
-                                def newCoordinates =
-                                        ResolutionStrategyHandler.handleScalaModuleCase(
-                                                ResolutionStrategyHandler.Coordinates.fromXmlNodes(coordinates),
-                                                resolvedBuild.scalaVersionInsights)
-                                coordinates[1].setValue(newCoordinates.name.id)
-                                coordinates[2].setValue(newCoordinates.version.id)
-                            }
-                            // Replace offending default configuration 3rd party scala lib
-                            def extension = project.extensions.findByType(CrossBuildExtension)
-                            def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
-                            def dependencyInsight =
-                                    DependencyLimitedInsight.parseByDependencyName(coordinates[1].text(), scalaVersions)
-                            def targetScalaVersion = resolvedBuild.scalaVersionInsights.artifactInlinedVersion
-                            if (dependencyInsight.supposedScalaVersion != targetScalaVersion) {
-                                def newCoordinates =
-                                        ResolutionStrategyHandler.handle3rdPartyScalaLibCase(
-                                                ResolutionStrategyHandler.Coordinates.fromXmlNodes(coordinates),
-                                                targetScalaVersion, scalaVersions)
-
-                                coordinates[1].setValue(newCoordinates.name.id)
-                            }
-                        }
+    Closure<Void> withXmlHandler = { XmlProvider xmlProvider, Map<String, String> prjToJarNamesMap ->
+        Node dependenciesNode = xmlProvider.asNode()['dependencies']?.getAt(0)
+        if (dependenciesNode != null) {
+            dependenciesNode.children().collect { it.children() }.each { List<Node> coordinates ->
+                def newValue = prjToJarNamesMap.get(coordinates[1].text())
+                // Replacing offending local dependency
+                if (newValue != null) {
+                    coordinates[1].setValue(newValue)
+                }
+                // Replacing Scala module name/version
+                if (coordinates[0].text() == 'org.scala-lang') {
+                    def newCoordinates =
+                            ResolutionStrategyHandler.handleScalaModuleCase(
+                                    ResolutionStrategyHandler.Coordinates.fromXmlNodes(coordinates),
+                                    resolvedBuild.scalaVersionInsights)
+                    coordinates[1].setValue(newCoordinates.name.id)
+                    coordinates[2].setValue(newCoordinates.version.id)
+                }
+                // Replace offending default configuration 3rd party scala lib
+                def extension = project.extensions.findByType(CrossBuildExtension)
+                def scalaVersions = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
+                def dependencyInsight =
+                        DependencyLimitedInsight.parseByDependencyName(coordinates[1].text(), scalaVersions)
+                def targetScalaVersion = resolvedBuild.scalaVersionInsights.artifactInlinedVersion
+                if (dependencyInsight.supposedScalaVersion != targetScalaVersion) {
+                    def newCoordinates =
+                            ResolutionStrategyHandler.handle3rdPartyScalaLibCase(
+                                    ResolutionStrategyHandler.Coordinates.fromXmlNodes(coordinates),
+                                    targetScalaVersion, scalaVersions)
+                    coordinates[1].setValue(newCoordinates.name.id)
+                }
             }
+        }
     }
 }

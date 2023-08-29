@@ -34,10 +34,12 @@ class ResolutionStrategyHandler {
         requested
     }
 
-    static Coordinates handle3rdPartyScalaLibCase(Coordinates requested, String targetScalaVersion, ScalaVersions scalaVersions) {
+    static Coordinates handle3rdPartyScalaLibCase(Coordinates requested,
+                                                  String targetScalaVersion,
+                                                  ScalaVersions scalaVersions) {
         def preRegex = scalaVersions.mkRefTargetVersions().collect { '_' + it }.join('|')
         def regex = "($preRegex)"
-        return new Coordinates(requested.group.id,
+        new Coordinates(requested.group.id,
                 requested.name.id.replaceFirst(regex, "_${targetScalaVersion}"),
                 requested.version.id )
     }
