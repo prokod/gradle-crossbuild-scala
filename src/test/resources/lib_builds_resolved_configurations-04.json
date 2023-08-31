@@ -1,7 +1,6 @@
 [[{
   "configuration": {
     "allDependencies": [
-      "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
     ],
     "name": "crossBuildSpark233_211Api"
   },
@@ -82,7 +81,6 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}"
       ],
       "name": "crossBuildSpark242_212Api"
     },
@@ -163,7 +161,6 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}"
       ],
       "name": "crossBuildSpark243_211Api"
     },
@@ -244,7 +241,6 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}"
       ],
       "name": "crossBuildSpark243_212Api"
     },
@@ -325,7 +321,6 @@
   [{
     "configuration": {
       "allDependencies": [
-        "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.10.6', configuration='default'}"
       ],
       "name": "crossBuildV210Api"
     },

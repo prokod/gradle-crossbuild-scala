@@ -9,6 +9,7 @@ class ViewTypeTest extends Specification {
             def views = ViewType.filterViewsBy({ tags -> tags.contains('canBeConsumed') }, { tags -> !tags.contains('test') })
         then :
             views.toSet() == [ViewType.COMPILE_FRONTEND,
+                    ViewType.RUNTIME_ELEMENTS,
                     ViewType.COMPILE_ONLY,
                     ViewType.IMPLEMENTATION,
                     ViewType.RUNTIME_ONLY].toSet()

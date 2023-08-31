@@ -33,10 +33,12 @@ class SourceSetInsightsView {
      * @throws AssertionError in case sourceSet container is not present for the project
      */
     SourceSetInsightsView switchTo(Project project) {
-        def container = CrossBuildSourceSets.getSourceSetContainer(project)
-        def newCrossBuild = container.getByName(this.sourceSetInsights.crossBuild.sourceSet.name)
-        def newMain = container.getByName(this.sourceSetInsights.main.sourceSet.name)
-        def newSourceSetInsights = new SourceSetInsights(newCrossBuild, newMain, project)
+        def buildName =
+                CrossBuildSourceSets.convertSourceSetIdToBuildName(this.sourceSetInsights.crossBuild.sourceSet.name)
+        def newSourceSetInsights = new SourceSetInsights.Builder(buildName)
+                .fromPrj(project)
+                .withMainSourceSetName(this.sourceSetInsights.main.sourceSet.name)
+                .build()
         new SourceSetInsightsView(newSourceSetInsights, this.viewType)
     }
 

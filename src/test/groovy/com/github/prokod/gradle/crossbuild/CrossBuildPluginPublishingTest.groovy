@@ -56,16 +56,18 @@ class CrossBuildPluginPublishingTest extends CrossBuildGradleRunnerSpec {
     }
 
     /**
-     * * Test Properties:
+     * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Eager</li>
-     *     <li>Gradle compatibility matrix: 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 6.x, 7.x, 8.x</li>
      *     <li>Creating withSourceJar/JavadocJar for non app modules</li>
      * </ul>
      * resource file/s for the test:
-     * 04-app_builds_resolved_configurations.json
-     * 04-pom_lib2-00.xml
-     * 04-pom_app-00.xml
+     * <ul>
+     * <li>04-app_builds_resolved_configurations.json
+     * <li>04-pom_lib2-00.xml
+     * <li>04-pom_app-00.xml
+     * </ul>
      */
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
@@ -114,12 +116,14 @@ subprojects {
             publications {
                 crossBuildSpark230_211(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark230_211Jar
+//                        artifact crossBuildSpark230_211Jar
+                        from components.crossBuildSpark230_211
                     }
                 }
                 crossBuildSpark240_212(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark240_212Jar
+//                        artifact crossBuildSpark240_212Jar
+                        from components.crossBuildSpark240_212
                     }
                 }
                 mavenJava(MavenPublication) {
@@ -282,9 +286,9 @@ dependencies {
 
         when:
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
-                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
-                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
+                defaultOrRuntime: 'runtime',
+                defaultOrCompile: 'compile',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -302,32 +306,36 @@ dependencies {
         Files.exists(pom212Path)
 
         when:
-        def pom211 = new XmlSlurper().parse(pom211Path.toFile())
+        def pom211 = new XmlSlurper().parseText(pom211Path.text).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
 
         then:
-        pom211.dependencies.dependency.size() == 2
-        pom211.dependencies.dependency[0].groupId == 'org.scala-lang'
-        pom211.dependencies.dependency[0].artifactId == 'scala-library'
-        pom211.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
-        pom211.dependencies.dependency[0].scope == 'runtime'
-        pom211.dependencies.dependency[1].groupId == 'com.google.guava'
-        pom211.dependencies.dependency[1].artifactId == 'guava'
-        pom211.dependencies.dependency[1].version == '18.0'
-        pom211.dependencies.dependency[1].scope == 'runtime'
+        pom211.size() == 2
+        pom211['org.scala-lang'].groupId == 'org.scala-lang'
+        pom211['org.scala-lang'].artifactId == 'scala-library'
+        pom211['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
+        pom211['org.scala-lang'].scope == 'runtime'
+        pom211['com.google.guava'].groupId == 'com.google.guava'
+        pom211['com.google.guava'].artifactId == 'guava'
+        pom211['com.google.guava'].version == '18.0'
+        pom211['com.google.guava'].scope == 'runtime'
 
         when:
-        def pom212 = new XmlSlurper().parse(pom212Path.toFile())
+        def pom212 = new XmlSlurper().parseText(pom212Path.text).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
 
         then:
-        pom212.dependencies.dependency.size() == 2
-        pom212.dependencies.dependency[0].groupId == 'org.scala-lang'
-        pom212.dependencies.dependency[0].artifactId == 'scala-library'
-        pom212.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
-        pom212.dependencies.dependency[0].scope == 'runtime'
-        pom211.dependencies.dependency[1].groupId == 'com.google.guava'
-        pom211.dependencies.dependency[1].artifactId == 'guava'
-        pom211.dependencies.dependency[1].version == '18.0'
-        pom211.dependencies.dependency[1].scope == 'runtime'
+        pom212.size() == 2
+        pom212['org.scala-lang'].groupId == 'org.scala-lang'
+        pom212['org.scala-lang'].artifactId == 'scala-library'
+        pom212['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
+        pom212['org.scala-lang'].scope == 'runtime'
+        pom212['com.google.guava'].groupId == 'com.google.guava'
+        pom212['com.google.guava'].artifactId == 'guava'
+        pom212['com.google.guava'].version == '18.0'
+        pom212['com.google.guava'].scope == 'runtime'
 
         when:
         def lib2pom211Path = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.11.xml")
@@ -369,6 +377,7 @@ dependencies {
         where:
         gradleVersion | defaultScalaVersion
         '6.9.4'       | '2.12'
-        '7.6.1'       | '2.11'
+        '7.6.2'       | '2.11'
+        '8.3'         | '2.11'
     }
 }

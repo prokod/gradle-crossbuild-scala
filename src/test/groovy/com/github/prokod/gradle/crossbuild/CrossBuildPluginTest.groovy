@@ -78,7 +78,7 @@ crossBuildResolvedDsl - Summary report for cross building resolved Dsl
         result.output.contains('_3]')
 
         where:
-        gradleVersion << ['7.6.1', '8.0.2']
+        gradleVersion << ['6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -119,7 +119,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -144,12 +144,14 @@ publishing {
     publications {
         crossBuildV211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV211Jar
+//                artifact crossBuildV211Jar
+                from components.crossBuildV211
             }
         }
         crossBuildV212(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV212Jar
+//                artifact crossBuildV212Jar
+                from components.crossBuildV212
             }
         }
     }
@@ -173,7 +175,7 @@ publishing {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -211,7 +213,8 @@ crossBuild {
         gradleVersion   | pluginId
         '5.6.4'         | 'com.github.prokod.gradle-crossbuild'
         '6.9.4'         | 'com.github.prokod.gradle-crossbuild-scala'
-        '7.6.1'         | 'com.github.prokod.gradle-crossbuild-scala'
+        '7.6.2'         | 'com.github.prokod.gradle-crossbuild-scala'
+        '8.3'           | 'com.github.prokod.gradle-crossbuild-scala'
     }
 
     @Unroll
@@ -252,7 +255,7 @@ crossBuild {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -280,8 +283,8 @@ crossBuild {
 }
 
 gradle.projectsEvaluated {
-    logger.info('__' + tasks.crossBuildV210Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildV211Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV210Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildV211Jar.archiveBaseName.get() + '__')
 }
 """
 
@@ -301,7 +304,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -342,14 +345,14 @@ crossBuild {
 }
 
 gradle.projectsEvaluated {
-    logger.info('__' + tasks.crossBuildV210Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildV211_211Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildV211_212Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildV211_A_211Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildV212_213Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildV213Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildSpark24_211Jar.baseName + '__')
-    logger.info('__' + tasks.crossBuildSpark24_212Jar.baseName + '__')
+    logger.info('__' + tasks.crossBuildV210Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildV211_211Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildV211_212Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildV211_A_211Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildV212_213Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildV213Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildSpark24_211Jar.archiveBaseName.get() + '__')
+    logger.info('__' + tasks.crossBuildSpark24_212Jar.archiveBaseName.get() + '__')
 }
 """
 
@@ -389,7 +392,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildSpark24_212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -459,7 +462,7 @@ crossBuildV213Jar - Assembles a jar archive containing the crossBuildV213 classe
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -488,12 +491,14 @@ publishing {
     publications {
         crossBuildV210(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV210Jar
+//                artifact crossBuildV210Jar
+                from components.crossBuildV210
             }
         }
         crossBuildV211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildV211Jar
+//                artifact crossBuildV211Jar
+                from components.crossBuildV211
             }
         }
     }
@@ -518,7 +523,7 @@ publishing {
         result.task(":publishCrossBuildV211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -566,7 +571,7 @@ sourceSets {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -599,7 +604,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -634,7 +639,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 
     @Unroll
@@ -669,6 +674,6 @@ crossBuild {
         result.task(":crossBuildV213Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.1']
+        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
     }
 }

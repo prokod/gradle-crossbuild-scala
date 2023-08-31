@@ -19,10 +19,10 @@ import com.github.prokod.gradle.crossbuild.model.ResolvedBuildConfigLifecycle
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Usage
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.model.ObjectFactory
 
 /**
@@ -74,8 +74,8 @@ class CrossBuildSourceSets {
                 cnf.canBeResolved = false
 
                 cnf.attributes {
-                    it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                                    objectFactory.named(LibraryElements, "scala-${build.scalaVersion}-jar"))
+                    it.attribute(CrossBuildExtension.SCALA_USAGE_ATTRIBUTE,
+                                    objectFactory.named(Usage, "scala-${build.scalaVersion}-jar"))
                 }
             }
 
@@ -85,8 +85,8 @@ class CrossBuildSourceSets {
                 c.canBeResolved = false
 
                 c.attributes {
-                    it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                                    objectFactory.named(LibraryElements, "scala-${build.scalaVersion}-jar"))
+                    it.attribute(CrossBuildExtension.SCALA_USAGE_ATTRIBUTE,
+                                    objectFactory.named(Usage, "scala-${build.scalaVersion}-jar"))
                 }
             }
 
@@ -144,6 +144,10 @@ class CrossBuildSourceSets {
      */
     static String generateSourceSetId(String buildName) {
         "$SOURCESET_BASE_NAME${buildName}".toString()
+    }
+
+    static String convertSourceSetIdToBuildName(String sourceSetId) {
+        sourceSetId.replaceFirst("$SOURCESET_BASE_NAME", '')
     }
 
     /**

@@ -16,6 +16,7 @@
 package com.github.prokod.gradle.crossbuild
 
 import com.github.prokod.gradle.crossbuild.model.Build
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.testfixtures.ProjectBuilder
@@ -150,17 +151,18 @@ dependencies {
         project.pluginManager.apply(JavaPlugin)
 
         ObjectFactory objects = project.services.get(ObjectFactory)
-        def build1 = new Build('spark160', new CrossBuildExtension(project, objects)).with { b ->
+        SoftwareComponentFactory softwareComponentFactory = project.services.get(SoftwareComponentFactory)
+        def build1 = new Build('spark160', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.10']
             archive.appendixPattern = eap1
             b
         }
-        def build2 = new Build('spark240', new CrossBuildExtension(project, objects)).with { b ->
+        def build2 = new Build('spark240', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.11']
             archive.appendixPattern = eap2
             b
         }
-        def build3 = new Build('spark241', new CrossBuildExtension(project, objects)).with { b ->
+        def build3 = new Build('spark241', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.12']
             archive.appendixPattern = eap3
             b
@@ -196,9 +198,9 @@ dependencies {
         where:
         gradleVersion | defaultScalaVersion | ap       | oap1       | oap2       | oap3       | eap1       | eap2       | eap3
         '5.6.4'       | '2.10'              | '_?'     | null       | null       | null       | '_?'       | '_?'       | '_?'
-        '5.6.4'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
-        '6.9.4'       | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
-        '7.6.1'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+        '6.9.4'       | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
+        '7.6.2'       | '2.12'              | '-def_?' | null       | null       | null       | '-def_?'   | '-def_?'   | '-def_?'
+        '8.3'         | '2.11'              | '-def_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?' | '-1-6-0_?' | '-2-4-0_?' | '-2-4-1_?'
     }
 
     /**
@@ -308,19 +310,20 @@ dependencies {
         project.pluginManager.apply(JavaPlugin)
 
         ObjectFactory objects = project.services.get(ObjectFactory)
-        def build1 = new Build('spark160', new CrossBuildExtension(project, objects)).with { b ->
+        SoftwareComponentFactory softwareComponentFactory = project.services.get(SoftwareComponentFactory)
+        def build1 = new Build('spark160', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.10']
             archive.appendixPattern = ap
             targetCompatibility.strategy = etcs1
             b
         }
-        def build2 = new Build('spark240', new CrossBuildExtension(project, objects)).with { b ->
+        def build2 = new Build('spark240', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.11']
             archive.appendixPattern = ap
             targetCompatibility.strategy = etcs2
             b
         }
-        def build3 = new Build('spark241', new CrossBuildExtension(project, objects)).with { b ->
+        def build3 = new Build('spark241', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.12']
             targetCompatibility.strategy = etcs3
             archive.appendixPattern = eap3
@@ -346,8 +349,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion | tcs       | ap       | otcs1   | otcs2    | otcs3 | oap3       | etcs1     | etcs2     | etcs3     | eap3
-        '7.6.1'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | null       | 'smart'   | 'strict'  | 'default' | '-def_?'
-        '8.0.2'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | '-2-4-1_?' | 'smart'   | 'strict'  | 'default' | '-2-4-1_?'
+        '7.6.2'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | null       | 'smart'   | 'strict'  | 'default' | '-def_?'
+        '8.3'         | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | '-2-4-1_?' | 'smart'   | 'strict'  | 'default' | '-2-4-1_?'
     }
 
 /**
@@ -454,19 +457,20 @@ dependencies {
         project.pluginManager.apply(JavaPlugin)
 
         ObjectFactory objects = project.services.get(ObjectFactory)
-        def build1 = new Build('spark160', new CrossBuildExtension(project, objects)).with { b ->
+        SoftwareComponentFactory softwareComponentFactory = project.services.get(SoftwareComponentFactory)
+        def build1 = new Build('spark160', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.10']
             archive.appendixPattern = ap
             targetCompatibility.strategy = etcs1
             b
         }
-        def build2 = new Build('spark240', new CrossBuildExtension(project, objects)).with { b ->
+        def build2 = new Build('spark240', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.11']
             archive.appendixPattern = ap
             targetCompatibility.strategy = etcs2
             b
         }
-        def build3 = new Build('spark241', new CrossBuildExtension(project, objects)).with { b ->
+        def build3 = new Build('spark241', new CrossBuildExtension(project, objects, softwareComponentFactory)).with { b ->
             scalaVersions = ['2.12']
             targetCompatibility.strategy = etcs3
             archive.appendixPattern = eap3
@@ -504,7 +508,7 @@ dependencies {
         gradleVersion | defaultScalaVersion | tcs       | ap   | otcs1   | otcs2 | otcs3 | oap3 | etcs1     | etcs2     | etcs3     | eap3
         '5.6.4'       | '2.10'              | 'default' | '_?' | null    | null  | null  | null | 'default' | 'default' | 'default' | '_?'
         '6.9.4'       | '2.11'              | 'default' | '_?' | 'smart' | null  | null  | null | 'smart'   | 'default' | 'default' | '_?'
-        '7.6.1'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | null       | 'smart'   | 'strict'  | 'default' | '-def_?'
-        '8.0.2'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | '-2-4-1_?' | 'smart'   | 'strict'  | 'default' | '-2-4-1_?'
+        '7.6.2'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | null       | 'smart'   | 'strict'  | 'default' | '-def_?'
+        '8.3'         | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | '-2-4-1_?' | 'smart'   | 'strict'  | 'default' | '-2-4-1_?'
     }
 }

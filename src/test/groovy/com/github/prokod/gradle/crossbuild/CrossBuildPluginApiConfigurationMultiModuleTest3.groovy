@@ -295,8 +295,8 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
-                _7_2_28_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-7.2.28' : '',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
+                _7_2_28_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.28' : '',
                 '/app_builds_resolved_configurations-01.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -309,14 +309,15 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 
     /**
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Lazy</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      * </ul>
      *
      * Here lib3 is a non cross build dependency.
@@ -627,6 +628,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.12'
+        '7.6.2'         | '2.12'
+        '8.3'           | '2.11'
     }
 }
