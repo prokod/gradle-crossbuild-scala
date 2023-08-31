@@ -1,12 +1,13 @@
-package com.github.prokod.gradle.crossbuild.model
+package com.github.prokod.gradle.crossbuild.utils
 
 import com.github.prokod.gradle.crossbuild.ScalaVersions
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
+import com.github.prokod.gradle.crossbuild.model.DependencyInsight
+import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.internal.Describables
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 class DependencyInsightsTest extends Specification {
@@ -23,6 +24,30 @@ class DependencyInsightsTest extends Specification {
             dependencyInsight1 == dependencyInsight2
             dependencyInsight1 != dependencyInsight3
             dependencyInsight2 != dependencyInsight3
+    }
+
+    def "When adding equal Dependencies to DependencySet only one such Dependency should be present in the DependencySet"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        // Before instantiating CrossBuildExtension, project should contain sourceSets otherwise, CrossBuildSourceSets
+        // instantiation will fail.
+        project.pluginManager.apply(JavaPlugin)
+
+        ObjectFactory objects = project.services.get(ObjectFactory)
+        def set = objects.domainObjectSet(Dependency)
+
+        when:
+        def dep1 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.3')
+        def dep2 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11_appendix', '1.2.3')
+        def dep3 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.4')
+        def dep4 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.4')
+        def dep5 = new DefaultExternalModuleDependency('some.group', 'somescalalib_2.11', '1.2.4', 'someconfig')
+
+        and:
+        set.addAll([dep1, dep2, dep3, dep4, dep5])
+
+        then:
+        set.size() == 4
     }
 
     def "When parseDependencyName is given a simple scala lib dependency name it should return correct limited insight"() {

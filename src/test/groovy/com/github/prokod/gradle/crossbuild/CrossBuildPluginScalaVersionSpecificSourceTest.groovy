@@ -169,7 +169,8 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         publications {
             create("crossBuild\${sparkStripped}_\${scalaCompatStripped}", MavenPublication) {
                 afterEvaluate {
-                    artifact project.tasks.findByName("crossBuild\${sparkStripped}_\${scalaCompatStripped}Jar")
+//                    artifact project.tasks.findByName("crossBuild\${sparkStripped}_\${scalaCompatStripped}Jar")
+                    from components.findByName("crossBuild\${sparkStripped}_\${scalaCompatStripped}")
                 }
             }
         }
@@ -294,13 +295,17 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.13'
-        '7.6.1'         | '2.12'
+        '7.6.2'         | '2.12'
+        '8.3'           | '2.13'
     }
 
     /**
      *
-     * NOTE: akka-actor_2.13 2.7.0 depends on scala library 2.13.10 - it means the final pom will contain scala lib 2.13.10 even if you state another version in your build
-     * NOTE: akka-actor_2.12 2.7.0 depends on scala library 2.12.17 - it means the final pom will contain scala lib 2.12.17 even if you state another version in your build
+     * NOTE:
+     * <ul>
+     * <li>akka-actor_2.13 2.7.0 depends on scala library 2.13.10 - it means the final pom will contain scala lib 2.13.10 even if you state another version in your build
+     * <li>akka-actor_2.12 2.7.0 depends on scala library 2.12.17 - it means the final pom will contain scala lib 2.12.17 even if you state another version in your build
+     * </ul>
      *
      * @return
      */
@@ -449,7 +454,8 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         publications {
             create("crossBuild\${akkaStripped}_\${scalaCompatStripped}", MavenPublication) {
                 afterEvaluate {
-                    artifact project.tasks.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}Jar")
+                    from components.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}")
+//                    artifact project.tasks.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}Jar")
                 }
             }
         }
@@ -578,6 +584,6 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         gradleVersion   | defaultScalaVersion
         '6.9.4'         | '2.13'
         '7.6.1'         | '2.12'
-        '8.0.2'         | '3'
+        '8.3'           | '3'
     }
 }

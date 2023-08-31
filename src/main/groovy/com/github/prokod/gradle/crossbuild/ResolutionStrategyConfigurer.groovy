@@ -15,6 +15,8 @@
  */
 package com.github.prokod.gradle.crossbuild
 
+import static com.github.prokod.gradle.crossbuild.ResolutionStrategyHandler.*
+
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
@@ -141,12 +143,13 @@ class ResolutionStrategyConfigurer {
             }
         }
 
-        // Not a cross built dependency
+        // Not a cross build dependency, specifically from org.scala-lang group
         else {
             if (requested.group == 'org.scala-lang') {
-                def targetModuleName = ScalaModuleType.convert(requested.name, scalaVersionInsights.majorVersion)
-                def targetModule = "${requested.group}:${targetModuleName}:${scalaVersionInsights.compilerVersion}"
-                details.useTarget(targetModule)
+                def targetModule =
+                        ResolutionStrategyHandler.handleScalaModuleCase(Coordinates.from(requested),
+                                scalaVersionInsights)
+                details.useTarget(targetModule.toString())
                 details.because('Cross compilation')
             }
         }
@@ -204,12 +207,13 @@ class ResolutionStrategyConfigurer {
     }
 
     /**
-     * Try correcting a probable Scala dependency {@link DependencyResolveDetails} to use the sourceSet scala version,
-     *  based on provided {@link DependencySet} (of the configuration being handled) and {@link ScalaVersions}.
+     * Try correcting a probable Scala dependency {@link DependencyResolveDetails} by using the sourceSet scala version,
+     * based on provided {@link DependencySet} (of the configuration being handled) and {@link ScalaVersions}.
+     * <p>
      * The resolution is going over the tree of dependencies and collects the different scala versions
      * for the same library base name. Afterwards, based on the findings and the sourceSet designated scala version,
      * the offending dependency is being altered.
-     *
+     * <p>
      * Solves, usually, the following plugin DSL scenario {@see CrossBuildPluginCompileMultiModuleAdvancedTest}:
      * <pre>
      *     dependencies {
@@ -249,7 +253,7 @@ class ResolutionStrategyConfigurer {
 
         def correctDependencies = dependencyMap[requested.name]
 
-        assert correctDependencies.size() <= 1: 'There should be one candidate to replace offending dependency ' +
+        assert correctDependencies.size() <= 1: 'There should be max one candidate to replace offending dependency ' +
             "'$requested.group:$requested.name' for target scala version $targetScalaVersion : " +
             "[${correctDependencies*.dependency.collect { "$it.name:$it.version" }.join(', ')}]"
 
@@ -266,10 +270,10 @@ class ResolutionStrategyConfigurer {
 //            offenderDetails.useTarget(targetModule)
 //            details.because('Cross compilation')
 
-            def preRegex = scalaVersions.mkRefTargetVersions().collect { '_' + it }.join('|')
-            def regex = "($preRegex)"
-            offenderDetails.useTarget requested.group + ':' +
-                requested.name.replaceFirst(regex, "_${targetScalaVersion}") + ':' + requested.version
+            def newDetails =
+                    ResolutionStrategyHandler.handle3rdPartyScalaLibCase(Coordinates.from(requested),
+                            targetScalaVersion, scalaVersions)
+            offenderDetails.useTarget(newDetails.toString())
         }
     }
 

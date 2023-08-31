@@ -28,6 +28,7 @@ import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import com.github.prokod.gradle.crossbuild.utils.UniSourceSetInsights
 import org.gradle.api.DefaultTask
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
@@ -44,10 +45,12 @@ import javax.inject.Inject
  */
 class CrossBuildPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory
+    private final SoftwareComponentFactory softwareComponentFactory
 
     @Inject
-    CrossBuildPlugin(ObjectFactory objectFactory) {
+    CrossBuildPlugin(ObjectFactory objectFactory, SoftwareComponentFactory softwareComponentFactory) {
         this.objectFactory = objectFactory
+        this.softwareComponentFactory = softwareComponentFactory
     }
 
     void apply(Project project) {
@@ -57,7 +60,7 @@ class CrossBuildPlugin implements Plugin<Project> {
         def extension = project.extensions.create('crossBuild',
                 CrossBuildExtension,
                 project,
-                objectFactory)
+                objectFactory, softwareComponentFactory)
 
         project.task(type:CrossBuildsReportTask,
                 "${AbstractCrossBuildsReportTask.BASE_TASK_NAME}ResolvedDsl") { CrossBuildsReportTask t ->
@@ -92,7 +95,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             generateNonDefaultProjectTypeDependencies(extension)
 
             project.pluginManager.withPlugin('maven-publish') {
-                generateCrossBuildPomTasks(extension)
+                generateCrossBuildPomTasks(extension, objectFactory)
             }
 
             alterCrossBuildCompileTasks(extension)
@@ -112,7 +115,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             // see ResolutionStrategyConfigurer::assemble3rdPartyDependencies
             def moduleName = ScalaModuleType.LIBRARY.getName(scalaVersionInsights.majorVersion)
             def module = "org.scala-lang:${moduleName}:${scalaVersionInsights.compilerVersion}"
-            extension.project.dependencies.add(sourceSetInsight.getCompileName(), module)
+            extension.project.dependencies.add(sourceSetInsight.getImplementationName(), module)
         }
     }
 
@@ -206,15 +209,15 @@ class CrossBuildPlugin implements Plugin<Project> {
         def main = extension.crossBuildSourceSets.container.findByName('main')
 
         extension.resolvedBuilds.findAll { rb ->
-            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
-
-            def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
+            def sourceSetInsights = new SourceSetInsights.Builder(rb.name)
+                    .fromExt(extension)
+                    .withMainSourceSet(main)
+                    .build()
             def configurer = new ResolutionStrategyConfigurer(sourceSetInsights, extension.scalaVersionsCatalog,
                     rb.scalaVersionInsights)
 
             configurer.applyForLinkWith(
                     ViewType.COMPILE_FRONTEND,
-                    ViewType.COMPILE_BACKEND,
                     ViewType.IMPLEMENTATION,
                     ViewType.COMPILE_CLASSPATH,
                     ViewType.RUNTIME_CLASSPATH,
@@ -242,17 +245,18 @@ class CrossBuildPlugin implements Plugin<Project> {
         sourceSet
     }
 
-    private static void generateCrossBuildPomTasks(CrossBuildExtension extension) {
+    private static void generateCrossBuildPomTasks(CrossBuildExtension extension, ObjectFactory objects) {
         extension.resolvedBuilds.findAll { rb ->
-            extension.project.tasks.withType(GenerateMavenPom).all { GenerateMavenPom pomTask ->
-                def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
+            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
 
+            extension.project.tasks.withType(GenerateMavenPom).all { GenerateMavenPom pomTask ->
                 def foundRelated =
                         CrossBuildPomTask.probablyRelatedPublicationTask(pomTask.name, sourceSetId)
                 if (foundRelated) {
                     def taskName = sourceSet.getTaskName('update', 'pom')
                     def task = extension.project.tasks.create(taskName, CrossBuildPomTask) {
                         resolvedBuild = rb
+                        objectFactory = objects
                     }
                     pomTask.dependsOn(task)
                 }
@@ -270,9 +274,10 @@ class CrossBuildPlugin implements Plugin<Project> {
         def main = extension.crossBuildSourceSets.container.findByName('main')
         def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
         extension.resolvedBuilds.findAll { rb ->
-            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
-
-            def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
+            def sourceSetInsights = new SourceSetInsights.Builder(rb.name)
+                    .fromExt(extension)
+                    .withMainSourceSet(main)
+                    .build()
             def di = new DependencyInsights(sourceSetInsights)
 
             //todo add other needed configuration types (except COMPILE)
@@ -288,7 +293,8 @@ class CrossBuildPlugin implements Plugin<Project> {
                 addMainConfigurationToCrossBuildCounterPart(ViewType.RUNTIME_ONLY, sv)
 
                 // for 'compile' configuration
-                addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE_FRONTEND)
+                addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.RUNTIME_ELEMENTS)
+                addDefaultConfigurationsToCrossBuildConfigurationRecursive(ViewType.COMPILE_BACKEND)
                 generateAndWireCrossBuildProjectTypeDependencies(ViewType.COMPILE_FRONTEND)
                 generateAndWireCrossBuildProjectTypeDependencies(ViewType.IMPLEMENTATION)
             }
@@ -306,9 +312,10 @@ class CrossBuildPlugin implements Plugin<Project> {
         def main = extension.crossBuildSourceSets.container.findByName('main')
 
         extension.resolvedBuilds.findAll { rb ->
-            def (String sourceSetId, SourceSet sourceSet) = extension.crossBuildSourceSets.findByName(rb.name)
-            def sourceSetInsights = new SourceSetInsights(sourceSet, main, extension.project)
-
+            def sourceSetInsights = new SourceSetInsights.Builder (rb.name)
+                    .fromExt(extension)
+                    .withMainSourceSet(main)
+                    .build()
             ScalaCompileTasks
                     .tuneCrossBuildScalaCompileTask(extension.project,
                             sourceSetInsights, rb.scalaVersionInsights, rb.targetCompatibility)

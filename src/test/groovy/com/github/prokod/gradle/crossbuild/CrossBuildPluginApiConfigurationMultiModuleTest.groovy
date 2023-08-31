@@ -57,7 +57,7 @@ class CrossBuildPluginApiConfigurationMultiModuleTest extends CrossBuildGradleRu
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Lazy</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      *     <li>Running tasks that triggers main sourceset configurations: Yes</li>
      * </ul>
      * Leveraging layout 1 of propagating cross build configs to sub projects
@@ -126,12 +126,14 @@ allprojects {
             publications {
                 crossBuildSpark160_210(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark160_210Jar
+                        from components.crossBuildSpark160_210
+                        // artifact crossBuildSpark160_210Jar
                     }
                 }
                 crossBuildSpark240_211(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark240_211Jar
+                        from components.crossBuildSpark240_211
+                        // artifact crossBuildSpark240_211Jar
                     }
                 }
             }
@@ -242,14 +244,15 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 
     /**
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Eager</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      *     <li>Running tasks that triggers main sourceset configurations: Yes</li>
      * </ul>
      * NOTES:
@@ -259,6 +262,8 @@ dependencies {
      *     than do pop up and so the 'user' HAVE TO use api configuration for implicit scala-library dependency inclusion, or to explicitly include
      *     scala-library dependency in all modules using implementation configuration as the plugin ONLY takes care of this behind the scenes for cross compile configurations.</li>
      * </ul>
+     *
+     * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/128">issue #128</a>
      */
     @Requires({ System.getProperty("java.version").startsWith('1.8') })
     @Requires({ instance.testMavenCentralAccess() })
@@ -303,14 +308,12 @@ subprojects {
     publishing {
         publications {
             crossBuildSpark160_210(MavenPublication) {
-                afterEvaluate {
-                    artifact crossBuildSpark160_210Jar
-                }
+                from components.crossBuildSpark160_210
+                // artifact crossBuildSpark160_210Jar
             }
             crossBuildSpark240_211(MavenPublication) {
-                afterEvaluate {
-                    artifact crossBuildSpark240_211Jar
-                }
+                from components.crossBuildSpark240_211
+                // artifact crossBuildSpark240_211Jar
             }
         }
     }
@@ -433,6 +436,8 @@ dependencies {
         def pom211 = dir.resolve("lib${File.separator}build${File.separator}generated-pom_2.11.xml").text
         def lib2pom210 = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.10.xml").text
         def lib2pom211 = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.11.xml").text
+        def apppom210 = dir.resolve("app${File.separator}build${File.separator}generated-pom_2.10.xml").text
+        def apppom211 = dir.resolve("app${File.separator}build${File.separator}generated-pom_2.11.xml").text
 
         when:
         def project210 = new XmlSlurper().parseText(pom210).dependencies.dependency.collectEntries{
@@ -480,7 +485,7 @@ dependencies {
         }
 
         then:
-        projectLib2_210.size() == 2
+        projectLib2_210.size() == 4
         projectLib2_210['org.scala-lang'].groupId == 'org.scala-lang'
         projectLib2_210['org.scala-lang'].artifactId == 'scala-library'
         projectLib2_210['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.10']
@@ -488,7 +493,17 @@ dependencies {
         projectLib2_210['com.github.prokod.it'].groupId == 'com.github.prokod.it'
         projectLib2_210['com.github.prokod.it'].artifactId == 'lib_2.10'
         projectLib2_210['com.github.prokod.it'].version == '1.0-SNAPSHOT'
-        projectLib2_210['com.github.prokod.it'].scope == 'runtime'
+        // Should be scope compile as the dependency is declared as api
+        // see https://github.com/prokod/gradle-crossbuild-scala/issues/128
+        projectLib2_210['com.github.prokod.it'].scope == 'compile'
+        projectLib2_210['com.google.guava'].groupId == 'com.google.guava'
+        projectLib2_210['com.google.guava'].artifactId == 'guava'
+        projectLib2_210['com.google.guava'].version == '18.0'
+        projectLib2_210['com.google.guava'].scope == 'runtime'
+        projectLib2_210['org.scalatest'].groupId == 'org.scalatest'
+        projectLib2_210['org.scalatest'].artifactId == 'scalatest_2.10'
+        projectLib2_210['org.scalatest'].version == '3.0.1'
+        projectLib2_210['org.scalatest'].scope == 'runtime'
 
         when:
         def projectLib2_211 = new XmlSlurper().parseText(lib2pom211).dependencies.dependency.collectEntries{
@@ -496,7 +511,7 @@ dependencies {
         }
 
         then:
-        projectLib2_211.size() == 2
+        projectLib2_211.size() == 4
         projectLib2_211['org.scala-lang'].groupId == 'org.scala-lang'
         projectLib2_211['org.scala-lang'].artifactId == 'scala-library'
         projectLib2_211['org.scala-lang'].version == '2.11.11'
@@ -504,12 +519,49 @@ dependencies {
         projectLib2_211['com.github.prokod.it'].groupId == 'com.github.prokod.it'
         projectLib2_211['com.github.prokod.it'].artifactId == 'lib_2.11'
         projectLib2_211['com.github.prokod.it'].version == '1.0-SNAPSHOT'
-        projectLib2_211['com.github.prokod.it'].scope == 'runtime'
+        projectLib2_211['com.github.prokod.it'].scope == 'compile'
+        projectLib2_211['com.google.guava'].groupId == 'com.google.guava'
+        projectLib2_211['com.google.guava'].artifactId == 'guava'
+        projectLib2_211['com.google.guava'].version == '18.0'
+        projectLib2_211['com.google.guava'].scope == 'runtime'
+        projectLib2_211['org.scalatest'].groupId == 'org.scalatest'
+        projectLib2_211['org.scalatest'].artifactId == 'scalatest_2.11'
+        projectLib2_211['org.scalatest'].version == '3.0.1'
+        projectLib2_211['org.scalatest'].scope == 'runtime'
+
+        when:
+        def projectApp_211 = new XmlSlurper().parseText(apppom211).dependencies.dependency.collectEntries{
+            ["${it.groupId.text()}:${it.artifactId.text()}".toString(), it]
+        }
+
+        then:
+        projectApp_211.size() == 5
+        projectApp_211['org.scala-lang:scala-library'].groupId == 'org.scala-lang'
+        projectApp_211['org.scala-lang:scala-library'].artifactId == 'scala-library'
+        projectApp_211['org.scala-lang:scala-library'].version == '2.11.11'
+        projectApp_211['org.scala-lang:scala-library'].scope == 'runtime'
+        projectApp_211['com.github.prokod.it:lib_2.11'].groupId == 'com.github.prokod.it'
+        projectApp_211['com.github.prokod.it:lib_2.11'].artifactId == 'lib_2.11'
+        projectApp_211['com.github.prokod.it:lib_2.11'].version == '1.0-SNAPSHOT'
+        projectApp_211['com.github.prokod.it:lib_2.11'].scope == 'runtime'
+        projectApp_211['com.github.prokod.it:lib2_2.11'].groupId == 'com.github.prokod.it'
+        projectApp_211['com.github.prokod.it:lib2_2.11'].artifactId == 'lib2_2.11'
+        projectApp_211['com.github.prokod.it:lib2_2.11'].version == '1.0-SNAPSHOT'
+        projectApp_211['com.github.prokod.it:lib2_2.11'].scope == 'runtime'
+        projectApp_211['com.google.guava:guava'].groupId == 'com.google.guava'
+        projectApp_211['com.google.guava:guava'].artifactId == 'guava'
+        projectApp_211['com.google.guava:guava'].version == '18.0'
+        projectApp_211['com.google.guava:guava'].scope == 'runtime'
+        projectApp_211['org.scalatest:scalatest_2.11'].groupId == 'org.scalatest'
+        projectApp_211['org.scalatest:scalatest_2.11'].artifactId == 'scalatest_2.11'
+        projectApp_211['org.scalatest:scalatest_2.11'].version == '3.0.1'
+        projectApp_211['org.scalatest:scalatest_2.11'].scope == 'runtime'
 
         where:
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.10'
         '6.9.4'         | '2.11'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.10'
     }
 }

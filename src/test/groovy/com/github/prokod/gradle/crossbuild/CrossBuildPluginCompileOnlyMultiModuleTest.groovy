@@ -55,8 +55,8 @@ class CrossBuildPluginCompileOnlyMultiModuleTest extends CrossBuildGradleRunnerS
     /**
      * Test Properties:
      * <ul>
-     *     <li>Plugin apply mode: Lazy</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Plugin apply mode: Lazy
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x
      * </ul>
      *
      * This test checks the following plugin behaviour:
@@ -414,11 +414,11 @@ dependencies {
         def expectedLib2JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_12_8_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.12.8' : '',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
-                _7_2_26_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-7.2.26' : '',
-                _7_2_27_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-7.2.27' : '',
-                _7_2_28_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-7.2.28' : '',
+                _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.8' : '',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
+                _7_2_26_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.26' : '',
+                _7_2_27_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.27' : '',
+                _7_2_28_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.28' : '',
                 '/lib_builds_resolved_configurations-02.json')
         def lib2ResolvedConfigurationReportFile = findFile("*/lib2_builds_resolved_configurations.json")
 
@@ -434,8 +434,8 @@ dependencies {
         def expectedLib3JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_12_8_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.12.8' : '',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
+                _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.8' : '',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/lib_builds_resolved_configurations-03.json')
         def lib3ResolvedConfigurationReportFile = findFile("*/lib3_builds_resolved_configurations.json")
 
@@ -448,6 +448,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.12'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.12'
     }
 }

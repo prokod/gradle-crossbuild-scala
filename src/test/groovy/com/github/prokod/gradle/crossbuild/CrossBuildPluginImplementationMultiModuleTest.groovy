@@ -128,12 +128,14 @@ subprojects {
         publications {
             crossBuildSpark160_210(MavenPublication) {
                 afterEvaluate {
-                    artifact crossBuildSpark160_210Jar
+//                    artifact crossBuildSpark160_210Jar
+                    from components.crossBuildSpark160_210
                 }
             }
             crossBuildSpark240_211(MavenPublication) {
                 afterEvaluate {
-                    artifact crossBuildSpark240_211Jar
+//                    artifact crossBuildSpark240_211Jar
+                    from components.crossBuildSpark240_211
                 }
             }
         }
@@ -227,6 +229,7 @@ dependencies {
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.10'
         '7.6.1'         | '2.11'
+        '8.3'           | '2.12'
     }
 
     /**
@@ -361,6 +364,7 @@ dependencies {
         '5.6.4'         | '2.11'
         '6.9.4'         | '2.11'
         '7.6.1'         | '2.12'
+        '8.3'           | '2.12'
     }
 
     @Requires({ instance.testMavenCentralAccess() })
@@ -407,12 +411,12 @@ subprojects {
                 publications {
                     crossBuildSpark230_211(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark230_211Jar
+                            from components.crossBuildSpark230_211
                         }
                     }
                     crossBuildSpark240_212(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark240_212Jar
+                            from components.crossBuildSpark240_212
                         }
                     }
                 }
@@ -544,7 +548,7 @@ publishing {
     publications {
         crossBuildSpark230_211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildSpark230_211Jar
+                from components.crossBuildSpark230_211
             }
         }
     }
@@ -612,7 +616,8 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 
     /**
@@ -670,12 +675,12 @@ subprojects {
             publications {
                 crossBuildSpark230_211(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark230_211Jar
+                        from components.crossBuildSpark230_211
                     }
                 }
                 crossBuildSpark240_212(MavenPublication) {
                     afterEvaluate {
-                        artifact crossBuildSpark240_212Jar
+                        from components.crossBuildSpark240_212
                     }
                 }
             }
@@ -798,7 +803,8 @@ publishing {
     publications {
         crossBuildSpark230_211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildSpark230_211Jar
+                from components.crossBuildSpark230_211
+//                artifact crossBuildSpark230_211Jar
             }
         }
     }
@@ -833,7 +839,7 @@ dependencies {
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -851,32 +857,365 @@ dependencies {
         Files.exists(pom212Path)
 
         when:
-        def pom211 = new XmlSlurper().parse(pom211Path.toFile())
+        def pom211 = new XmlSlurper().parse(pom211Path.toFile()).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
 
         then:
-        pom211.dependencies.dependency.size() == 2
-        pom211.dependencies.dependency[0].groupId == 'org.scala-lang'
-        pom211.dependencies.dependency[0].artifactId == 'scala-library'
-        pom211.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
-        pom211.dependencies.dependency[0].scope == 'runtime'
-        pom211.dependencies.dependency[1].groupId == 'com.google.guava'
-        pom211.dependencies.dependency[1].artifactId == 'guava'
-        pom211.dependencies.dependency[1].version == '18.0'
-        pom211.dependencies.dependency[1].scope == 'runtime'
+        pom211.size() == 2
+        pom211['org.scala-lang'].groupId == 'org.scala-lang'
+        pom211['org.scala-lang'].artifactId == 'scala-library'
+        pom211['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
+        pom211['org.scala-lang'].scope == 'runtime'
+        pom211['com.google.guava'].groupId == 'com.google.guava'
+        pom211['com.google.guava'].artifactId == 'guava'
+        pom211['com.google.guava'].version == '18.0'
+        pom211['com.google.guava'].scope == 'runtime'
 
         when:
-        def pom212 = new XmlSlurper().parse(pom212Path.toFile())
+        def pom212 = new XmlSlurper().parse(pom212Path.toFile()).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
 
         then:
-        pom212.dependencies.dependency.size() == 2
-        pom212.dependencies.dependency[0].groupId == 'org.scala-lang'
-        pom212.dependencies.dependency[0].artifactId == 'scala-library'
-        pom212.dependencies.dependency[0].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
-        pom212.dependencies.dependency[0].scope == 'runtime'
-        pom211.dependencies.dependency[1].groupId == 'com.google.guava'
-        pom211.dependencies.dependency[1].artifactId == 'guava'
-        pom211.dependencies.dependency[1].version == '18.0'
-        pom211.dependencies.dependency[1].scope == 'runtime'
+        pom212.size() == 2
+        pom212['org.scala-lang'].groupId == 'org.scala-lang'
+        pom212['org.scala-lang'].artifactId == 'scala-library'
+        pom212['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
+        pom212['org.scala-lang'].scope == 'runtime'
+        pom212['com.google.guava'].groupId == 'com.google.guava'
+        pom212['com.google.guava'].artifactId == 'guava'
+        pom212['com.google.guava'].version == '18.0'
+        pom212['com.google.guava'].scope == 'runtime'
+
+        when:
+        def lib2pom211Path = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.11.xml")
+        def lib2pom212Path = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.12.xml")
+
+        then:
+        Files.exists(lib2pom211Path)
+        Files.exists(lib2pom212Path)
+
+        when:
+        def expectedLib2Pom211 = loadResourceAsText(sv: '2.11', csv: '2.11.12', '/04-pom_lib2-00.xml')
+        Diff d211 = pomDiffFor(expectedLib2Pom211, lib2pom211Path.toFile())
+
+        then:
+        !d211.hasDifferences()
+
+        when:
+        def expectedLib2Pom212 = loadResourceAsText(sv: '2.12', csv: '2.12.8','/04-pom_lib2-00.xml')
+        Diff d212 = pomDiffFor(expectedLib2Pom212, lib2pom212Path.toFile())
+
+        then:
+        !d212.hasDifferences()
+
+        when:
+        def appPom211File = dir.resolve("app${File.separator}build${File.separator}generated-pom_2.11.xml")
+        def appPom212File = dir.resolve("app${File.separator}build${File.separator}generated-pom_2.12.xml")
+
+        then:
+        Files.exists(appPom211File)
+        !Files.exists(appPom212File)
+
+        when:
+        def expectedAppPom211 = loadResourceAsText( '/04-pom_app-00.xml')
+        Diff dApp211 = pomDiffFor(expectedAppPom211, appPom211File.toFile())
+
+        then:
+        !dApp211.hasDifferences()
+
+        where:
+        gradleVersion | defaultScalaVersion
+//        '5.6.4'       | '2.11'
+//        '6.9.4'       | '2.12'
+//        '7.6.1'       | '2.11'
+        '8.3'        | '2.12'
+    }
+
+    /**
+     * Test Properties:
+     * <ul>
+     *     <li>Plugin apply mode: Eager</li>
+     * </ul>
+     * This test is using 'implementation' configuration to express dependency graph between the modules.
+     *
+     * resource file/s for the test:
+     * 04-app_builds_resolved_configurations.json
+     * 04-pom_lib2-00.xml
+     * 04-pom_app-00.xml
+     */
+    @Requires({ instance.testMavenCentralAccess() })
+    @Unroll
+    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is different on each submodule and with publishing dsl, should produce expected jars and pom files and should have correct pom files content 12"() {
+        given:
+        // root project settings.gradle
+        settingsFile << """
+include 'lib'
+include 'lib2'
+include 'app'
+"""
+
+        buildFile << """
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
+
+allprojects {
+    group = 'com.github.prokod.it'
+    version = '1.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'com.github.prokod.gradle-crossbuild'
+    apply plugin: 'maven-publish'
+
+    if (!project.name.endsWith('app')) {
+        crossBuild {
+            builds {
+                spark230_211 
+                spark240_212
+            }
+        }
+    }
+
+    tasks.withType(GenerateMavenPom) { t ->
+        if (t.name.contains('CrossBuildSpark230_211')) {
+            t.destination = file("\$buildDir/generated-pom_2.11.xml")
+        }
+        if (t.name.contains('CrossBuildSpark240_212')) {
+            t.destination = file("\$buildDir/generated-pom_2.12.xml")
+        }
+    }
+}
+"""
+
+        libScalaFile << """
+object Factorial {
+  // The actual implementation is regular old-fashioned scala code:
+  def normalFactorial(n: Int): Int =
+    if (n == 0) 1
+    else n * normalFactorial(n - 1)
+}
+"""
+
+        libBuildFile << """
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+publishing {
+    publications {
+        crossBuildSpark230_211(MavenPublication) {
+            afterEvaluate {
+                from components.crossBuildSpark230_211
+            }
+        }
+        crossBuildSpark240_212(MavenPublication) {
+            afterEvaluate {
+                from components.crossBuildSpark240_212
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation "com.google.guava:guava:18.0"
+    implementation "org.scala-lang:scala-library:${defaultScalaVersion}.+"
+}
+"""
+
+        lib2ScalaFile.withWriter('utf-8') {it.write """
+object CompileTimeFactorial {
+
+  import scala.language.experimental.macros
+  import Factorial._
+
+  // This function exposed to consumers has a normal Scala type:
+  def factorial(n: Int): Int =
+  // but it is implemented as a macro:
+  macro CompileTimeFactorial.factorial_impl
+
+  import scala.reflect.macros.blackbox.Context
+
+  // The macro implementation will receive a ‘Context’ and
+  // the AST’s of the parameters passed to it:
+  def factorial_impl(c: Context)(n: c.Expr[Int]): c.Expr[Int] = {
+    import c.universe._
+
+    // We can pattern-match on the AST:
+    n match {
+      case Expr(Literal(Constant(nValue: Int))) =>
+        // We perform the calculation:
+        val result = normalFactorial(nValue)
+        // And produce an AST for the result of the computation:
+        c.Expr(Literal(Constant(result)))
+      case other =>
+        // Yes, this will be printed at compile time:
+        println("Yow!")
+        ???
+    }
+  }
+}
+""" }
+
+        lib2BuildFile << """
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+publishing {
+    publications {
+        crossBuildSpark230_211(MavenPublication) {
+            afterEvaluate {
+                from components.crossBuildSpark230_211
+//                artifact crossBuildSpark230_211Jar
+            }
+        }
+        crossBuildSpark240_212(MavenPublication) {
+            afterEvaluate {
+                from components.crossBuildSpark240_212
+//                artifact crossBuildSpark240_212Jar
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation project(':lib')
+    implementation 'org.scala-lang:scala-reflect:2.12.8'
+    crossBuildSpark230_211Implementation 'org.scala-lang:scala-reflect:2.11.12'
+    crossBuildSpark240_212Implementation 'org.scala-lang:scala-reflect:2.12.8'
+}
+"""
+
+        appScalaFile << """
+import CompileTimeFactorial._
+
+object Test extends App {
+    println(factorial(10))
+
+    // When uncommented, this will produce an error at compile-time, as we
+    // only implemented a case for an Int literal, not a variable:
+    // val n = 10
+    // println(factorial(n))
+}
+"""
+
+        appBuildFile << """
+crossBuild {
+    builds {
+        spark230_211 
+    }
+}
+
+publishing {
+    publications {
+        crossBuildSpark230_211(MavenPublication) {
+            afterEvaluate {
+                from components.crossBuildSpark230_211
+//                artifact crossBuildSpark230_211Jar
+            }
+        }
+    }
+}
+        
+dependencies {
+    implementation project(':lib2')
+}
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.toFile())
+                .withPluginClasspath()
+        /*@withDebug@*/
+                .withDebug(true)
+                .withArguments('crossBuildResolvedConfigs', 'publishToMavenLocal', '--info', '--stacktrace')
+                .build()
+
+        then:
+        result.task(":app:crossBuildSpark230_211Jar").outcome == SUCCESS
+        result.task(":app:crossBuildResolvedConfigs").outcome == SUCCESS
+
+        fileExists(dir.resolve('lib/build/libs/lib_2.11*.jar'))
+        fileExists(dir.resolve('lib/build/libs/lib_2.12*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2_2.11*.jar'))
+        fileExists(dir.resolve('lib2/build/libs/lib2_2.12*.jar'))
+        fileExists(dir.resolve('app/build/libs/app_2.11*.jar'))
+        !fileExists(dir.resolve('app/build/libs/app_2.12*.jar'))
+
+        when:
+        def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
+                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
+                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
+                '/04-app_builds_resolved_configurations.json')
+        def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
+
+        then:
+        appResolvedConfigurationReportFile != null
+        def actualJsonAsText = appResolvedConfigurationReportFile.text
+//        JSONAssert.assertEquals(expectedJsonAsText, actualJsonAsText, false)
+
+        when:
+        def pom211Path = dir.resolve("lib${File.separator}build${File.separator}generated-pom_2.11.xml")
+        def pom212Path = dir.resolve("lib${File.separator}build${File.separator}generated-pom_2.12.xml")
+
+        then:
+        Files.exists(pom211Path)
+        Files.exists(pom212Path)
+
+        when:
+        def pom211 = new XmlSlurper().parseText(pom211Path.text).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
+
+        then:
+        pom211.size() == 2
+        pom211['org.scala-lang'].groupId == 'org.scala-lang'
+        pom211['org.scala-lang'].artifactId == 'scala-library'
+        pom211['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.11']
+        pom211['org.scala-lang'].scope == 'runtime'
+        pom211['com.google.guava'].groupId == 'com.google.guava'
+        pom211['com.google.guava'].artifactId == 'guava'
+        pom211['com.google.guava'].version == '18.0'
+        pom211['com.google.guava'].scope == 'runtime'
+
+        when:
+        def pom212 = new XmlSlurper().parseText(pom212Path.text).dependencies.dependency.collectEntries{
+            [it.groupId.text(), it]
+        }
+
+        then:
+        pom212.size() == 2
+        pom212['org.scala-lang'].groupId == 'org.scala-lang'
+        pom212['org.scala-lang'].artifactId == 'scala-library'
+        pom212['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
+        pom212['org.scala-lang'].scope == 'runtime'
+        pom212['com.google.guava'].groupId == 'com.google.guava'
+        pom212['com.google.guava'].artifactId == 'guava'
+        pom212['com.google.guava'].version == '18.0'
+        pom212['com.google.guava'].scope == 'runtime'
 
         when:
         def lib2pom211Path = dir.resolve("lib2${File.separator}build${File.separator}generated-pom_2.11.xml")
@@ -919,14 +1258,15 @@ dependencies {
         gradleVersion | defaultScalaVersion
         '5.6.4'       | '2.11'
         '6.9.4'       | '2.12'
-        '7.6.1'       | '2.11'
+        '7.6.2'       | '2.11'
+        '8.2'         | '2.12'
     }
 
     /**
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Lazy</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      * </ul>
      * Here lib3 is a non cross build dependency.
      * This test checks that when lib3 is added to dependent app module, while using 'implementation' configuration,
@@ -935,7 +1275,7 @@ dependencies {
      *
      * @return
      */
-    // todo add pom checks
+    // todo add pom checks, add resolved builds checks
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 and with cross building dsl that is applied only to some sub modules should produce expected: jars, pom files; and pom files content should be correct"() {
@@ -983,22 +1323,26 @@ subprojects {
                 publications {
                     crossBuildSpark233_211(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark233_211Jar
+//                            artifact crossBuildSpark233_211Jar
+                            from components.crossBuildSpark233_211
                         }
                     }
                     crossBuildSpark242_212(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark242_212Jar
+//                            artifact crossBuildSpark242_212Jar
+                            from components.crossBuildSpark242_212
                         }
                     }
                     crossBuildSpark243_211(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark243_211Jar
+//                            artifact crossBuildSpark243_211Jar
+                            from components.crossBuildSpark243_211
                         }
                     }
                     crossBuildSpark243_212(MavenPublication) {
                         afterEvaluate {
-                            artifact crossBuildSpark243_212Jar
+//                            artifact crossBuildSpark243_212Jar
+                            from components.crossBuildSpark243_212
                         }
                     }
                 }
@@ -1118,7 +1462,8 @@ publishing {
     publications {
         crossBuildSpark233_211(MavenPublication) {
             afterEvaluate {
-                artifact crossBuildSpark233_211Jar
+//                artifact crossBuildSpark233_211Jar
+                from components.crossBuildSpark233_211
             }
         }
     }
@@ -1167,6 +1512,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 }

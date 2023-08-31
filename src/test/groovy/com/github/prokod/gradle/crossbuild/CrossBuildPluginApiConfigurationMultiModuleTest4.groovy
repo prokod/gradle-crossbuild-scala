@@ -58,7 +58,7 @@ class CrossBuildPluginApiConfigurationMultiModuleTest4 extends CrossBuildGradleR
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Lazy</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      * </ul>
      *
      * Here lib3 is a non cross build dependency.
@@ -347,14 +347,15 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.11'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.12'
     }
 
     /**
      * Test Properties:
      * <ul>
      *     <li>Plugin apply mode: Lazy</li>
-     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x</li>
+     *     <li>Gradle compatibility matrix: 5.x, 6.x, 7.x, 8.x</li>
      * </ul>
      *
      * Here we test support for custom scala tag (e.g _2.11, _2.12, _2.13) instead of _? in dependencies
@@ -367,7 +368,7 @@ dependencies {
      *
      * This test checks that resolved dependencies are correct even though _? scala tag is not used
      *
-     * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/90">issue #80</a>
+     * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/80">issue #80</a>
      */
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
@@ -656,15 +657,15 @@ dependencies {
         def expectedLibJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_12_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '2.12.17' : '',
+                _2_12_cond_: gradleVersion.substring(0,1).toInteger() >= 6 ? '2.12.17' : '',
                 _2_12_: '2.12.17',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
-                _2_10_7_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.10.7' : '',
-                _7_2_plus_for_2_10_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '7.2.30' : '',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
+                _2_10_7_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.10.7' : '',
+                _7_2_plus_for_2_10_cond_: gradleVersion.substring(0,1).toInteger() >= 6 ? '7.2.30' : '',
                 _7_2_plus_for_2_10_: '7.2.30',
-                _7_2_plus_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '7.2.35' : '',
+                _7_2_plus_cond_: gradleVersion.substring(0,1).toInteger() >= 6 ? '7.2.35' : '',
                 _7_2_plus_: '7.2.35',
-                dashOrEmpty: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-' : '',
+                dashOrEmpty: gradleVersion.substring(0,1).toInteger() >= 6 ? '-' : '',
                 '/lib_builds_resolved_configurations-04.json')
         def libResolvedConfigurationReportFile = findFile("*/lib_builds_resolved_configurations.json")
 
@@ -680,30 +681,30 @@ dependencies {
         def expectedLib2JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
                 defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_12_8_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.12.8' : '',
-                _2_12_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.12.10' : '',
+                _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.8' : '',
+                _2_12_cond_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.10' : '',
                 _2_12_: '2.12.10',
-                _2_11_12_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.11.12' : '',
-                _skuber_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.5.0' : '',
-                _play_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.7.4' : '',
-                _scalaz_v_cond_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-7.2.35' : '',
+                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
+                _skuber_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.5.0' : '',
+                _play_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.7.4' : '',
+                _scalaz_v_cond_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.35' : '',
                 _scalaz_v_: '7.2.35',
-                _akka_http_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-10.1.11' : '',
-                _akka_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.5.29' : '',
-                _ssl_config_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-0.3.8' : '',
-                _scala_java8_compat_2_11_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-0.7.0' : '',
-                _scala_java8_compat_2_12_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-0.8.0' : '',
-                _scala_parser_combinators_2_11_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-1.1.1' : '',
-                _scala_parser_combinators_2_12_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-1.1.2' : '',
-                _commons_math3_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-3.6.1' : '',
-                _snakeyaml_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-1.25' : '',
-                _commons_io_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.6' : '',
-                _commons_codec_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-1.14' : '',
-                _jdk15on_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-1.64' : '',
-                _reactive_streams_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-1.0.2' : '',
-                _joda_time_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.10.1' : '',
-                _jackson_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-2.9.8' : '',
-                _config_v_: gradleVersion.startsWith('6') || gradleVersion.startsWith('7') ? '-1.3.3' : '',
+                _akka_http_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-10.1.11' : '',
+                _akka_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.5.29' : '',
+                _ssl_config_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-0.3.8' : '',
+                _scala_java8_compat_2_11_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-0.7.0' : '',
+                _scala_java8_compat_2_12_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-0.8.0' : '',
+                _scala_parser_combinators_2_11_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-1.1.1' : '',
+                _scala_parser_combinators_2_12_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-1.1.2' : '',
+                _commons_math3_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-3.6.1' : '',
+                _snakeyaml_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-1.25' : '',
+                _commons_io_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.6' : '',
+                _commons_codec_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-1.14' : '',
+                _jdk15on_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-1.64' : '',
+                _reactive_streams_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-1.0.2' : '',
+                _joda_time_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.10.1' : '',
+                _jackson_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.9.8' : '',
+                _config_v_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-1.3.3' : '',
                 '/lib_builds_resolved_configurations-05.json')
         def lib2ResolvedConfigurationReportFile = findFile("*/lib2_builds_resolved_configurations.json")
 
@@ -716,6 +717,7 @@ dependencies {
         gradleVersion   | defaultScalaVersion
         '5.6.4'         | '2.12'
         '6.9.4'         | '2.12'
-        '7.6.1'         | '2.11'
+        '7.6.2'         | '2.11'
+        '8.3'           | '2.11'
     }
 }
