@@ -7,7 +7,8 @@
 - create release object v<version> on github
 - update release object using gren `gren release --tags v<version> --override --data-source=milestones --milestone-match="{{tag_name}}"`
 - before artifacts upload gradle.properties should be updated to contain sensitive credentials and signing info
-- upload artifacts to maven ./gradlew clean -x check build sign uploadArchives
+- upload artifacts to maven `./gradlew clean -x check build publish`
 - before uploading to gradle's plugin portal check existence of `gradle.publish.key` `gradle.publish.secret` in global gradle.properties
-- uploading to gradle's plugin portal
+- If you are on WSL make sure `date` command is showing current date/time
+- uploading to gradle's plugin portal `./gradelw publishPlugins`
 

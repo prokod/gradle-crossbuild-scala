@@ -58,7 +58,7 @@ gradlePlugin {
     plugins {
         crossBuildPlugin {
             id = 'com.github.prokod.gradle-crossbuild'
-            displayName = 'Gradle cross build (Scala) plugin'
+            displayName = 'Gradle cross build Scala plugin'
             description = 'Adds cross building functionality to Gradle for Scala based projects'
             implementationClass = 'com.github.prokod.gradle.crossbuild.CrossBuildPlugin'
         }
