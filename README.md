@@ -20,7 +20,6 @@
 
 - **test/check tasks** are supported for [default-variant](#default_variant) of Scala version only.
 - **publishing for source/javadoc jars** are supported for [default-variant](#default_variant) of Scala version only.
-- **incremental building** not supported yet
 
 ## <a name="getting_plugin"></a>Getting the plugin
 
