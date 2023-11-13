@@ -347,7 +347,7 @@ class DependencyInsights {
         def dependenciesView = nonMatchingDependencyInsights.collect { nonMatchingDependencyInsight ->
             def matchingDepTupleSet = dependencies.collect { dep ->
                 DependencyInsight.parse(dep, scalaVersions)
-            }.findAll { dependencyInsightPredicate(it, nonMatchingDependencyInsight, scalaVersion) }.collect().toSet()
+            }.findAll { dependencyInsightPredicate(it, nonMatchingDependencyInsight, scalaVersion) }.collect { it } as LinkedHashSet
             new Tuple2(nonMatchingDependencyInsight, matchingDepTupleSet)
         }
 
