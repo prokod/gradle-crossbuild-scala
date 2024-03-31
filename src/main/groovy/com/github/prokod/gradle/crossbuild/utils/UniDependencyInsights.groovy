@@ -41,7 +41,7 @@ class UniDependencyInsights {
 
             def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
 
-            def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
+            def scalaDeps = DependencyOps.findScalaDependencies(allDependencySet, scalaVersions)
 
             def versions = scalaDeps*.supposedScalaVersion.toSet()
             versions

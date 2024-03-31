@@ -21,7 +21,7 @@ import com.github.prokod.gradle.crossbuild.tasks.CrossBuildPomTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsReportTask
 import com.github.prokod.gradle.crossbuild.tasks.CrossBuildsClasspathResolvedConfigurationReportTask
 import com.github.prokod.gradle.crossbuild.utils.CrossBuildPluginUtils
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
+import com.github.prokod.gradle.crossbuild.utils.DependencyOps
 import com.github.prokod.gradle.crossbuild.utils.UniDependencyInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
@@ -113,7 +113,7 @@ class CrossBuildPlugin implements Plugin<Project> {
             // 1. Adds scala-lib dependency to all sub projects (User convenience)
             // 2. Helps with the creation of the correct dependencies for pom creation
             // see ResolutionStrategyConfigurer::assemble3rdPartyDependencies
-            def moduleName = ScalaModuleType.LIBRARY.getName(scalaVersionInsights.majorVersion)
+            def moduleName = DependencyModuleType.SCALA_LIBRARY.getName(scalaVersionInsights.majorVersion)
             def module = "org.scala-lang:${moduleName}:${scalaVersionInsights.compilerVersion}"
             extension.project.dependencies.add(sourceSetInsight.getImplementationName(), module)
         }
@@ -278,7 +278,7 @@ class CrossBuildPlugin implements Plugin<Project> {
                     .fromExt(extension)
                     .withMainSourceSet(main)
                     .build()
-            def di = new DependencyInsights(sourceSetInsights)
+            def di = new DependencyOps(sourceSetInsights)
 
             //todo add other needed configuration types (except COMPILE)
 

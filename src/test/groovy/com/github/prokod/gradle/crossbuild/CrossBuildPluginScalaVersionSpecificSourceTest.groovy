@@ -571,7 +571,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         and:
         poms.each {pom ->
             assert pom.value.size() == 2
-            assert pom.value['org.scala-lang'].artifactId == ScalaModuleType.LIBRARY.getName(pom.key[3])
+            assert pom.value['org.scala-lang'].artifactId == DependencyModuleType.SCALA_LIBRARY.getName(pom.key[3])
             assert pom.value['org.scala-lang'].version == pom.key[1]
             assert pom.value['org.scala-lang'].scope == 'runtime'
             assert pom.value['com.typesafe.akka'].groupId == 'com.typesafe.akka'

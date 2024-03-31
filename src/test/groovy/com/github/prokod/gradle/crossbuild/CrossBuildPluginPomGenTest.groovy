@@ -329,7 +329,10 @@ dependencies {
 
     /**
      * Here we check correctness of pom file content.
-     * api configuration should appear in the pom file as compile scope for both scala 2.12/3
+     * <ul>
+     *     <li>api configuration should appear in the pom file as compile scope for both scala 2.12/3</li>
+     *     <li>scalaVersions = [scala2_12, scala2_13] defined on dsl plugin level are the ones that will also appear in pom</li>
+     * </ul>
      *
      * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/128">issue #128</a>
      *
@@ -395,10 +398,10 @@ tasks.withType(GenerateMavenPom) { t ->
 }
 
 dependencies {
-    api "io.github.cquiroz:scala-java-time_2.13:2.5.0"
+    api "io.github.cquiroz:scala-java-time_$defaultScalaVersion:2.5.0"
 
-    implementation "org.scala-lang:scala-library:\${scala2_13}"
-    implementation "io.circe:circe-core_2.13:0.14.2"
+    implementation "org.scala-lang:scala-library:$defaultScalaCompilerVersion"
+    implementation "io.circe:circe-core_$defaultScalaVersion:0.14.2"
 }
 """
 
@@ -429,7 +432,7 @@ dependencies {
         project212.size() == 3
         project212['org.scala-lang'].groupId == 'org.scala-lang'
         project212['org.scala-lang'].artifactId == 'scala-library'
-        project212['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.12']
+        project212['org.scala-lang'].version == '2.12.17'
         project212['org.scala-lang'].scope == 'runtime'
         project212['io.github.cquiroz'].groupId == 'io.github.cquiroz'
         project212['io.github.cquiroz'].artifactId == 'scala-java-time_2.12'
@@ -449,7 +452,7 @@ dependencies {
         project213.size() == 3
         project213['org.scala-lang'].groupId == 'org.scala-lang'
         project213['org.scala-lang'].artifactId == 'scala-library'
-        project213['org.scala-lang'].version == ScalaVersions.DEFAULT_SCALA_VERSIONS.catalog['2.13']
+        project213['org.scala-lang'].version == '2.13.10'
         project213['org.scala-lang'].scope == 'runtime'
         project213['io.github.cquiroz'].groupId == 'io.github.cquiroz'
         project213['io.github.cquiroz'].artifactId == 'scala-java-time_2.13'
@@ -461,10 +464,10 @@ dependencies {
         project213['io.circe'].scope == 'runtime'
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.10'
-        '6.9.4'         | '2.11'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        gradleVersion   | defaultScalaVersion | defaultScalaCompilerVersion
+        '5.6.4'         | '2.12'              | '2.12.18'
+        '6.9.4'         | '2.13'              | '2.13.12'
+        '7.6.4'         | '2.12'              | '2.12.19'
+        '8.7'           | '2.13'              | '2.13.13'
     }
 }
