@@ -20,7 +20,7 @@ import com.github.prokod.gradle.crossbuild.ResolutionStrategyHandler
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
 import com.github.prokod.gradle.crossbuild.model.ResolvedBuildAfterEvalLifeCycle
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
+import com.github.prokod.gradle.crossbuild.utils.DependencyOps
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.ViewType
 import org.gradle.api.DefaultTask
@@ -81,7 +81,7 @@ abstract class AbstractCrossBuildPomTask extends DefaultTask {
         def sourceSetInsights = new SourceSetInsights.Builder(resolvedBuild.name)
                 .fromPrj(project)
                 .build()
-        def di = new DependencyInsights(sourceSetInsights)
+        def di = new DependencyOps(sourceSetInsights)
 
         def prjToJarNameMap = di.extractCrossBuildProjectTypeDependencies(ViewType.COMPILE_CLASSPATH).collectEntries {
             setPublicationAlias(it.dependencyProject)

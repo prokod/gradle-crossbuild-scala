@@ -18,7 +18,7 @@ package com.github.prokod.gradle.crossbuild
 import static com.github.prokod.gradle.crossbuild.ResolutionStrategyHandler.*
 
 import com.github.prokod.gradle.crossbuild.model.DependencyLimitedInsight
-import com.github.prokod.gradle.crossbuild.utils.DependencyInsights
+import com.github.prokod.gradle.crossbuild.utils.DependencyOps
 import com.github.prokod.gradle.crossbuild.utils.SourceSetInsights
 import com.github.prokod.gradle.crossbuild.utils.LoggerUtils
 import com.github.prokod.gradle.crossbuild.utils.ViewType
@@ -72,7 +72,7 @@ class ResolutionStrategyConfigurer {
 
             def allDependencies = dependencySets.flatMapped()
 
-            //avoid big string creation
+            //avoid unnecessary string creation
             if (project.logger.infoEnabled) {
                 project.logger.info(LoggerUtils.logTemplate(project,
                     lifecycle:'afterEvaluate',
@@ -83,7 +83,7 @@ class ResolutionStrategyConfigurer {
                         "${allDependencies.collect { "${it.group}:${it.name}" }.join(', ')}]"
                 ))
             }
-            def di = new DependencyInsights(sourceSetInsights)
+            def di = new DependencyOps(sourceSetInsights)
 
             def projectDependencies =
                 di.findAllCrossBuildProjectTypeDependenciesDependenciesFor([configs.main.name] as Set, view)
@@ -146,11 +146,14 @@ class ResolutionStrategyConfigurer {
         // Not a cross build dependency, specifically from org.scala-lang group
         else {
             if (requested.group == 'org.scala-lang') {
-                def targetModule =
-                        ResolutionStrategyHandler.handleScalaModuleCase(Coordinates.from(requested),
-                                scalaVersionInsights)
-                details.useTarget(targetModule.toString())
-                details.because('Cross compilation')
+                def requestedScalaVersionInsights = new ScalaVersionInsights(requested.version, scalaVersions)
+                if (!ForUseType.isRequested2_13Compiled3(requestedScalaVersionInsights, scalaVersionInsights)) {
+                    def targetModule =
+                            ResolutionStrategyHandler.handleScalaModuleCase(Coordinates.from(requested),
+                                    scalaVersionInsights)
+                    details.useTarget(targetModule.toString())
+                    details.because('Cross compilation')
+                }
             }
         }
     }
@@ -186,7 +189,7 @@ class ResolutionStrategyConfigurer {
                                                             SourceSetInsightsView insightsView) {
         def dependencySet = [configuration.allDependencies]
 
-        def di = new DependencyInsights(sourceSetInsights)
+        def di = new DependencyOps(sourceSetInsights)
 
         def configurationNames = [configuration.name] as Set
         def crossBuildProjectDependencySet =
@@ -194,7 +197,7 @@ class ResolutionStrategyConfigurer {
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet.collectMany { it.toSet() })
 
-        def scalaDeps = DependencyInsights.findScalaDependencies(allDependencySet, scalaVersions)
+        def scalaDeps = DependencyOps.findScalaDependencies(allDependencySet, scalaVersions)
 
         def versions = scalaDeps*.supposedScalaVersion.toSet()
         if (versions.size() == 1) {
@@ -233,7 +236,7 @@ class ResolutionStrategyConfigurer {
                                                    SourceSetInsightsView insightsView) {
         def dependencySet = insightsView.getDependencySets(DependencySetType.ALL).flatMapped().toSet()
 
-        def di = new DependencyInsights(sourceSetInsights)
+        def di = new DependencyOps(sourceSetInsights)
 
         def configurationNames = insightsView.configurations.flatMapped()*.name.toSet()
         def crossBuildProjectDependencySet =
@@ -241,7 +244,7 @@ class ResolutionStrategyConfigurer {
 
         def allDependencySet = (crossBuildProjectDependencySet + dependencySet)
 
-        def libGrid = DependencyInsights.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
+        def libGrid = DependencyOps.findAllNonMatchingScalaVersionDependenciesWithCounterparts(
             allDependencySet, targetScalaVersion, scalaVersions)
 
         // dependencyMap key is name of dependency and value contains suggested correct dependency/ies
@@ -296,7 +299,7 @@ class ResolutionStrategyConfigurer {
                                                     SourceSetInsightsView insightsView) {
         def dependencySet = [configuration.allDependencies]
 
-        def di = new DependencyInsights(sourceSetInsights)
+        def di = new DependencyOps(sourceSetInsights)
 
         def configurationNames = [configuration.name] as Set
         def crossBuildProjectDependencySet =
@@ -306,7 +309,7 @@ class ResolutionStrategyConfigurer {
 
         def probableScalaVersionRaw = scalaVersions.catalog*.key.collect { String scalaVersion ->
             def scalaVersionInsights = new ScalaVersionInsights(scalaVersion, scalaVersions)
-            def deps = DependencyInsights.findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
+            def deps = DependencyOps.findAllNonMatchingScalaVersionDependenciesQMarksExcluded(
                 allDependencySet, scalaVersionInsights.artifactInlinedVersion, scalaVersions)
             new Tuple2(scalaVersionInsights.artifactInlinedVersion, deps.size())
         }.findAll { tuple ->

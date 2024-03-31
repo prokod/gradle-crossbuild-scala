@@ -18,7 +18,7 @@ package com.github.prokod.gradle.crossbuild
 import org.gradle.api.artifacts.ModuleVersionSelector
 
 /**
- * Dependency resolution strategy handler. Holds dependency coordinated abstraction that supports both
+ * Dependency resolution strategy handler. Holds dependency coordinates abstraction that supports both
  * <hl>
  *     <li>{@link ModuleVersionSelector}
  *     <li> Pom XMl Node
@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 class ResolutionStrategyHandler {
 
     static Coordinates handleScalaModuleCase(Coordinates requested, ScalaVersionInsights scalaVersionInsights) {
-        if (requested.group.id == 'org.scala-lang') {
-            def targetModuleName = ScalaModuleType.convert(requested.name.id, scalaVersionInsights.majorVersion)
+        if (requested.group.id == 'org.scala-lang' ) {
+            def targetModuleName = DependencyModuleType.convert(requested.name.id, scalaVersionInsights.majorVersion)
             return new Coordinates(requested.group.id, targetModuleName, scalaVersionInsights.compilerVersion)
         }
         requested

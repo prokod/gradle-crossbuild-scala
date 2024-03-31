@@ -5,6 +5,6 @@ runner {
     enabled true
     defaultSpecificationExecutionMode ExecutionMode.CONCURRENT
     defaultExecutionMode ExecutionMode.SAME_THREAD
-    // fixed(3)
+    fixed(2)
   }
 }

@@ -7,7 +7,7 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.SourceSet
 
 /**
- * Used within {@link DependencyInsights} mainly
+ * Used within {@link DependencyOps} mainly
  *
  * Semantically binding main source set and cross build source set over the same configuration type see
  * {@link ViewType}

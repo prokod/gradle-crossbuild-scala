@@ -1,7 +1,7 @@
 package com.github.prokod.gradle.crossbuild.utils
 
 import com.github.prokod.gradle.crossbuild.CrossBuildSourceSets
-import com.github.prokod.gradle.crossbuild.ScalaModuleType
+import com.github.prokod.gradle.crossbuild.DependencyModuleType
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
 import com.github.prokod.gradle.crossbuild.model.DependencyInsight
@@ -19,11 +19,11 @@ import javax.inject.Inject
  * A collection of Dependency related methods
  *
  */
-class DependencyInsights {
+class DependencyOps {
 
     final SourceSetInsights sourceSetInsights
 
-    DependencyInsights(SourceSetInsights sourceSetInsights) {
+    DependencyOps(SourceSetInsights sourceSetInsights) {
         this.sourceSetInsights = sourceSetInsights
     }
 
@@ -77,20 +77,41 @@ class DependencyInsights {
         def modules = CrossBuildPluginUtils.findAllCrossBuildPluginAppliedProjects(insightsView)
 
         def nonCrossBuildModulesPredicate = { Dependency dependency -> !modules*.name.contains(dependency.name) }
-
-        def consumerConfigurationDependenciesGroupName = consumerConfiguration.allDependencies.collect { dependency ->
+        // Create set of all dependencies' group:name for cross build config
+        def dependencyGroupAndBaseNameSet = consumerConfiguration.allDependencies.collect { dependency ->
             DependencyInsight.parse(dependency, scalaVersions).groupAndBaseName
         }.toSet()
+        // Create set of all dependencies' module type for cross build config
+        def dependencyModuleTypeSet = consumerConfiguration.allDependencies.collect { dependency ->
+            DependencyInsight.parse(dependency, scalaVersions).moduleType
+        }.toSet()
+
+        // Was added too filter out cases where upstream main config has scala lib dependency of let's say
+        // scala version 2.x and downstream crossBuild config has scala lib of version 3.x
+        // Replaces strategyForCrossBuildConfiguration code block where a non cross build dependency,
+        // specifically from org.scala-lang group was replaced with matching scala library which is not true for scala 3
+        def nonSameModuleTypePredicate = { Dependency dependency ->
+            def dependencyInsight = DependencyInsight.parse(dependency, scalaVersions)
+            if (dependencyInsight.moduleType in
+                    [DependencyModuleType.SCALA_LIBRARY, DependencyModuleType.SCALA_COMPILER]) {
+                if (dependencyModuleTypeSet.contains(dependencyInsight.moduleType)) {
+                    return false
+                }
+            }
+            true
+        }
 
         def nonSameExternalDependenciesPredicate = { Dependency dependency ->
-            def parsedGroupBaseName = DependencyInsight.parse(dependency, scalaVersions).groupAndBaseName
-            !consumerConfigurationDependenciesGroupName.contains(parsedGroupBaseName)
+            def dependencyInsight = DependencyInsight.parse(dependency, scalaVersions)
+            def parsedGroupBaseName = dependencyInsight.groupAndBaseName
+            !dependencyGroupAndBaseNameSet.contains(parsedGroupBaseName)
         }
 
         def producerConfigurationDependencies = insightsView.dependencySets.main
 
         def producerConfigurationFilteredDependencies = producerConfigurationDependencies
                 .findAll(nonCrossBuildModulesPredicate).findAll(nonSameExternalDependenciesPredicate)
+                    .findAll(nonSameModuleTypePredicate)
 
         consumerConfiguration.dependencies.addAll(producerConfigurationFilteredDependencies)
     }
@@ -382,7 +403,7 @@ class DependencyInsights {
      */
     static List<DependencyInsight> findScalaDependencies(Set<Dependency> dependencySet, ScalaVersions scalaVersions) {
         def isScalaLibDependency = { dependency ->
-            dependency.group == 'org.scala-lang' && dependency.name in ScalaModuleType.LIBRARY.getNames()
+            dependency.group == 'org.scala-lang' && dependency.name in DependencyModuleType.SCALA_LIBRARY.getNames()
         }
         def scalaDeps = dependencySet.findAll(isScalaLibDependency).collect { dep ->
             def scalaVersionInsights = new ScalaVersionInsights(dep.version, scalaVersions)
