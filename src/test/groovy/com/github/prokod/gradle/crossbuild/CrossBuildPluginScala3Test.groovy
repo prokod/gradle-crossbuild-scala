@@ -76,7 +76,7 @@ group = 'com.github.prokod.it'
 version = "1.0-SNAPSHOT"
 
 crossBuild {
-    scalaVersionsCatalog = ["2.10": "2.10.7", "2.11": "2.11.12", "2.12": "2.12.13", "2.13": "2.13.10", "3": "3.2.1"]
+    scalaVersionsCatalog = ["2.10": "2.10.7", "2.11": "2.11.12", "2.12": "2.12.19", "2.13": "2.13.10", "3": "3.3.1"]
 
     builds {
         scala {
