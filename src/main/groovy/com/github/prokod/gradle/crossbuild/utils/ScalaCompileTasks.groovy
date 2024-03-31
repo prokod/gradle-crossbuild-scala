@@ -35,15 +35,17 @@ class ScalaCompileTasks {
 
                 def targetType = ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion)
                 def target = targetType.getCompilerTargetJvm(targetCompatibility.inferredStrategy, t.targetCompatibility)
+                def parameter = targetType.getCompilerParameter()
                 if (t.scalaCompileOptions.additionalParameters != null) {
                     t.scalaCompileOptions.additionalParameters
-                            .add("-target:$target".toString())
-                } else {
-                    t.scalaCompileOptions.additionalParameters = ["-target:$target".toString()]
+                            .add("-$parameter:$target".toString())
+                }
+                else {
+                    t.scalaCompileOptions.additionalParameters = ["-$parameter:$target".toString()]
                 }
                 project.logger.info(LoggerUtils.logTemplate(project,
                         lifecycle:'task',
-                        msg:"Setting Scala compiler -target:$target [JVM tagetCompatibility: ${t.targetCompatibility}]"))
+                        msg:"Setting Scala compiler -$parameter:$target [Task: ${t.name}, JVM tagetCompatibility: ${t.targetCompatibility}]"))
 
                 t.exclude { FileTreeElement fte ->
                     def tested = fte.file.toPath()
