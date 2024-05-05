@@ -132,7 +132,7 @@ signing {
 }
 
 codenarc {
-    toolVersion = "1.1"
+    toolVersion = "3.4.0"
 }
 
 codenarcMain {

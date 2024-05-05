@@ -1,18 +1,12 @@
 package com.github.prokod.gradle.crossbuild.utils
 
 import com.github.prokod.gradle.crossbuild.CrossBuildExtension
-import com.github.prokod.gradle.crossbuild.DependencyModuleType
-import com.github.prokod.gradle.crossbuild.ScalaVersions
-import com.github.prokod.gradle.crossbuild.model.DependencyInsight
 import com.github.prokod.gradle.crossbuild.model.ResolvedTargetCompatibility
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
-import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetStrategyType
 import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetType
 import com.github.prokod.gradle.crossbuild.model.ScalaPluginCompileTargetCaseType
 import org.gradle.api.file.FileTreeElement
-import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.scala.ScalaCompile
-import org.gradle.util.VersionNumber
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -32,7 +26,7 @@ class ScalaCompileTasks {
         // So this should be avoided ...
         extension.project.tasks.withType(ScalaCompile) { ScalaCompile t ->
             if (t.name == sourceSetInsights.crossBuild.sourceSet.getCompileTaskName('scala')) {
-                println(">>> " + project.name + ', '+ t.name)
+//                println(">>> " + project.name + ', '+ t.name)
                 def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
                 if (!analysisFile) {
                     t.scalaCompileOptions.incrementalOptions.analysisFile.set(new File(
@@ -40,7 +34,6 @@ class ScalaCompileTasks {
                                     "${sourceSetInsights.crossBuild.sourceSet.name}/${project.name}.analysis")
                     )
                 }
-
 //                def targetType = ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion)
 //                def target = targetType.getCompilerTargetJvm(targetCompatibility.inferredStrategy, t.targetCompatibility)
 //                def parameter = targetType.getTargetParameter()
@@ -54,7 +47,6 @@ class ScalaCompileTasks {
 //                    t.scalaCompileOptions.additionalParameters = ["-$parameter:$target".toString()]
 //                    println(">>> [cc-2] " + t.scalaCompileOptions.additionalParameters.join(', '))
 //                }
-
                 def compileCase = ScalaPluginCompileTargetCaseType.from(extension.project.gradle.gradleVersion)
 
                 def (options, msgFunction) = compileCase.getCompilerOptionsFunction()
@@ -77,8 +69,7 @@ class ScalaCompileTasks {
                         t.scalaCompileOptions.additionalParameters = options
                     }
                 }
-
-                println(">>> Setting Scala compiler options: ${t.scalaCompileOptions.additionalParameters.join(', ')} [Task: ${t.name}, JVM tagetCompatibility: ${t.targetCompatibility}]")
+//                println(">>> Setting Scala compiler options: ${t.scalaCompileOptions.additionalParameters.join(', ')} [Task: ${t.name}, JVM tagetCompatibility: ${t.targetCompatibility}]")
                 extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
                         lifecycle:'task',
                         msg:"Setting Scala compiler options: ${options.join(', ')} [Task: ${t.name}, JVM tagetCompatibility: ${t.targetCompatibility}]"))
@@ -90,86 +81,87 @@ class ScalaCompileTasks {
                         if (Files.exists(possibleDup) && !Files.isDirectory(possibleDup)) {
                             project.logger.info(LoggerUtils.logTemplate(project,
                                     lifecycle:'task',
-                                    msg:"Excluding from compilation detected duplicate source file: [${tested.normalize().toString()}]"))
+                                    msg:"Excluding from compilation detected duplicate source file: [${tested.normalize()}]"))
                             return true
                         }
                     }
                     return false
                 }
             }
-//            else if (t.name == sourceSetInsights.main.sourceSet.getCompileTaskName('scala')) {
-//                println(">>>> " + project.name + ', '+ t.name)
-//
-//                def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
-//                def configuration = extension.project.configurations
-//                        .getByName(sourceSetInsights.main.sourceSet.getImplementationConfigurationName())
-//                def lib = configuration.allDependencies
-//                        .collect {DependencyInsight.parse(it, sv) }
-//                        .find {it.moduleType == DependencyModuleType.SCALA_LIBRARY }
-//                if (lib == null) {
-//                    return
-//                }
-//                println(">>>> [lib] " + lib.group + ', '+ lib.baseName +  ", " + lib.version)
-//                def compileCase = ScalaPluginCompileTargetCaseType.from(extension.project.gradle.gradleVersion)
-//
-//                def options = compileCase.getCompilerOptionsFunction().call(ScalaCompilerTargetType.from(lib.version),
-//                        targetCompatibility.inferredStrategy,
-//                        t.targetCompatibility)
-//
-//                if (t.scalaCompileOptions.additionalParameters != null &&
-//                        !t.scalaCompileOptions.additionalParameters.isEmpty()) {
-//                    if (! compileCase.getTargetOptionExistsPredicate().call(t.scalaCompileOptions.additionalParameters)) {
-//                        def updated = t.scalaCompileOptions.additionalParameters + options
-//                        t.scalaCompileOptions.additionalParameters = updated
-//                    }
-//                }
-//                else {
-//                    t.scalaCompileOptions.additionalParameters = options
-//                }
-
-
-
-//                def targetType = ScalaCompilerTargetType.from(lib.version)
-//                def target = targetType.getCompilerTargetJvm(targetCompatibility.inferredStrategy, t.targetCompatibility)
-//                def parameter = targetType.getTargetParameter()
-//                if (t.scalaCompileOptions.additionalParameters != null &&
-//                        !t.scalaCompileOptions.additionalParameters.isEmpty()) {
-//
-//                    println(">>>> Current options: [${t.scalaCompileOptions.additionalParameters.join(', ')}]")
-//                    if(VersionNumber.parse(extension.project.gradle.gradleVersion) >= VersionNumber.parse('8.5')) {
-//                        if ('release' == targetType.targetParameter) {
-//                            if (t.scalaCompileOptions.additionalParameters
-//                                    .findAll { it.startsWith('-release') }.isEmpty()) {
-//                                def updated = t.scalaCompileOptions.additionalParameters + ["-$parameter:$target".toString()]
-//                                t.scalaCompileOptions.additionalParameters = updated
-//                                println(">>>> [${lib.version} > 2.13.1]" + project.name + ', ' + t.name + ", -$parameter:$target,  [${t.scalaCompileOptions.additionalParameters.join(', ')}]")
-//                            }
-//                        }
-//                    }
-//                    else {
-//                        if (! t.scalaCompileOptions.additionalParameters
-//                                .findAll {it.startsWith('-Xfatal-warnings')}.isEmpty()) {
-//                            throw new StopExecutionException('Compiler option -Xfatal-warnings cannot be used' +
-//                                    " alongside Scala compiler version ${lib.version}")
-//                        }
-//                        if (t.scalaCompileOptions.additionalParameters
-//                                .findAll {it.startsWith('-target')}.isEmpty()) {
-//                            def updated = t.scalaCompileOptions.additionalParameters + ["-$parameter:$target".toString()]
-//                            t.scalaCompileOptions.additionalParameters = updated
-//                        }
-//                    }
-////                    t.scalaCompileOptions.additionalParameters.removeIf {it.contains('-release') || it.contains('11') || it.contains('-target')}
-////                    def updated = t.scalaCompileOptions.additionalParameters + ['-target:jvm-11']
-////                    t.scalaCompileOptions.additionalParameters = updated
-//                }
-//                else {
-//                    t.scalaCompileOptions.additionalParameters = ["-$parameter:$target".toString()]
-//                    println(">>>> " + project.name + ', '+ t.name +  ", -$parameter:$target")
-////                    t.scalaCompileOptions.additionalParameters = ["-$parameter:$target".toString()]
-////                    t.scalaCompileOptions.additionalParameters = ['-target:jvm-11'] //'-target:11',
-//                }
-
-//            }
+// TODO: move code here fom below if need be
         }
     }
 }
+
+//        else if (t.name == sourceSetInsights.main.sourceSet.getCompileTaskName('scala')) {
+//            println(">>>> " + project.name + ', '+ t.name)
+//
+//            def sv = ScalaVersions.withDefaultsAsFallback(extension.scalaVersionsCatalog)
+//            def configuration = extension.project.configurations
+//                    .getByName(sourceSetInsights.main.sourceSet.getImplementationConfigurationName())
+//            def lib = configuration.allDependencies
+//                    .collect {DependencyInsight.parse(it, sv) }
+//                    .find {it.moduleType == DependencyModuleType.SCALA_LIBRARY }
+//            if (lib == null) {
+//                return
+//            }
+//            println(">>>> [lib] " + lib.group + ', '+ lib.baseName +  ", " + lib.version)
+//            def compileCase = ScalaPluginCompileTargetCaseType.from(extension.project.gradle.gradleVersion)
+//
+//            def options = compileCase.getCompilerOptionsFunction().call(ScalaCompilerTargetType.from(lib.version),
+//                    targetCompatibility.inferredStrategy,
+//                    t.targetCompatibility)
+//
+//            if (t.scalaCompileOptions.additionalParameters != null &&
+//                    !t.scalaCompileOptions.additionalParameters.isEmpty()) {
+//                if (! compileCase.getTargetOptionExistsPredicate().call(t.scalaCompileOptions.additionalParameters)) {
+//                    def updated = t.scalaCompileOptions.additionalParameters + options
+//                    t.scalaCompileOptions.additionalParameters = updated
+//                }
+//            }
+//            else {
+//                t.scalaCompileOptions.additionalParameters = options
+//            }
+//            def targetType = ScalaCompilerTargetType.from(lib.version)
+//            def target = targetType.getCompilerTargetJvm(targetCompatibility.inferredStrategy, t.targetCompatibility)
+//            def parameter = targetType.getTargetParameter()
+//            if (t.scalaCompileOptions.additionalParameters != null &&
+//                    !t.scalaCompileOptions.additionalParameters.isEmpty()) {
+//
+//                println(">>>> Current options: [${t.scalaCompileOptions.additionalParameters.join(', ')}]")
+//                if(VersionNumber.parse(extension.project.gradle.gradleVersion) >= VersionNumber.parse('8.5')) {
+//                    if ('release' == targetType.targetParameter) {
+//                        if (t.scalaCompileOptions.additionalParameters
+//                                .findAll { it.startsWith('-release') }.isEmpty()) {
+//                            def updated = t.scalaCompileOptions.additionalParameters +
+//                            ["-$parameter:$target".toString()]
+//                            t.scalaCompileOptions.additionalParameters = updated
+//                            println(">>>> [${lib.version} > 2.13.1]" + project.name + ', ' + t.name + ",
+//                            -$parameter:$target,  [${t.scalaCompileOptions.additionalParameters.join(', ')}]")
+//                        }
+//                    }
+//                }
+//                else {
+//                    if (! t.scalaCompileOptions.additionalParameters
+//                            .findAll {it.startsWith('-Xfatal-warnings')}.isEmpty()) {
+//                        throw new StopExecutionException('Compiler option -Xfatal-warnings cannot be used' +
+//                                " alongside Scala compiler version ${lib.version}")
+//                    }
+//                    if (t.scalaCompileOptions.additionalParameters
+//                            .findAll {it.startsWith('-target')}.isEmpty()) {
+//                        def updated = t.scalaCompileOptions.additionalParameters + ["-$parameter:$target".toString()]
+//                        t.scalaCompileOptions.additionalParameters = updated
+//                    }
+//                }
+////                    t.scalaCompileOptions.additionalParameters.removeIf {it.contains('-release') ||
+// it.contains('11') || it.contains('-target')}
+////                    def updated = t.scalaCompileOptions.additionalParameters + ['-target:jvm-11']
+////                    t.scalaCompileOptions.additionalParameters = updated
+//            }
+//            else {
+//                t.scalaCompileOptions.additionalParameters = ["-$parameter:$target".toString()]
+//                println(">>>> " + project.name + ', '+ t.name +  ", -$parameter:$target")
+////                    t.scalaCompileOptions.additionalParameters = ["-$parameter:$target".toString()]
+////                    t.scalaCompileOptions.additionalParameters = ['-target:jvm-11'] //'-target:11',
+//            }
+//        }

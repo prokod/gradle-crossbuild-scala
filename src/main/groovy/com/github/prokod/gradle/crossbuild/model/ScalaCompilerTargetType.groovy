@@ -36,7 +36,7 @@ import org.gradle.util.VersionNumber
  *
  * v2.x.x should be replaced with a concrete version like v2.13.9 for instance
  */
-@SuppressWarnings(['ThisReferenceEscapesConstructor', 'BitwiseOperatorInConditional',
+@SuppressWarnings(['ParameterCount', 'ThisReferenceEscapesConstructor', 'BitwiseOperatorInConditional',
         'PrivateFieldCouldBeFinal', 'LineLength', 'DuplicateListLiteral', 'DuplicateNumberLiteral'])
 enum ScalaCompilerTargetType {
     V2_9(VersionNumber.parse('2.9.0'), { v -> "jvm-1.${v}" }, { v -> null },'target',  5, 5),
@@ -53,7 +53,7 @@ enum ScalaCompilerTargetType {
     V2_13_0(VersionNumber.parse('2.13.0'), { v -> "jvm-1.${v}" }, { v -> null },'target', 8, 8),
     V2_13_1(VersionNumber.parse('2.13.1'), { v -> Integer.parseInt(v) == 8 ? "jvm-1.${v}" : "jvm-${v}" }, { v -> null } ,'target', 8, 12),
     V2_13_6(VersionNumber.parse('2.13.6'), { v -> Integer.parseInt(v) == 8 ? "jvm-1.${v}" : "jvm-${v}" }, { v -> null } , 'target',  8, 17),
-    V2_13_7(VersionNumber.parse('2.13.7'), { v -> Integer.parseInt(v) == 8 ? "jvm-1.${v}" : "jvm-${v}" },{ v -> null } , 'target',  8, 18),
+    V2_13_7(VersionNumber.parse('2.13.7'), { v -> Integer.parseInt(v) == 8 ? "jvm-1.${v}" : "jvm-${v}" }, { v -> null } , 'target',  8, 18),
     V2_13_9(VersionNumber.parse('2.13.9'), { v -> null }, { v -> "${v}" },'release', 8, 19),
     V3_0_0(VersionNumber.parse('3.0.0'), { v -> null }, { v -> "${v}" },'release', 8, 17),
     V3_1_3(VersionNumber.parse('3.1.3'), { v -> null },  { v -> "${v}" }, 'release', 11, 18),
@@ -124,7 +124,7 @@ enum ScalaCompilerTargetType {
                                                       String targetCompatibility) {
         def targetJvmValues = getCompilerTargetJvmValuesWithStrategy(strategy, targetCompatibility)
         def targetJvmMap = ['target':targetJvmValues.first, 'release':targetJvmValues.second]
-        targetJvmMap.findAll {it.value != null }.collect { "-${it.key}:${it.value}".toString() }
+        targetJvmMap.findAll {  it.value != null }.collect { "-${it.key}:${it.value}".toString() }
     }
 
 //    Tuple2<String, String> getCompilerTargetJvm(ScalaCompilerTargetStrategyType strategy, String targetCompatibility) {

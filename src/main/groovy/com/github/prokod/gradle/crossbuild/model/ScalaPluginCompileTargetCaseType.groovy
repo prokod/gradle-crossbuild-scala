@@ -53,10 +53,10 @@ import org.gradle.util.VersionNumber
  *     <li>Based on StandardScalaSettings from https://github.com/scala/scala/blob/v2.12.17/src/compiler/scala/tools/nsc/settings/StandardScalaSettings.scala</li>
  * </ul>
  */
-@SuppressWarnings(['ThisReferenceEscapesConstructor',
+@SuppressWarnings(['LineLength', 'BitwiseOperatorInConditional', 'ThisReferenceEscapesConstructor',
         'PrivateFieldCouldBeFinal', 'Indentation', 'DuplicateListLiteral'])
 enum ScalaPluginCompileTargetCaseType {
-    GRADLE_6_0_1(VersionNumber.parse('6.0.1'),{ ScalaCompilerTargetType targetType,
+    GRADLE_6_0_1(VersionNumber.parse('6.0.1'), { ScalaCompilerTargetType targetType,
                     ScalaCompilerTargetStrategyType strategy,
                     ScalaCompileOptions scalaCompileOptions,
                     String targetCompatibility ->
@@ -67,20 +67,19 @@ enum ScalaPluginCompileTargetCaseType {
             return new Tuple2(compilerTargetArgs, null)
         }
         else {
-            if (containsFailOnWarnings(scalaCompileOptions) && compilerTargetArgs.find { it.startsWith('-release:')}) {
-                return new Tuple2(compilerTargetArgs, {gradleVersion -> "Cannot reconcile" +
-                        " Gradle version: ${gradleVersion}, " +
+            if (containsFailOnWarnings(scalaCompileOptions) && compilerTargetArgs.find { it.startsWith('-release:') }) {
+                return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                        "Cannot reconcile Gradle version: ${gradleVersion}, " +
                         " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}," +
                         " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
                         " and scalac with minimum compiler version: ${targetType.compilerVersion} checks" +
                         " with the given target jvm: ${targetCompatibility}." +
-                        " Consider changing one or more of the following: target jvm, scala version, scalac user" +
-                        " defined parameters"})
+                        ' Consider changing one or more of the following: target jvm, scala version, scalac user' +
+                        ' defined parameters' })
             }
             else {
                 return new Tuple2(compilerTargetArgs, null)
             }
-
         }
 //        if (targetType.getTargetParameter() == 'release') {
 //            // scalac compiler for scala 2.12.17 and up throws deprecation error if -target is not exactly 8
@@ -109,7 +108,7 @@ enum ScalaPluginCompileTargetCaseType {
 //            compilerTargetArgs
 //        }
     }),
-    GRADLE_8_0(VersionNumber.parse('8.0'),{ ScalaCompilerTargetType targetType,
+    GRADLE_8_0(VersionNumber.parse('8.0'), { ScalaCompilerTargetType targetType,
                                             ScalaCompilerTargetStrategyType strategy,
                                             ScalaCompileOptions scalaCompileOptions,
                                             String targetCompatibility ->
@@ -121,19 +120,18 @@ enum ScalaPluginCompileTargetCaseType {
         }
         else {
             if (containsFailOnWarnings(scalaCompileOptions) && containsTarget(scalaCompileOptions) &&
-                    compilerTargetArgs.find { it.startsWith('-release:')}) {
-
-                return new Tuple2(compilerTargetArgs, { gradleVersion -> "Cannot reconcile" +
-                        " Gradle version: ${gradleVersion}, " +
+                    compilerTargetArgs.find { it.startsWith('-release:') }) {
+                return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                        "Cannot reconcile Gradle version: ${gradleVersion}, " +
                         " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}," +
                         " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
                         " and scalac with minimum compiler version: ${targetType.compilerVersion} checks" +
                         " with the given target jvm: ${targetCompatibility}." +
-                        " Consider changing one or more of the following: target jvm, scala version, scalac user" +
-                        " defined parameters" })
+                        ' Consider changing one or more of the following: target jvm, scala version, scalac user' +
+                        ' defined parameters' })
             }
             else {
-                return new Tuple2(compilerTargetArgs, null)
+                return  new Tuple2(compilerTargetArgs, null)
             }
         }
     }),
@@ -150,7 +148,7 @@ enum ScalaPluginCompileTargetCaseType {
             return new Tuple2([], { gradleVersion ->
                 "Detected Gradle version: ${gradleVersion}" +
                 " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}, will be skipped" +
-                " in favor of Scala Plugin own determined flags"
+                ' in favor of Scala Plugin own determined flags'
             })
         }
         else {
@@ -159,17 +157,17 @@ enum ScalaPluginCompileTargetCaseType {
                 return new Tuple2(compilerTargetArgs, null)
             }
             // scala 2.13 and higher
-            else if (compilerTargetArgs.find { it.startsWith('-release:')}) {
+            else if (compilerTargetArgs.find { it.startsWith('-release:') }) {
                 return new Tuple2([], { gradleVersion ->
-                    "Detected Gradle version: ${gradleVersion} and Scala compiler version is 2.13.1 and above" +
-                    " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}, will be skipped" +
-                    " in favor of Scala Plugin own determined flags"
+                    "Detected Gradle version: ${gradleVersion} and Scala compiler version is 2.13.1 and above." +
+                    " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
+                    '   , will be skipped in favor of Scala Plugin own determined flags'
                 })
             }
             //
-            else {
-
-            }
+//            else {
+//
+//            }
         }
     })
 
@@ -199,13 +197,11 @@ enum ScalaPluginCompileTargetCaseType {
 
     private static boolean containsFailOnWarnings(ScalaCompileOptions scalaCompileOptions) {
         scalaCompileOptions.additionalParameters.findAll { it.startsWith('-Xfatal-warnings') }.size() > 0
-
     }
 
     private static boolean containsTarget(ScalaCompileOptions scalaCompileOptions) {
         scalaCompileOptions.additionalParameters
                 .findAll { it.startsWith('-target:') || it.startsWith('-Xtarget:') }.size() > 0
-
     }
 
     static ScalaPluginCompileTargetCaseType from(String gradleVersion) {

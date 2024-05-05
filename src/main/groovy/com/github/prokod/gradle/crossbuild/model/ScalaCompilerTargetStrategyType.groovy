@@ -17,7 +17,8 @@ package com.github.prokod.gradle.crossbuild.model
 
 /**
  * <ul>
- *  <li>DEFAULT - Choose user's requested target JVM otherwise, default target JVM for the current Scala Compiler version</li>
+ *  <li>DEFAULT - Choose user's requested target JVM otherwise, default target JVM for the current Scala Compiler
+ *  version</li>
  *  <li>MAX     - Use latest supported JVM for the given Scala Compiler version up-to user's requested target JVM</li>
  *  <li>FAIL    - Use requested JVM. If not supported raise exception</li>
  * </ul>
