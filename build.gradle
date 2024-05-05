@@ -125,7 +125,7 @@ publishing {
 }
 
 signing {
-    def required = { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+    required = isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")
     if (required) {
         sign publishing.publications.pluginMaven
     }

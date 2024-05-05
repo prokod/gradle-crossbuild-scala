@@ -335,7 +335,7 @@ crossBuild {
     archive.appendixPattern = '_?'                  // Default appendix pattern for all builds
 
     targetCompatibility.strategy = 'default'        // Default JVM target compatibility strategy oneof
-                                                    // default/smart/strict
+                                                    // default/max/fail
     builds {
         v210
         v211 {
@@ -407,13 +407,13 @@ From plugin version `0.15.0` Scala 3 is supported
 #### `targetCompatibilty.strategy`
 As Scala 3 default JVM for later Scala 3.x versions changed to Java 11 and to support any new developments in that area,</br>
 the plugin DSL was extended to support JVM targetCompatibility through strategy
-- The available values: `default`/`smart`/`strict`
-- `default` **strategy**
+- The available values: `default`/`max`/`fail`
+- toolchain_or_`default` **strategy**
   In this strategy, the Scala compiler will try to adhere to the targetCompatibility JVM version.</br>
   If the targetCompatibility is not supported by the Scala version to be compiled, the default JVM for that compilation is changed to the **default** JVM for that specific Scala version.
-- `smart` **strategy**
+- toolchain_or_`max` **strategy**
   In this strategy, if the targetCompatibility is not supported by the Scala version to be compiled, the default JVM for that compilation is changed to the **latest** JVM for that specific Scala version.
-- `strict` **strategy**
+- toolchain_or_`fail` **strategy**
   In this strategy, if the targetCompatibility is not supported by the Scala version to be compiled, the build is stopped
 
 > **Note**
@@ -668,6 +668,7 @@ subprojects {
 
 | plugin version | Tested Gradle versions       | Tested JVM | Tested Scala Compilers          |
 |----------------|------------------------------|------------|---------------------------------|
+| 0.16.x         | 5.6.4*, 6.9.4*, 7.6.4, 8.7   | 8, 11      | 2.10.0-2.13.x</br>3.0.0 - 3.2.x |
 | 0.16.x         | 5.6.4*, 6.9.4*, 7.6.2, 8.3   | 8, 11      | 2.10.0-2.13.x</br>3.0.0 - 3.2.x |
 | 0.15.x         | 5.6.4*, 6.9.4*, 7.6.1, 8.0.2 | 8, 11      | 2.10.0-2.13.x</br>3.0.0 - 3.2.x |
 | 0.14.x         | 5.6.4, 6.9.2, 7.3.3          | 8          | 2.10.0-2.13.x                   |

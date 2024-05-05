@@ -120,12 +120,16 @@ subprojects {
     }
 
     tasks.withType<ScalaCompile>().configureEach {
-        val plugins = File("\$buildDir/scalac-plugins").listFiles()?.let {
-            "-Xplugin:" + it.joinToString(",")
+//        val plugins = File("\$buildDir/scalac-plugins").listFiles()?.let {
+//            "-Xplugin:" + it.joinToString(",")
+//        }
+        
+        when (name) {
+            "compileScala" -> scalaCompileOptions.additionalParameters =
+                    listOf("-release:8", "-feature", "-Xfatal-warnings")
+            else -> scalaCompileOptions.additionalParameters =
+                    listOf("-feature", "-Xfatal-warnings") //+ listOfNotNull(plugins)
         }
-
-        scalaCompileOptions.additionalParameters =
-            listOf("-feature", "-Xfatal-warnings") + listOfNotNull(plugins)
     }
 }
 """
@@ -148,13 +152,12 @@ class Example {
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
                 /*@withDebug@*/
-                .withArguments('tasks', 'crossBuildAssemble', 'crossBuildResolvedConfigs', /*'publishToMavenLocal', */'--debug', '--stacktrace')
+                .withArguments('tasks', 'build', 'crossBuildAssemble', 'crossBuildResolvedConfigs', '--stacktrace')
                 .build()
 
         then:
-        print(result.output)
         result.task(":tasks").outcome == SUCCESS
-//        result.task(":build").outcome == SUCCESS
+        result.task(":libraryA:build").outcome == SUCCESS
         result.task(":libraryA:crossBuildAssemble").outcome == SUCCESS
 
         fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12-*.jar'))
@@ -163,10 +166,6 @@ class Example {
         where:
         gradleVersion   | defaultScalaLibModuleName | defaultScalaLibVersion
         '7.6.4'         | 'scala-library'          | '2.12.17'
-//        '7.6.4'         | 'scala-library'          | '2.13.10'
-//        '7.6.4'         | 'scala3-library_3'       | '3.3.1'
-//        '8.7'           | 'scala-library'          | '2.13.10'
-//        '8.7'           | 'scala-library'          | '2.12.19'
-//        '8.7'           | 'scala3-library_3'       | '3.3.1'
+        '8.7'           | 'scala-library'          | '2.13.12'
     }
 }

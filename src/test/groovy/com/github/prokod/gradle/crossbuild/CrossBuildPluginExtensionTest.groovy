@@ -349,8 +349,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion | tcs       | ap       | otcs1   | otcs2    | otcs3 | oap3       | etcs1     | etcs2     | etcs3     | eap3
-        '7.6.2'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | null       | 'smart'   | 'strict'  | 'default' | '-def_?'
-        '8.3'         | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | '-2-4-1_?' | 'smart'   | 'strict'  | 'default' | '-2-4-1_?'
+        '7.6.2'       | '2.12'              | 'default' | '-def_?' | 'max'   | 'fail'   | null  | null       | 'max'     | 'fail'  | 'default' | '-def_?'
+        '8.3'         | '2.12'              | 'default' | '-def_?' | 'max'   | 'fail'   | null  | '-2-4-1_?' | 'max'     | 'fail'  | 'default' | '-2-4-1_?'
     }
 
 /**
@@ -507,8 +507,8 @@ dependencies {
         where:
         gradleVersion | defaultScalaVersion | tcs       | ap   | otcs1   | otcs2 | otcs3 | oap3 | etcs1     | etcs2     | etcs3     | eap3
         '5.6.4'       | '2.10'              | 'default' | '_?' | null    | null  | null  | null | 'default' | 'default' | 'default' | '_?'
-        '6.9.4'       | '2.11'              | 'default' | '_?' | 'smart' | null  | null  | null | 'smart'   | 'default' | 'default' | '_?'
-        '7.6.2'       | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | null       | 'smart'   | 'strict'  | 'default' | '-def_?'
-        '8.3'         | '2.12'              | 'default' | '-def_?' | 'smart' | 'strict' | null  | '-2-4-1_?' | 'smart'   | 'strict'  | 'default' | '-2-4-1_?'
+        '6.9.4'       | '2.11'              | 'default' | '_?' | 'max'   | null  | null  | null | 'max'     | 'default' | 'default' | '_?'
+        '7.6.2'       | '2.12'              | 'default' | '-def_?' | 'max' | 'fail' | null  | null       | 'max'   | 'fail'  | 'default' | '-def_?'
+        '8.3'         | '2.12'              | 'default' | '-def_?' | 'max' | 'fail' | null  | '-2-4-1_?' | 'max'   | 'fail'  | 'default' | '-2-4-1_?'
     }
 }

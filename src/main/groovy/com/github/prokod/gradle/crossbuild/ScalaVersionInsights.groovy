@@ -35,7 +35,7 @@ class ScalaVersionInsights {
     String artifactInlinedVersion
     String underscoredArtifactInlinedVersion
     String strippedArtifactInlinedVersion
-    String scalaCompilerDefaultTargetJvm
+    Tuple2<String, String> scalaCompilerDefaultTargetJvm
 
     ScalaVersionInsights(String targetVersion, ScalaVersions scalaVersions = null) {
         insightFor(targetVersion, scalaVersions)
@@ -46,7 +46,7 @@ class ScalaVersionInsights {
         strippedArtifactInlinedVersion = artifactInlinedVersion.replaceAll('\\.', '')
 
         scalaCompilerDefaultTargetJvm = ScalaCompilerTargetType.from(compilerVersion)
-                .getCompilerTargetJvm(ScalaCompilerTargetStrategyType.DEFAULT)
+                .getCompilerTargetJvmValuesWithStrategy(ScalaCompilerTargetStrategyType.TOOLCHAIN_OR_DEFAULT)
     }
 
     private void insightFor(String version, ScalaVersions scalaVersions) {
