@@ -151,23 +151,36 @@ enum ScalaPluginCompileTargetCaseType {
                 ' in favor of Scala Plugin own determined flags'
             })
         }
+        // jvm greater then 8
         else {
-            // Scala 2.12.17+ and jvm greater then 8 - force 8 and issue message on that
+            // Scala 2.12.17+ (when this is the case compilerTargetArgs size is 2) and '-Xfatal-warnings'
             if (compilerTargetArgs.size() > 1 && containsFailOnWarnings(scalaCompileOptions)) {
-                return new Tuple2(compilerTargetArgs, null)
+                return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                    "Detected Gradle version: ${gradleVersion} and Scala compiler version is 2.12.17+." +
+                    " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
+                    " includes '-Xfatal-warnings'." +
+                    " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
+                    ', will be forced to prevent Scala compile from failing'
+                })
             }
-            // scala 2.13 and higher
+            // Scala 2.13 and higher
             else if (compilerTargetArgs.find { it.startsWith('-release:') }) {
                 return new Tuple2([], { gradleVersion ->
                     "Detected Gradle version: ${gradleVersion} and Scala compiler version is 2.13.1 and above." +
                     " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
-                    '   , will be skipped in favor of Scala Plugin own determined flags'
+                    ', will be skipped in favor of Scala Plugin own determined flags'
                 })
             }
-            //
-//            else {
-//
-//            }
+            // Scala prior to 2.12.17
+            // The plugin logic for default compiler flags are better suited, in this scenario, than Gradle's own
+            // defaults
+            else {
+                return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                    "Detected Gradle version: ${gradleVersion} and Scala compiler version is 2.12.116 and below." +
+                    " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
+                    ', will be forced to prevent Scala compile from failing'
+                })
+            }
         }
     })
 

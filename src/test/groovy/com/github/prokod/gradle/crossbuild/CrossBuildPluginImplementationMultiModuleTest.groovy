@@ -226,10 +226,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.10'
-        '7.6.1'         | '2.11'
-        '8.3'           | '2.12'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 
     /**
@@ -361,10 +359,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.11'
-        '6.9.4'         | '2.11'
-        '7.6.1'         | '2.12'
-        '8.3'           | '2.12'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 
     @Requires({ instance.testMavenCentralAccess() })
@@ -614,10 +610,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.12'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 
     /**
@@ -927,10 +921,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-//        '5.6.4'       | '2.11'
-//        '6.9.4'       | '2.12'
-//        '7.6.1'       | '2.11'
-        '8.3'        | '2.12'
+        '7.6.4'       | '2.11'
+        '8.7'         | '2.12'
     }
 
     /**
@@ -1256,10 +1248,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        '5.6.4'       | '2.11'
-        '6.9.4'       | '2.12'
-        '7.6.2'       | '2.11'
-        '8.2'         | '2.12'
+        '7.6.4'       | '2.11'
+        '8.7'         | '2.12'
     }
 
     /**
@@ -1510,9 +1500,7 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.12'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 }

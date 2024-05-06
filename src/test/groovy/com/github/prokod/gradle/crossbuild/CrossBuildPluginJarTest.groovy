@@ -253,9 +253,7 @@ dependencies {
         fileExists("${dir.resolve('build/libs/spock__gradle_*_2.12.jar')}")
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.12'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 }

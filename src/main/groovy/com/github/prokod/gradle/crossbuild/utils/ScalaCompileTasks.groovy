@@ -48,6 +48,8 @@ class ScalaCompileTasks {
 //                    println(">>> [cc-2] " + t.scalaCompileOptions.additionalParameters.join(', '))
 //                }
                 def compileCase = ScalaPluginCompileTargetCaseType.from(extension.project.gradle.gradleVersion)
+//                println(">>> compileCase:" + compileCase)
+//                println(">>> compileCase:" + ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion))
 
                 def (options, msgFunction) = compileCase.getCompilerOptionsFunction()
                         .call(ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion),
