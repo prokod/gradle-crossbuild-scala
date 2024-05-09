@@ -36,7 +36,7 @@ import org.gradle.util.VersionNumber
  *          <li>{@code ScalaCompileOptionsConfigurer#determineTargetParameter} configures scalac with
  *          '-target' parameter only</li>
  *      </ul>
- *  <li>GRADLE_LT_8_0 - Gradle is only aware of 'target' flag</li>
+ *  <li>GRADLE_6_0_1 - Gradle is only aware of 'target' flag</li>
  *      <ul>
  *          <li>{@code scalaCompileOptionsConfigurer#configure} Gradle by itself is only aware of 'target' flag
  *          and skips setting any only that flag internally for any compileScala task in case this flag is set
@@ -144,15 +144,15 @@ enum ScalaPluginCompileTargetCaseType {
 
         def normalized = normalizeTargetCompatibility(targetCompatibility).toInteger()
         // Java 8
-        if (normalized == 8) {
-            return new Tuple2([], { gradleVersion ->
-                "Detected Gradle version: ${gradleVersion}" +
-                " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}, will be skipped" +
-                ' in favor of Scala Plugin own determined flags'
-            })
-        }
-        // jvm greater then 8
-        else {
+//        if (normalized == 8) {
+//            return new Tuple2([], { gradleVersion ->
+//                "Detected Gradle version: ${gradleVersion}" +
+//                " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}, will be skipped" +
+//                ' in favor of Scala Plugin own determined flags'
+//            })
+//        }
+//        // jvm greater then 8
+//        else {
             // Scala 2.12.17+ (when this is the case compilerTargetArgs size is 2) and '-Xfatal-warnings'
             if (compilerTargetArgs.size() > 1 && containsFailOnWarnings(scalaCompileOptions)) {
                 return new Tuple2(compilerTargetArgs, { gradleVersion ->
@@ -176,12 +176,12 @@ enum ScalaPluginCompileTargetCaseType {
             // defaults
             else {
                 return new Tuple2(compilerTargetArgs, { gradleVersion ->
-                    "Detected Gradle version: ${gradleVersion} and Scala compiler version is 2.12.116 and below." +
+                    "Detected Gradle version: ${gradleVersion} and Scala compiler version is 2.12.16 and below." +
                     " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
                     ', will be forced to prevent Scala compile from failing'
                 })
             }
-        }
+//        }
     })
 
     private static Map<VersionNumber,ScalaPluginCompileTargetCaseType> mappings

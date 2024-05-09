@@ -376,8 +376,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        '6.9.4'       | '2.12'
-        '7.6.2'       | '2.11'
+        '7.6.4'       | '2.11'
         '8.3'         | '2.11'
+        '8.7'         | '2.11'
     }
 }

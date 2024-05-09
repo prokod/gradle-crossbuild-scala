@@ -69,7 +69,12 @@ class CrossBuildPluginCompileOnlyMultiModuleTest extends CrossBuildGradleRunnerS
      */
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi-module project with dependency graph of depth 3 with a more complex inter sub module dependencies and with cross building dsl that is different on each submodule and inlined individual appendixPattern with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
+    def """[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion]
+           applying crossbuild plugin on a multi-module project with dependency graph of depth 3
+           with a more complex inter sub module dependencies
+           and with cross building dsl that is different on each submodule
+           and inlined individual appendixPattern with publishing dsl
+           should produce expected: jars, pom files; and pom files content should be correct"""() {
         given:
         // root project settings.gradle
         settingsFile << """
@@ -408,12 +413,14 @@ dependencies {
         !fileExists(dir.resolve('app/build/libs/app-all_2.12*.jar'))
 
         when:
+        // Here we add placeholders to bridge the differences between different Gradle versions
+        // As an example of that, consider this past replacement case
         // Gradle 4 'java' plugin Configuration model is less precise and so firstLevelModuleDependencies are under
         // 'default' configuration, Gradle 5 already has a more precise model and so 'default' configuration is replaced
         // by either 'runtime' or 'compile' see https://gradle.org/whats-new/gradle-5/#fine-grained-transitive-dependency-management
         def expectedLib2JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
-                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
-                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _1_0_SNAPSHOT_: gradleVersion.substring(0,1).toInteger() == 7 ? '' : '-1.0-SNAPSHOT',
+                _DefaultProjectDependency_lib_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib''" : "identityPath=':lib'",
                 _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.8' : '',
                 _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 _7_2_26_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.26' : '',
@@ -428,12 +435,14 @@ dependencies {
         JSONAssert.assertEquals(expectedLib2JsonAsText, actualLib2JsonAsText, false)
 
         when:
-        // Gradle 4 'java' plugin Configuration model is less precise ans so firstLevelModuleDependencies are under
+        // Here we add placeholders to bridge the differences between different Gradle versions
+        // As an example of that, consider this past replacement case
+        // Gradle 4 'java' plugin Configuration model is less precise and so firstLevelModuleDependencies are under
         // 'default' configuration, Gradle 5 already has a more precise model and so 'default' configuration is replaced
         // by either 'runtime' or 'compile' see https://gradle.org/whats-new/gradle-5/#fine-grained-transitive-dependency-management
         def expectedLib3JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
-                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
-                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _1_0_SNAPSHOT_: gradleVersion.substring(0,1).toInteger() == 7 ? '' : '-1.0-SNAPSHOT',
+                _DefaultProjectDependency_lib_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib''" : "identityPath=':lib'",
                 _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.8' : '',
                 _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/lib_builds_resolved_configurations-03.json')
