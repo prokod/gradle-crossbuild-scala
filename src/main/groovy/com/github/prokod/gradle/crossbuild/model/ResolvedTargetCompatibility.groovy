@@ -10,6 +10,6 @@ class ResolvedTargetCompatibility extends TargetCompatibility {
 
     ResolvedTargetCompatibility(String strategy) {
         super('ResolvedTargetCompatibility', strategy, null)
-        this.inferredStrategy = ScalaCompilerTargetStrategyType.valueOf(this.strategy.toUpperCase())
+        this.inferredStrategy = ScalaCompilerTargetStrategyType.valueOf('TOOLCHAIN_OR_' + this.strategy.toUpperCase())
     }
 }

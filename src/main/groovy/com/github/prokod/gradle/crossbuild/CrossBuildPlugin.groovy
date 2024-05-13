@@ -317,7 +317,7 @@ class CrossBuildPlugin implements Plugin<Project> {
                     .withMainSourceSet(main)
                     .build()
             ScalaCompileTasks
-                    .tuneCrossBuildScalaCompileTask(extension.project,
+                    .tuneCrossBuildScalaCompileTask(extension,
                             sourceSetInsights, rb.scalaVersionInsights, rb.targetCompatibility)
         }
     }

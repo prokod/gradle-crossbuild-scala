@@ -22,7 +22,7 @@ jobs:
     if: github.event_name == 'pull_request'
     strategy:
       matrix:
-        java: [ '8', '11' ]
+        java: [ '8', '11', '17']
     steps:
       - name: setup_jdk
         uses: actions/setup-java@v3

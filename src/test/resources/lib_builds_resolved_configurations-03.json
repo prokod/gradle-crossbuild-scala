@@ -15,7 +15,7 @@
   {
     "configuration": {
       "allDependencies": [
-        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
+        "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark233_211Producer'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
       ],
@@ -32,7 +32,7 @@
   {
     "configuration": {
       "allDependencies": [
-        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}",
+        "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark233_211Producer'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
       ],
@@ -44,7 +44,7 @@
       "resolvedArtifacts": [
         "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
         "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-        "lib_2.11.jar (project :lib)"
+        "lib_2.11@_1_0_SNAPSHOT_@.jar (project :lib)"
       ],
       "files": [
         "scala-reflect-2.11.12.jar",
@@ -52,8 +52,8 @@
         "lib_2.11-1.0-SNAPSHOT.jar"
       ],
       "firstLevelModuleDependencies": [
-        "org.scala-lang:scala-reflect:2.11.12;@defaultOrCompile@",
-        "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
+        "org.scala-lang:scala-reflect:2.11.12;compile",
+        "org.scala-lang:scala-library:2.11.12;compile",
         "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark233_211Producer"
       ]
     }
@@ -63,7 +63,7 @@
       "allDependencies": [
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
         "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-        "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark233_211Producer'}"
+        "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark233_211Producer'}"
       ],
       "name": "crossBuildSpark233_211RuntimeClasspath"
     },
@@ -73,7 +73,7 @@
       "resolvedArtifacts": [
         "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
         "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-        "lib_2.11.jar (project :lib)"
+        "lib_2.11@_1_0_SNAPSHOT_@.jar (project :lib)"
       ],
       "files": [
         "scala-reflect-2.11.12.jar",
@@ -81,8 +81,8 @@
         "lib_2.11-1.0-SNAPSHOT.jar"
       ],
       "firstLevelModuleDependencies": [
-        "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-        "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+        "org.scala-lang:scala-reflect:2.11.12;runtime",
+        "org.scala-lang:scala-library:2.11.12;runtime",
         "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark233_211Producer"
       ]
     }
@@ -104,7 +104,7 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}",
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark242_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
@@ -121,7 +121,7 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}",
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark242_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
@@ -133,7 +133,7 @@
         "resolvedArtifacts": [
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
           "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
-          "lib_2.12.jar (project :lib)"
+          "lib_2.12@_1_0_SNAPSHOT_@.jar (project :lib)"
         ],
         "files": [
           "scala-reflect-2.12.8.jar",
@@ -141,8 +141,8 @@
           "lib_2.12-1.0-SNAPSHOT.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-reflect:2.12.8;@defaultOrCompile@",
-          "org.scala-lang:scala-library:2.12.8;@defaultOrCompile@",
+          "org.scala-lang:scala-reflect:2.12.8;compile",
+          "org.scala-lang:scala-library:2.12.8;compile",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark242_212Producer"
         ]
       }
@@ -152,7 +152,7 @@
         "allDependencies": [
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark242_212Producer'}"
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark242_212Producer'}"
         ],
         "name": "crossBuildSpark242_212RuntimeClasspath"
       },
@@ -162,7 +162,7 @@
         "resolvedArtifacts": [
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
           "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
-          "lib_2.12.jar (project :lib)"
+          "lib_2.12@_1_0_SNAPSHOT_@.jar (project :lib)"
         ],
         "files": [
           "scala-reflect-2.12.8.jar",
@@ -170,8 +170,8 @@
           "lib_2.12-1.0-SNAPSHOT.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-          "org.scala-lang:scala-library:2.12.8;@defaultOrRuntime@",
+          "org.scala-lang:scala-reflect:2.12.8;runtime",
+          "org.scala-lang:scala-library:2.12.8;runtime",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark242_212Producer"
         ]
       }
@@ -193,7 +193,7 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark243_211Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
@@ -210,7 +210,7 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}",
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark243_211Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
@@ -222,7 +222,7 @@
         "resolvedArtifacts": [
           "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
           "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-          "lib-2-4-3_2.11.jar (project :lib)"
+          "lib-2-4-3_2.11@_1_0_SNAPSHOT_@.jar (project :lib)"
         ],
         "files": [
           "scala-reflect-2.11.12.jar",
@@ -230,8 +230,8 @@
           "lib-2-4-3_2.11-1.0-SNAPSHOT.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-reflect:2.11.12;@defaultOrCompile@",
-          "org.scala-lang:scala-library:2.11.12;@defaultOrCompile@",
+          "org.scala-lang:scala-reflect:2.11.12;compile",
+          "org.scala-lang:scala-library:2.11.12;compile",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
         ]
       }
@@ -241,7 +241,7 @@
         "allDependencies": [
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.11.12', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_211Producer'}"
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark243_211Producer'}"
         ],
         "name": "crossBuildSpark243_211RuntimeClasspath"
       },
@@ -251,7 +251,7 @@
         "resolvedArtifacts": [
           "scala-reflect@_2_11_12_@.jar (org.scala-lang:scala-reflect:2.11.12)",
           "scala-library@_2_11_12_@.jar (org.scala-lang:scala-library:2.11.12)",
-          "lib-2-4-3_2.11.jar (project :lib)"
+          "lib-2-4-3_2.11@_1_0_SNAPSHOT_@.jar (project :lib)"
         ],
         "files": [
           "scala-reflect-2.11.12.jar",
@@ -259,8 +259,8 @@
           "lib-2-4-3_2.11-1.0-SNAPSHOT.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-reflect:2.11.12;@defaultOrRuntime@",
-          "org.scala-lang:scala-library:2.11.12;@defaultOrRuntime@",
+          "org.scala-lang:scala-reflect:2.11.12;runtime",
+          "org.scala-lang:scala-library:2.11.12;runtime",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_211Producer"
         ]
       }
@@ -282,7 +282,7 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}",
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark243_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
@@ -299,7 +299,7 @@
     {
       "configuration": {
         "allDependencies": [
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}",
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark243_212Producer'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}"
         ],
@@ -311,7 +311,7 @@
         "resolvedArtifacts": [
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
           "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
-          "lib-2-4-3_2.12.jar (project :lib)"
+          "lib-2-4-3_2.12@_1_0_SNAPSHOT_@.jar (project :lib)"
         ],
         "files": [
           "scala-reflect-2.12.8.jar",
@@ -319,8 +319,8 @@
           "lib-2-4-3_2.12-1.0-SNAPSHOT.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-reflect:2.12.8;@defaultOrCompile@",
-          "org.scala-lang:scala-library:2.12.8;@defaultOrCompile@",
+          "org.scala-lang:scala-reflect:2.12.8;compile",
+          "org.scala-lang:scala-library:2.12.8;compile",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_212Producer"
         ]
       }
@@ -330,7 +330,7 @@
         "allDependencies": [
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-library', version='2.12.8', configuration='default'}",
           "DefaultExternalModuleDependency{group='org.scala-lang', name='scala-reflect', version='2.12.8', configuration='default'}",
-          "DefaultProjectDependency{dependencyProject='project ':lib'', configuration='crossBuildSpark243_212Producer'}"
+          "DefaultProjectDependency{@_DefaultProjectDependency_lib_@, configuration='crossBuildSpark243_212Producer'}"
         ],
         "name": "crossBuildSpark243_212RuntimeClasspath"
       },
@@ -340,7 +340,7 @@
         "resolvedArtifacts": [
           "scala-reflect@_2_12_8_@.jar (org.scala-lang:scala-reflect:2.12.8)",
           "scala-library@_2_12_8_@.jar (org.scala-lang:scala-library:2.12.8)",
-          "lib-2-4-3_2.12.jar (project :lib)"
+          "lib-2-4-3_2.12@_1_0_SNAPSHOT_@.jar (project :lib)"
         ],
         "files": [
           "scala-reflect-2.12.8.jar",
@@ -348,8 +348,8 @@
           "lib-2-4-3_2.12-1.0-SNAPSHOT.jar"
         ],
         "firstLevelModuleDependencies": [
-          "org.scala-lang:scala-reflect:2.12.8;@defaultOrRuntime@",
-          "org.scala-lang:scala-library:2.12.8;@defaultOrRuntime@",
+          "org.scala-lang:scala-reflect:2.12.8;runtime",
+          "org.scala-lang:scala-library:2.12.8;runtime",
           "com.github.prokod.it:lib:1.0-SNAPSHOT;crossBuildSpark243_212Producer"
         ]
       }

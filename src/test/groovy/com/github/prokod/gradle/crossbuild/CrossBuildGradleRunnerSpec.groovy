@@ -20,6 +20,8 @@ abstract class CrossBuildGradleRunnerSpec extends Specification {
     @TempDir
     Path dir
 
+//    Path dir = Files.createTempDirectory(new Date().format("'spock'-'testdir'-yyyyMMddHHmm-"))
+
     def testMavenCentralAccess() {
         URL u = new URL ( "https://repo1.maven.org/maven2/")
         HttpURLConnection huc =  ( HttpURLConnection )  u.openConnection ()

@@ -289,14 +289,15 @@ dependencies {
         !fileExists(dir.resolve('app/build/libs/app-all_2.12*.jar'))
 
         when:
+        // Here we add placeholders to bridge the differences between different Gradle versions
+        // As an example of that, consider this past replacement case
         // Gradle 4 'java' plugin Configuration model is less precise and so firstLevelModuleDependencies are under
         // 'default' configuration, Gradle 5 already has a more precise model and so 'default' configuration is replaced
         // by either 'runtime' or 'compile' see https://gradle.org/whats-new/gradle-5/#fine-grained-transitive-dependency-management
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
-                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
-                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
-                _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
-                _7_2_28_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.28' : '',
+                _1_0_SNAPSHOT_: gradleVersion.substring(0,1).toInteger() == 7 ? '' : '-1.0-SNAPSHOT',
+                _DefaultProjectDependency_lib_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib''" : "identityPath=':lib'",
+                _DefaultProjectDependency_lib2_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib2''" : "identityPath=':lib2'",
                 '/app_builds_resolved_configurations-01.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
 
@@ -307,10 +308,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.12'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 
     /**
@@ -626,9 +625,7 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.11'
-        '6.9.4'         | '2.12'
-        '7.6.2'         | '2.12'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.12'
+        '8.7'           | '2.11'
     }
 }

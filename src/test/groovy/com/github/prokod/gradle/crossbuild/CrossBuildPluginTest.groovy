@@ -78,7 +78,7 @@ crossBuildResolvedDsl - Summary report for cross building resolved Dsl
         result.output.contains('_3]')
 
         where:
-        gradleVersion << ['6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -119,7 +119,7 @@ crossBuild {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -175,7 +175,7 @@ publishing {
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -211,10 +211,8 @@ crossBuild {
 
         where:
         gradleVersion   | pluginId
-        '5.6.4'         | 'com.github.prokod.gradle-crossbuild'
-        '6.9.4'         | 'com.github.prokod.gradle-crossbuild-scala'
-        '7.6.2'         | 'com.github.prokod.gradle-crossbuild-scala'
-        '8.3'           | 'com.github.prokod.gradle-crossbuild-scala'
+        '7.6.4'         | 'com.github.prokod.gradle-crossbuild'
+        '8.7'           | 'com.github.prokod.gradle-crossbuild-scala'
     }
 
     @Unroll
@@ -255,7 +253,7 @@ crossBuild {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -304,7 +302,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildV211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -392,7 +390,7 @@ gradle.projectsEvaluated {
         result.task(":crossBuildSpark24_212Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -462,7 +460,7 @@ crossBuildV213Jar - Assembles a jar archive containing the crossBuildV213 classe
         result.task(":tasks").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -523,7 +521,7 @@ publishing {
         result.task(":publishCrossBuildV211PublicationToMavenLocal").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -571,7 +569,7 @@ sourceSets {
         result.task(":crossBuild211Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -604,7 +602,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -639,7 +637,7 @@ crossBuild {
         thrown(RuntimeException)
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 
     @Unroll
@@ -674,6 +672,6 @@ crossBuild {
         result.task(":crossBuildV213Jar").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.6.4', '6.9.4', '7.6.2', '8.3']
+        gradleVersion << ['7.6.4', '8.7']
     }
 }
