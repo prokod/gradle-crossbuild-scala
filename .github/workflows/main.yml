@@ -36,14 +36,14 @@ jobs:
       - name: validation
         uses: gradle/wrapper-validation-action@v1
       - name: code quality check
-        if: contains(github.base_ref, 'master')
+        if: vars.CODE_QUALITY_CHECK_ENFORCE == 'true'
         run: ./gradlew clean codeNarcMain --no-daemon
       - name: check
         run: ./gradlew clean check -x codeNarcMain --no-daemon
   code_coverage:
     name: "Gradle Check + Code coverage"
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.ref, 'master')
+    if: github.event.pull_request.merged == true
     steps:
       - name: setup_jdk
         uses: actions/setup-java@v3
