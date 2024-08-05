@@ -31,8 +31,8 @@ enum ScalaCompilerTargetStrategyType {
             return t.getCompilerTargetJvmValues(t.defaultTarget.toString())
         } else {
             def sanitized = sanitizeTargetCompatibility(targetCompatibility)
-            if (sanitized.second <= t.maxTarget) {
-                return t.getCompilerTargetJvmValues(sanitized.first)
+            if (sanitized.v2 <= t.maxTarget) {
+                return t.getCompilerTargetJvmValues(sanitized.v1)
             } else {
                 return t.getCompilerTargetJvmValues(t.defaultTarget.toString())
             }
@@ -40,16 +40,16 @@ enum ScalaCompilerTargetStrategyType {
     }),
     TOOLCHAIN_OR_MAX({ ScalaCompilerTargetType t, String targetCompatibility ->
         def sanitized = sanitizeTargetCompatibility(targetCompatibility)
-        if (sanitized.second <= t.maxTarget) {
-            return t.getCompilerTargetJvmValues(sanitized.first)
+        if (sanitized.v2 <= t.maxTarget) {
+            return t.getCompilerTargetJvmValues(sanitized.v1)
         } else {
             return t.getCompilerTargetJvmValues(t.maxTarget.toString())
         }
     }),
     TOOLCHAIN_OR_FAIL({ ScalaCompilerTargetType t, String targetCompatibility ->
         def sanitized = sanitizeTargetCompatibility(targetCompatibility)
-        if (sanitized.second <= t.maxTarget) {
-            t.getCompilerTargetJvmValues(sanitized.first)
+        if (sanitized.v2 <= t.maxTarget) {
+            t.getCompilerTargetJvmValues(sanitized.v1)
         } else {
             throw new IllegalArgumentException("Requested target JVM [${targetCompatibility}] is not supported " +
                     "in Scala Compilers range starting with ${t.compilerVersion}.")

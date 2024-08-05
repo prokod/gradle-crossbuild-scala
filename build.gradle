@@ -34,6 +34,8 @@ ext {
 }
 
 dependencies {
+    implementation 'org.semver4j:semver4j:5.3.0'
+
     testImplementation gradleTestKit()
     testImplementation ('org.spockframework:spock-core:2.1-groovy-3.0') {
         exclude module: 'groovy'

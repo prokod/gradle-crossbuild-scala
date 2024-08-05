@@ -21,8 +21,8 @@ import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class CrossBuildPluginScalaCompileTasksTest extends CrossBuildGradleRunnerSpec {
-    File  settingsFileKts
+class CrossBuildPluginPublishingKotlinTest extends CrossBuildGradleRunnerSpec {
+    File settingsFileKts
     File buildFileKts
     File libBuildFileKts
     File libScalaFile
@@ -93,43 +93,58 @@ subprojects {
 
     apply(plugin = "scala")
     apply(plugin = "com.github.prokod.gradle-crossbuild")
-//    apply(plugin = "com.github.maiflai.scalatest")
 
     crossBuild {
         scalaVersionsCatalog = mapOf(
-                "2.12" to "2.12.17",
-                "2.13" to "2.13.12"
+            "2.12" to "2.12.19",
+            "2.13" to "2.13.14"
         )
-
         builds {
-            create("v212")
-            create("v213")
+            register("scala") {
+                scalaVersions = setOf("2.12", "2.13")
+            }
+        }
+    }
+
+    // Find by name cross build tasks in project.tasks 
+    val crossBuildScala_212Jar by tasks.getting
+    val crossBuildScala_213Jar by tasks.getting
+
+    // Create Jar type task for custom scaladoc artifact
+    val scaladocJar by tasks.creating(Jar::class) {
+        from(tasks.getByName("scaladoc"))
+        archiveClassifier.set("scaladoc")
+    }
+
+    // Exclude default artifact from publishing
+    tasks.withType<PublishToMavenLocal>().configureEach {
+        val predicate = provider {
+            publication != publishing.publications["maven"]
+        }
+
+        onlyIf("disable default maven publication") {
+            predicate.get()
+        }
+    }
+
+    // Publish with both source and scaladoc
+    publishing {
+        publications {
+            create<MavenPublication>("crossBuildScala_212") {
+                from(components["crossBuildScala_212"])
+                artifact(scaladocJar)
+                artifact(tasks.sourcesJar)
+            }
+            create<MavenPublication>("crossBuildScala_213") {
+                from(components["crossBuildScala_213"])
+                artifact(scaladocJar)
+                artifact(tasks.sourcesJar)
+            }
         }
     }
 
     dependencies {
-        implementation("org.scala-lang:scala-library:$defaultScalaLibVersion")
-//        testImplementation("org.scalatest:scalatest_2.12:3.2.18")
-//        "scalaCompilerPlugin" ("com.olegpy:better-monadic-for_2.12:0.3.1")
-//        testImplementation("com.vladsch.flexmark:flexmark-all:0.64.8")
-    }
-
-    val copyPlugins by tasks.registering(Copy::class) {
-        from(configurations["scalaCompilerPlugin"])
-        into("\$buildDir/scalac-plugins")
-    }
-
-    tasks.withType<ScalaCompile>().configureEach {
-//        val plugins = File("\$buildDir/scalac-plugins").listFiles()?.let {
-//            "-Xplugin:" + it.joinToString(",")
-//        }
-        
-        when (name) {
-            "compileScala" -> scalaCompileOptions.additionalParameters =
-                    listOf("-release:8", "-feature", "-Xfatal-warnings")
-            else -> scalaCompileOptions.additionalParameters =
-                    listOf("-feature", "-Xfatal-warnings") //+ listOfNotNull(plugins)
-        }
+        implementation("org.scala-lang:$defaultScalaLibModuleName:$defaultScalaLibVersion")
     }
 }
 """
@@ -151,21 +166,27 @@ class Example {
                 .withGradleVersion(gradleVersion)
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                /*@withDebug@*/
-                .withArguments('tasks', 'build', 'crossBuildAssemble', 'crossBuildResolvedConfigs', '--stacktrace')
+        /*@withDebug@*/
+                .withArguments('tasks', 'crossBuildResolvedConfigs', 'publishToMavenLocal', '--info', '--stacktrace')
                 .build()
 
         then:
+        println(result.output)
         result.task(":tasks").outcome == SUCCESS
-        result.task(":libraryA:build").outcome == SUCCESS
-        result.task(":libraryA:crossBuildAssemble").outcome == SUCCESS
+        result.task(":libraryA:crossBuildScala_212Jar").outcome == SUCCESS
+        result.task(":libraryA:crossBuildScala_213Jar").outcome == SUCCESS
+        result.task(":libraryA:crossBuildResolvedConfigs").outcome == SUCCESS
 
         fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12-*.jar'))
         fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13-*.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12*-sources.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12*-javadoc.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13*-sources.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13*-javadoc.jar'))
 
         where:
         gradleVersion   | defaultScalaLibModuleName | defaultScalaLibVersion
-        '7.6.4'         | 'scala-library'          | '2.12.17'
-        '8.7'           | 'scala-library'          | '2.13.12'
+        '7.6.4'         | 'scala-library'          | '2.12.19'
+        '8.7'           | 'scala-library'          | '2.13.14'
     }
 }

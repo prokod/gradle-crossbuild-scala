@@ -139,7 +139,7 @@ case class State(n: Int, minValue: Int, maxValue: Int) {
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
                 /*@withDebug@*/
-                .withArguments('tasks', 'build', 'crossBuildResolvedConfigs', 'publishToMavenLocal',/* '--debug',*/ '--stacktrace')
+                .withArguments('tasks', 'build', 'crossBuildResolvedConfigs', 'publishToMavenLocal', '--stacktrace')
                 .build()
 
         then:
