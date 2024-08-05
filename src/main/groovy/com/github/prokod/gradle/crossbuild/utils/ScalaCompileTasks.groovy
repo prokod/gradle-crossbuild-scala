@@ -26,8 +26,7 @@ class ScalaCompileTasks {
         // org.gradle.api.UncheckedIOException: Failed to capture fingerprint of input files for task ':app:compileScala' property 'scalaClasspath' during up-to-date check.
         // So this should be avoided ...
         extension.project.tasks.withType(ScalaCompile) { ScalaCompile t ->
-            if (t.name == sourceSetInsights.crossBuild.sourceSet.getCompileTaskName('scala') ||
-                    t.name == sourceSetInsights.main.sourceSet.getCompileTaskName('scala')) {
+            if (t.name == sourceSetInsights.crossBuild.sourceSet.getCompileTaskName('scala')) {
                 def analysisFile = t.scalaCompileOptions.incrementalOptions.analysisFile
                 if (!analysisFile) {
                     t.scalaCompileOptions.incrementalOptions.analysisFile.set(new File(
@@ -67,7 +66,7 @@ class ScalaCompileTasks {
                 println(">>> Setting Scala compiler options: ${t.scalaCompileOptions.additionalParameters?.join(', ')} [Task: ${t.name}, JVM tagetCompatibility: ${t.targetCompatibility}]")
                 extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
                         lifecycle:'task',
-                        msg:"Setting Scala compiler options: ${options.join(', ')} [Task: ${t.name}, JVM tagetCompatibility: ${t.targetCompatibility}]"))
+                        msg:"Setting Scala compiler options: ${options.join(', ')} [Task: ${t.name}, Gradle's JVM tagetCompatibility: ${t.targetCompatibility}]"))
 
                 t.exclude { FileTreeElement fte ->
                     def tested = fte.file.toPath()
