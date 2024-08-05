@@ -21,7 +21,6 @@ jobs:
   checks:
     name: "Gradle Check"
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     strategy:
       matrix:
         java: [ '8', '11', '17']
