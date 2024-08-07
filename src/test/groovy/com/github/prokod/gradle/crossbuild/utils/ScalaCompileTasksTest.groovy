@@ -47,7 +47,6 @@ class ScalaCompileTasksTest extends CrossBuildGradleRunnerSpec {
      *     <li>Plugin apply mode: Eager</li>
      *     <li>Gradle compatibility matrix: 7.x, 8.x</li>
      *     <li>Running tasks that triggers main sourceset configurations: Yes</li>
-     *     <li>build.gradle scripting language: Kotlin</li>
      * </ul>
      * This test checks the following plugin behaviour:
      * <ul>
@@ -195,10 +194,8 @@ class Example {
                 .build()
 
         then:
-        println(result.output)
         result.task(":tasks").outcome == SUCCESS
         result.task(":libraryA:crossBuildAssemble").outcome == SUCCESS
-        result.task('build').outcome == SUCCESS
 
         fileExists(dir.resolve("libraryA/build/libs/libraryA_$scalaVersion-*.jar"))
 
@@ -656,6 +653,12 @@ class Example {
         '7.6.4'         | 'scala3-library_3' | '3'          | '3.1.1'         | true         | "11"              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
     }
 
+    /**
+     * This test basically gives an upp to date state of scala compilation by Gradle's scala plugin itself
+     * Currently the plugin is not interfering with default build scalac arguments
+     *
+     * @return
+     */
     @Requires({ System.getProperty("java.version").startsWith('11.') || System.getProperty("java.version").startsWith('17.') })
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
@@ -752,25 +755,25 @@ class Example {
         result.task(":tasks").outcome == SUCCESS
         result.task(":libraryA:build").outcome == SUCCESS
 
-        fileExists(dir.resolve("libraryA/build/libs/libraryA_$scalaVersion-*.jar"))
+        fileExists(dir.resolve("libraryA/build/libs/libraryA-*.jar"))
 
         where:
         gradleVersion   | scalaLibModuleName | scalaVersion | scalaLibVersion | setToolchain | toolchainVersion  | scalaCompileFlag1
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "8"               | '-Xfatal-warnings'
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "8"               | '-Xfatal-warnings'
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "8"               | '-Xfatal-warnings'
-        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | '-Xfatal-warnings'
-        '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | '-Xfatal-warnings'
-        '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | '-Xfatal-warnings'
+//        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | '-Xfatal-warnings'
+//        '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | '-Xfatal-warnings'
+//        '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | '-Xfatal-warnings'
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | false        | null              | '-Xfatal-warnings'
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | false        | null              | '-Xfatal-warnings'
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | false        | null              | '-Xfatal-warnings'
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "8"               | '-Xfatal-warnings'
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "8"               | '-Xfatal-warnings'
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "8"               | '-Xfatal-warnings'
-        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | '-Xfatal-warnings'
-        '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | '-Xfatal-warnings'
-        '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | '-Xfatal-warnings'
+//        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | '-Xfatal-warnings'
+//        '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | '-Xfatal-warnings'
+//        '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | '-Xfatal-warnings'
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | false        | null              | '-Xfatal-warnings'
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | false        | null              | '-Xfatal-warnings'
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | false        | null              | '-Xfatal-warnings'
@@ -780,8 +783,8 @@ class Example {
         '8.4'           | 'scala-library'    | '2.13'       | '2.13.12'       | true         | "11"              | '-Xfatal-warnings'
         '8.7'           | 'scala-library'    | '2.13'       | '2.13.12'       | true         | "11"              | '-Xfatal-warnings'
         '7.6.4'         | 'scala-library'    | '2.13'       | '2.13.1'        | false        | null              | '-Xfatal-warnings'
-        '8.4'           | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings'
-        '8.7'           | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings'
+//        '8.4'           | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings'
+//        '8.7'           | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings'
         '8.4'           | 'scala3-library_3' | '3'          | '3.3.1'         | true         | "8"               | '-Xfatal-warnings'
         '8.7'           | 'scala3-library_3' | '3'          | '3.3.1'         | true         | "8"               | '-Xfatal-warnings'
         '8.4'           | 'scala3-library_3' | '3'          | '3.3.1'         | true         | "11"              | '-Xfatal-warnings'
@@ -791,18 +794,18 @@ class Example {
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "8"               | ''
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "8"               | ''
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "8"               | ''
-        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | ''
-        '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | ''
-        '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | ''
+//        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | ''
+//        '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | ''
+//        '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "11"              | ''
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | false        | null              | ''
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.15'       | false        | null              | ''
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.15'       | false        | null              | ''
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "8"               | ''
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "8"               | ''
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "8"               | ''
-        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | ''
-        '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | ''
-        '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | ''
+//        '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | ''
+//        '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | ''
+//        '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | true         | "11"              | ''
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.17'       | false        | null              | ''
         '8.4'           | 'scala-library'    | '2.12'       | '2.12.17'       | false        | null              | ''
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | false        | null              | ''

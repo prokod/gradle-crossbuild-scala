@@ -60,13 +60,21 @@ class CrossBuildPluginCompileOnlyMultiModuleTest extends CrossBuildGradleRunnerS
      * </ul>
      *
      * This test checks the following plugin behaviour:
-     * 1. compileOnly type of dependencies - compileOnly dependencies must be repeated in a dependent sub module that
-     * contains code that requires them, even though the parent sub module (from dependency perspective) already
-     * declares those compileOnly dependencies.
-     * In short compileOnly dependencies can not become transitive
-     * 2. misalignment in scala-lang dependency - the plugin forgives scala-lang unaligned default-variant dependency
-     * by fixing it (update version) in dependency resolution
+     * <ul>
+     *      <li>compileOnly type of dependencies - compileOnly dependencies must be repeated in a dependent sub module that
+     *      contains code that requires them, even though the parent sub module (from dependency perspective) already
+     *      declares those compileOnly dependencies.
+     *      In short compileOnly dependencies can not become transitive</li>
+     *      <li>misalignment in scala-lang dependency - the plugin forgives scala-lang unaligned default-variant dependency
+     *      by fixing it (update version) in dependency resolution</li>
+     *      <li>Related to point 2, When specifying scala dependency with wild card `+` like: `2.11.+` the plugin
+     *      scalaVersionsCatalog config attribute is governing</li>
+     *      <li> The test is limited to JDK 11 because of a bug in used Scala compiler vrsion
+     * </ul>
+     *
+     * TODO: When scala-reflect is used and the version is mismatched, the plugin does not fix it anymore (regression?)
      */
+    @Requires({ System.getProperty("java.version").startsWith('1.8') || System.getProperty("java.version").startsWith('11.') })
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
     def """[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion]
@@ -102,7 +110,7 @@ subprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         if (!project.name.endsWith('app')) {
             crossBuild {
-                scalaVersionsCatalog = ['2.12':'2.12.8']
+                scalaVersionsCatalog = ["2.12": "${scalaVersionsCatalog['2.12']}", "2.11": "${scalaVersionsCatalog['2.11']}"]
                 builds {
                     spark233_211
                     spark242_212
@@ -204,7 +212,7 @@ dependencies {
     crossBuildSpark243_211CompileOnly 'org.scalaz:scalaz-core_2.11:7.2.28'
     crossBuildSpark243_212CompileOnly 'org.scalaz:scalaz-core_2.12:7.2.28'
 
-    implementation 'org.scala-lang:scala-library:${defaultScalaVersion}.+'
+    implementation 'org.scala-lang:${defaultScalaLibModuleName}:${defaultScalaVersion}.+'
 }
 """
 
@@ -267,7 +275,7 @@ dependencies {
     crossBuildSpark243_212CompileOnly 'org.scalaz:scalaz-core_2.12:7.2.28'
     
     // Plugin forgives on this scala-lang unaligned default-variant dependency and fixes it in dependency resolution
-    implementation 'org.scala-lang:scala-reflect:2.12.8'
+    implementation "org.scala-lang:scala-reflect:${scalaVersionsCatalog['2.12']}"
 }
 """
 
@@ -322,7 +330,7 @@ sourceSets {
 
 dependencies {
     implementation project(':lib')
-    implementation 'org.scala-lang:scala-reflect:2.12.8'
+    implementation "org.scala-lang:scala-reflect:${scalaVersionsCatalog['2.12']}"
 }
 """
 
@@ -421,7 +429,7 @@ dependencies {
         def expectedLib2JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 _1_0_SNAPSHOT_: gradleVersion.substring(0,1).toInteger() == 7 ? '' : '-1.0-SNAPSHOT',
                 _DefaultProjectDependency_lib_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib''" : "identityPath=':lib'",
-                _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.8' : '',
+                _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.19' : '',
                 _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 _7_2_26_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.26' : '',
                 _7_2_27_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-7.2.27' : '',
@@ -443,7 +451,7 @@ dependencies {
         def expectedLib3JsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
                 _1_0_SNAPSHOT_: gradleVersion.substring(0,1).toInteger() == 7 ? '' : '-1.0-SNAPSHOT',
                 _DefaultProjectDependency_lib_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib''" : "identityPath=':lib'",
-                _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.8' : '',
+                _2_12_8_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.12.19' : '',
                 _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/lib_builds_resolved_configurations-03.json')
         def lib3ResolvedConfigurationReportFile = findFile("*/lib3_builds_resolved_configurations.json")
@@ -454,8 +462,8 @@ dependencies {
         JSONAssert.assertEquals(expectedLib3JsonAsText, actualLib3JsonAsText, false)
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '7.6.4'         | '2.11'
-        '8.7'           | '2.12'
+        gradleVersion   | defaultScalaLibModuleName | defaultScalaVersion | scalaVersionsCatalog
+        '7.6.4'         | 'scala-library'           | '2.11'              | ["2.13": "2.13.8", "2.12": "2.12.19", "2.11": "2.11.12"]
+        '8.7'           | 'scala-library'           | '2.12'              | ["2.13": "2.13.8", "2.12": "2.12.19", "2.11": "2.11.12"]
     }
 }

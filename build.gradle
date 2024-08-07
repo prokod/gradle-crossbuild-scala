@@ -47,6 +47,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+// Commented out due to CrossBuildPluginScalaVersionSpecificSourceTest test failure on GHA runner
 //    systemProperty 'spock.configuration', rootProject.file('config/spock/SpockConfig.groovy').absolutePath
 
 //    if (project.hasProperty('testTargetCompatibility'))

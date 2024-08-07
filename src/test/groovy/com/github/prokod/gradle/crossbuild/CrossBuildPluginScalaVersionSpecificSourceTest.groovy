@@ -53,6 +53,8 @@ class CrossBuildPluginScalaVersionSpecificSourceTest extends CrossBuildGradleRun
      * <ul>
      *     <li> As Gradle is well adapted to Java 8, including the scala plugin, there are no compilation errors
      *     when scalac is set with -Xfatal-warnings argument. So this case is not being tested for this specific test</li>
+     *     <li> This test is limited to GHA runner with default spock test configuration. Otherwise,
+     *     with a custom configuration of spock for parallel test execution the test fails</li>
      * </ul>
      *
      * @return
@@ -282,6 +284,9 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
             if (data[2] == '2.12') {
                 expected += "This doesn't work on scala 2.13: \${scala.collection.mutable.WrappedArray::class.qualifiedName}\n"
             }
+            // This construct responsible for capturing stdout while calling `main()` method
+            //  works on GHA runner with default spock test configuration, compared to custom configuration
+            //  for parallel testing
             def allWrittenLines = ''
             def stdOut = System.out
             new ByteArrayOutputStream().withCloseable {bo ->
