@@ -506,11 +506,15 @@ class Example {
         '8.7'           | 'scala-library'    | '2.12'       | '2.12.17'       | false        | null              | '-Xfatal-warnings'
         '8.4'           | 'scala-library'    | '2.13'       | '2.13.12'       | true         | "8"               | '-Xfatal-warnings'
         '8.7'           | 'scala-library'    | '2.13'       | '2.13.12'       | true         | "8"               | '-Xfatal-warnings'
+        '7.6.4'         | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings'
         '7.6.4'         | 'scala-library'    | '2.13'       | '2.13.1'        | false        | null              | '-Xfatal-warnings'
         '8.4'           | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings'
         '8.7'           | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings'
         '8.4'           | 'scala3-library_3' | '3'          | '3.3.1'         | true         | "8"               | '-Xfatal-warnings'
         '8.7'           | 'scala3-library_3' | '3'          | '3.3.1'         | true         | "8"               | '-Xfatal-warnings'
+        '7.6.4'         | 'scala3-library_3' | '3'          | '3.3.1'         | false        | null              | '-Xfatal-warnings'
+        '7.6.4'         | 'scala3-library_3' | '3'          | '3.2.1'         | false        | null              | '-Xfatal-warnings'
+        '7.6.4'         | 'scala3-library_3' | '3'          | '3.1.1'         | false        | null              | '-Xfatal-warnings'
         '8.4'           | 'scala3-library_3' | '3'          | '3.3.1'         | false        | null              | '-Xfatal-warnings'
         '8.7'           | 'scala3-library_3' | '3'          | '3.3.1'         | false        | null              | '-Xfatal-warnings'
         '7.6.4'         | 'scala-library'    | '2.12'       | '2.12.15'       | true         | "8"               | ''
@@ -644,16 +648,12 @@ class Example {
         gradleVersion   | scalaLibModuleName | scalaVersion | scalaLibVersion | setToolchain | toolchainVersion  | scalaCompileFlag1  | expectedException      |  expectedMessage
         '7.6.4'         | 'scala-library'    | '2.13'       | '2.13.12'       | true         | "8"               | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
         '7.6.4'         | 'scala-library'    | '2.13'       | '2.13.12'       | true         | "11"              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
-        '7.6.4'         | 'scala-library'    | '2.13'       | '2.13.12'       | false        | null              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
         '7.6.4'         | 'scala3-library_3' | '3'          | '3.3.1'         | true         | "8"               | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
         '7.6.4'         | 'scala3-library_3' | '3'          | '3.2.1'         | true         | "8"               | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
         '7.6.4'         | 'scala3-library_3' | '3'          | '3.1.1'         | true         | "8"               | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
         '7.6.4'         | 'scala3-library_3' | '3'          | '3.3.1'         | true         | "11"              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
         '7.6.4'         | 'scala3-library_3' | '3'          | '3.2.1'         | true         | "11"              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
         '7.6.4'         | 'scala3-library_3' | '3'          | '3.1.1'         | true         | "11"              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
-        '7.6.4'         | 'scala3-library_3' | '3'          | '3.3.1'         | false        | null              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
-        '7.6.4'         | 'scala3-library_3' | '3'          | '3.2.1'         | false        | null              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
-        '7.6.4'         | 'scala3-library_3' | '3'          | '3.1.1'         | false        | null              | '-Xfatal-warnings' | Exception | 'Consider the following option: Try using later Gradle version'
     }
 
     @Requires({ System.getProperty("java.version").startsWith('11.') || System.getProperty("java.version").startsWith('17.') })

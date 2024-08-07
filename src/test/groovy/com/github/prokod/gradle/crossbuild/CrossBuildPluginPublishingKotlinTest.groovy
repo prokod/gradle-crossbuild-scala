@@ -44,8 +44,8 @@ class CrossBuildPluginPublishingKotlinTest extends CrossBuildGradleRunnerSpec {
      * </ul>
      * This test checks the following plugin behaviour:
      * <ul>
-     *     <li>The following test ensures that the plugin handles compiling for latest scala 2.12/13 without failure
-     *     when user adds -Xfatal-warnings flag to compiler/li>
+     *     <li>The following test ensures that the plugin handles publishing with kotlin scripting</li>
+     *     <li></li>
      * </ul>
      *
      * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/140">issue #140</a>
@@ -72,12 +72,12 @@ buildscript {
 
 plugins {
     id("com.github.prokod.gradle-crossbuild")
+    `maven-publish`
 }
 
 allprojects {
     repositories {
         mavenCentral()
-        jcenter()
     }
 
     configurations {
@@ -91,8 +91,13 @@ subprojects {
     group = "com.github.prokod.it"
     version = "1.0-SNAPSHOT"
 
-    apply(plugin = "scala")
     apply(plugin = "com.github.prokod.gradle-crossbuild")
+    apply(plugin = "maven-publish")
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
 
     crossBuild {
         scalaVersionsCatalog = mapOf(
@@ -106,10 +111,6 @@ subprojects {
         }
     }
 
-    // Find by name cross build tasks in project.tasks 
-    val crossBuildScala_212Jar by tasks.getting
-    val crossBuildScala_213Jar by tasks.getting
-
     // Create Jar type task for custom scaladoc artifact
     val scaladocJar by tasks.creating(Jar::class) {
         from(tasks.getByName("scaladoc"))
@@ -119,7 +120,7 @@ subprojects {
     // Exclude default artifact from publishing
     tasks.withType<PublishToMavenLocal>().configureEach {
         val predicate = provider {
-            publication != publishing.publications["maven"]
+            publication != publishing.publications["mavenJava"]
         }
 
         onlyIf("disable default maven publication") {
@@ -130,15 +131,18 @@ subprojects {
     // Publish with both source and scaladoc
     publishing {
         publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+            }
             create<MavenPublication>("crossBuildScala_212") {
                 from(components["crossBuildScala_212"])
                 artifact(scaladocJar)
-                artifact(tasks.sourcesJar)
+                artifact(tasks["sourcesJar"])
             }
             create<MavenPublication>("crossBuildScala_213") {
                 from(components["crossBuildScala_213"])
                 artifact(scaladocJar)
-                artifact(tasks.sourcesJar)
+                artifact(tasks["sourcesJar"])
             }
         }
     }
@@ -179,10 +183,8 @@ class Example {
 
         fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12-*.jar'))
         fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13-*.jar'))
-        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12*-sources.jar'))
-        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12*-javadoc.jar'))
-        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13*-sources.jar'))
-        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13*-javadoc.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA*-sources.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA*-javadoc.jar'))
 
         where:
         gradleVersion   | defaultScalaLibModuleName | defaultScalaLibVersion
