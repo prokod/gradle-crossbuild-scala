@@ -45,7 +45,7 @@ class CrossBuildPluginPublishingKotlinTest extends CrossBuildGradleRunnerSpec {
      * This test checks the following plugin behaviour:
      * <ul>
      *     <li>The following test ensures that the plugin handles publishing with kotlin scripting</li>
-     *     <li></li>
+     *     <li>Excluding main published artifacts using task {@code onlyIf} </li>
      * </ul>
      *
      * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/140">issue #140</a>

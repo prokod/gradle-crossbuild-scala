@@ -47,7 +47,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    systemProperty 'spock.configuration', rootProject.file('config/spock/SpockConfig.groovy').absolutePath
+//    systemProperty 'spock.configuration', rootProject.file('config/spock/SpockConfig.groovy').absolutePath
 
 //    if (project.hasProperty('testTargetCompatibility'))
 //        project.property('testTargetCompatibility') == '11' ? exclude('**/LegacyTest.class') : exclude('')

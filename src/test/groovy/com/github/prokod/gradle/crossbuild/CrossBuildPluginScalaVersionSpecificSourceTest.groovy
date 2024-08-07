@@ -292,8 +292,8 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
                 System.out = stdOut
             }
             new Tuple2(allWrittenLines.replaceAll("\\r\\n?", "\n"), expected)
-        }.each {tuple ->
-            assert tuple.first == tuple.second
+        }.each { tuple ->
+            assert tuple.v1 == tuple.v2
         }
 
         and:
