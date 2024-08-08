@@ -19,7 +19,6 @@
 ## Shortcomings
 
 - **test/check tasks** are supported for [default-variant](#default_variant) of Scala version only.
-- **publishing for source/javadoc jars** are supported for [default-variant](#default_variant) of Scala version only.
 
 ## <a name="getting_plugin"></a>Getting the plugin
 
@@ -322,6 +321,62 @@ In this example, we add some arbitrary provided scope dependency to the generate
 > - From plugin version 0.16.x onward this has been changed and now most of the heavy lifting is done by the maven-publish plugin.
 > - As a result, from plugin 0.16.x onward, when providing your own `pom.withXml` handler, the crossbild plugin does not skip its internal handler anymore
 
+#### Publishing sources/scaladoc jar
+
+Use the following code snippet as an example for publishing together with each cross build artifact also sources and scaladoc artifacts
+
+Leveraging Multi-aspect cross building and Extra Properties
+
+```kotlin
+    crossBuild {
+        scalaVersionsCatalog = mapOf(
+            "2.12" to "2.12.19",
+            "2.13" to "2.13.14"
+        )
+        builds {
+            register("scala") {
+                scalaVersions = setOf("2.12", "2.13")
+            }
+        }
+    }
+
+    // Create Jar type task for custom sources/scaladoc artifacts
+    sourceSets.filter { it.name.startsWith("crossBuild") }.forEach { sourceSet ->
+        // Makes the sourceSet scalaCompilerVersion extra property available to configure the following tasks
+        val scalaCompilerVersion : String by sourceSet.extra
+        val scalaVersion = scalaCompilerVersion.substring(0, scalaCompilerVersion.lastIndexOf('.'))
+
+        tasks.register<Jar>("${sourceSet.name}SourcesJar") {
+            from(sourceSet.allSource)
+            archiveBaseName.set("${archiveBaseName.get()}_${scalaVersion}")
+            archiveClassifier.set("sources")
+        }
+
+        tasks.register<Jar>("${sourceSet.name}ScaladocJar") {
+            from(tasks.scaladoc)
+            archiveBaseName.set("${archiveBaseName.get()}_${scalaVersion}")
+            archiveClassifier.set("scaladoc")
+        }
+    }
+
+    // Publish with both source and scaladoc
+    publishing {
+        publications {
+            create<MavenPublication>("crossBuildScala_212") {
+                from(components["crossBuildScala_212"])
+                artifact(tasks["crossBuildScala_212SourcesJar"])
+                artifact(tasks["crossBuildScala_212ScaladocJar"])
+            }
+            create<MavenPublication>("crossBuildScala_213") {
+                from(components["crossBuildScala_213"])
+                artifact(tasks["crossBuildScala_213SourcesJar"])
+                artifact(tasks["crossBuildScala_213ScaladocJar"])
+            }
+        }
+    }
+``` 
+
+
 ### <a name="plugin_configuration_options"></a>Cross building - configuration options (DSL Reference)
 
 `targetVersionItem.archiveAppendix`, `crossBuild.scalaVersionsCatalog`, <code>crossBuild211*XYZ*</code> pre defined configurations
@@ -469,12 +524,12 @@ subprojects {
 ### Scala Version Specific Source
 
 - Each sourceSet that the plugin creates based on the DSL is assigned with its own `main` Scala source dir.
-  > **Note**
+  > [!NOTE]
   > Gradle's intrinsic convention. Supported in the plugin from version `0.14.x` onwards
   
   For instance, if a sourceSet id is `crossBuild211` then the source dir by convention is `src/crossBuild211/scala`
-- We can now combine the previous topic of [multi-aspect cross building](#multi_aspect_cross_building) with the current topic and provide powerful way of maintaing differnet cross builds not only with their differences in library dependencies but also with their code differences
-  > **Note**
+- We can now combine the previous topic of [multi-aspect cross building](#multi_aspect_cross_building) with the current topic and provide powerful way of maintaining different cross builds not only with their differences in library dependencies but also with their code differences
+  > [!NOTE]
   > The plugin handles cases where some class is present in both `/src/main/scala` and `/src/<crossBuildSourceSetId>/scala`. The original class in `/src/main/scala` is being excluded from the compile task for the relevant cross build
 - Together with previous code snippet, the following one shows an example of leveraging jcp plugin to modify code per given cross build `ext` based meta data
 
