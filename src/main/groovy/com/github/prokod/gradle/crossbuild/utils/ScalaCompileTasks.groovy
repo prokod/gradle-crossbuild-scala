@@ -35,12 +35,10 @@ class ScalaCompileTasks {
                     )
                 }
 
-                def (srcCoompat, trgCompat) = compatibility(extension.project, t)
-
-
+                // TODO: Not used still for scalac refined attribute overlaying
+                def (srcCompat, trgCompat) = compatibility(extension.project, t)
 
                 def compileCase = ScalaPluginCompileTargetCaseType.from(extension.project.gradle.gradleVersion)
-                println(">>> compileCase:" + compileCase)
 
                 def (options, msgFunction) = compileCase.getCompilerOptionsFunction()
                         .call(scalaVersionInsights,
@@ -63,7 +61,6 @@ class ScalaCompileTasks {
                         t.scalaCompileOptions.additionalParameters = options
                     }
                 }
-                println(">>> Setting Scala compiler options: ${t.scalaCompileOptions.additionalParameters?.join(', ')} [Task: ${t.name}, JVM tagetCompatibility: ${t.targetCompatibility}]")
                 extension.project.logger.info(LoggerUtils.logTemplate(extension.project,
                         lifecycle:'task',
                         msg:"Setting Scala compiler options: ${options.join(', ')} [Task: ${t.name}, Gradle's JVM tagetCompatibility: ${t.targetCompatibility}]"))
@@ -94,14 +91,11 @@ class ScalaCompileTasks {
     static Tuple2<String, String> compatibility(Project project, ScalaCompile sc) {
         def javaExtension = project.extensions.getByType(JavaPluginExtension)
 
-        def sourceCompatibility = javaExtension.getRawSourceCompatibility() ?: sc.getJavaLauncher().getOrElse(null) != null ? sc.getJavaLauncher().get().getMetadata().getLanguageVersion().toString() : null
+        def sourceCompatibility =
+                javaExtension.getRawSourceCompatibility() ?:
+                        sc.getJavaLauncher().getOrElse(null) != null ?
+                                sc.getJavaLauncher().get().getMetadata().getLanguageVersion().toString() : null
         def targetCompatibility = javaExtension.getRawTargetCompatibility() ?: sc.getSourceCompatibility()
-        println(">>> default launcher exec path: " + sc.getJavaLauncher().getOrNull()?.executablePath)
-        println(">>> default launcher installation path: " + sc.getJavaLauncher().getOrNull()?.metadata?.installationPath)
-        println(">>> source comp: " + javaExtension.getRawSourceCompatibility())
-        println(">>> source fallback comp: " + (sc.getJavaLauncher().getOrElse(null) != null ? sc.getJavaLauncher().get().getMetadata().getLanguageVersion().toString() : 'N/A'))
-        println(">>> target comp: " + javaExtension.getRawTargetCompatibility())
-        println(">>> target fallback comp: " +  sc.getSourceCompatibility())
         new Tuple2(sourceCompatibility, targetCompatibility)
     }
 }

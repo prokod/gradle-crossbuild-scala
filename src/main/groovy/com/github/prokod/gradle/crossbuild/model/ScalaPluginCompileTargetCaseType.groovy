@@ -65,7 +65,6 @@ enum ScalaPluginCompileTargetCaseType {
                                           String targetCompatibility ->
 
         def targetType = ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion)
-//        def normalized = normalizeTargetCompatibility(targetCompatibility).toInteger()
         def compilerTargetArgs = targetType.getCompilerTargetJvmArgsWithStrategy(strategy, targetCompatibility)
 
         // From trial and error it seems that Gradle's Scala Plugin computed arguments while Toolchain JVM is 8 causes
@@ -75,79 +74,81 @@ enum ScalaPluginCompileTargetCaseType {
         // Scala prior to 2.12.16
         // The plugin logic for default compiler flags are better suited, in this scenario, than Gradle's own
         // defaults
-        if (Semver.parse(scalaVersionInsights.compilerVersion) < Semver.parse("2.12.16")) {
+        if (Semver.parse(scalaVersionInsights.compilerVersion) < Semver.parse('2.12.16')) {
             if (normalized == 8) {
                 return new Tuple2([], { String gradleVersion ->
                     new Tuple2(LogLevel.DEBUG,
                             returnStatMsg('6.0.1/01', gradleVersion, scalaVersionInsights.compilerVersion,
-                                    "<2.12.16", normalized, scalaCompileOptions, compilerTargetArgs) +
+                                    '<2.12.16', normalized, scalaCompileOptions, compilerTargetArgs) +
                                     ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags')
                 })
             } else {
                 return new Tuple2(compilerTargetArgs, { String gradleVersion ->
                     new Tuple2(LogLevel.DEBUG,
                             returnStatMsg('6.0.1/02', gradleVersion, scalaVersionInsights.compilerVersion,
-                                    "<2.12.16", normalized, scalaCompileOptions, compilerTargetArgs) +
+                                    '<2.12.16', normalized, scalaCompileOptions, compilerTargetArgs) +
                                     ', will be forced to prevent Scala compile from failing')
                 })
             }
         }
         // Scala 2.12.16+ (when this is the case compilerTargetArgs size is 2)
-        else if (Semver.parse(scalaVersionInsights.compilerVersion) >= Semver.parse("2.12.16") &&
-                Semver.parse(scalaVersionInsights.compilerVersion).diff("2.12.0-RC0") == Semver.VersionDiff.PATCH) {
+        else if (Semver.parse(scalaVersionInsights.compilerVersion) >= Semver.parse('2.12.16') &&
+                Semver.parse(scalaVersionInsights.compilerVersion).diff('2.12.0-RC0') == Semver.VersionDiff.PATCH) {
             return new Tuple2(compilerTargetArgs, { String gradleVersion ->
                 new Tuple2(LogLevel.DEBUG,
                         returnStatMsg('6.0.1/03', gradleVersion, scalaVersionInsights.compilerVersion,
-                                "~2.12.16", normalized, scalaCompileOptions, compilerTargetArgs) +
+                                '~2.12.16', normalized, scalaCompileOptions, compilerTargetArgs) +
                                 ', will be forced to prevent Scala compile from failing')
             })
         }
         // Scala 2.13.x, up to 2.13.9.not included
-        else if (Semver.parse(scalaVersionInsights.compilerVersion) < Semver.parse("2.13.9") &&
-                Semver.parse(scalaVersionInsights.compilerVersion).diff("2.13.0-RC0") == Semver.VersionDiff.PATCH) {
+        else if (Semver.parse(scalaVersionInsights.compilerVersion) < Semver.parse('2.13.9') &&
+                Semver.parse(scalaVersionInsights.compilerVersion).diff('2.13.0-RC0') == Semver.VersionDiff.PATCH) {
             return new Tuple2([], { String gradleVersion ->
                 new Tuple2(LogLevel.DEBUG,
                         returnStatMsg('6.0.1/04', gradleVersion, scalaVersionInsights.compilerVersion,
-                                "<2.13.9", normalized, scalaCompileOptions, compilerTargetArgs) +
+                                '<2.13.9', normalized, scalaCompileOptions, compilerTargetArgs) +
                                 ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags')
             })
         }
         // Scala 2.13.9 and higher
-        else if (Semver.parse(scalaVersionInsights.compilerVersion) >= Semver.parse("2.13.9") &&
-                Semver.parse(scalaVersionInsights.compilerVersion).diff("2.13.0-RC0") == Semver.VersionDiff.PATCH) {
-            if (!containsFailOnWarnings(scalaCompileOptions)) {
-                return new Tuple2([], { String gradleVersion ->
-                    new Tuple2(LogLevel.DEBUG,
-                            returnStatMsg('6.0.1/05', gradleVersion, scalaVersionInsights.compilerVersion,
-                                    "~2.13.9", normalized, scalaCompileOptions, compilerTargetArgs) +
-                                    ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags')
-                })
-            } else {
+        else if (Semver.parse(scalaVersionInsights.compilerVersion) >= Semver.parse('2.13.9') &&
+                Semver.parse(scalaVersionInsights.compilerVersion).diff('2.13.0-RC0') == Semver.VersionDiff.PATCH) {
+            if (containsFailOnWarnings(scalaCompileOptions)) {
                 return new Tuple2([], { String gradleVersion ->
                     new Tuple2(LogLevel.WARN,
                             returnStatMsg('6.0.1/06', '6.0.1', scalaVersionInsights.compilerVersion,
-                                    "~2.13.9", normalized, scalaCompileOptions, compilerTargetArgs) +
+                                    '~2.13.9', normalized, scalaCompileOptions, compilerTargetArgs) +
                                     ' Cannot reconcile currently used Gradle version with its limited ScalaPlugin options' +
                                     ' and the requested Scala compiler version.' +
                                     ' Consider the following option: Try using later Gradle version')
+                })
+            } else {
+                return new Tuple2([], { String gradleVersion ->
+                    new Tuple2(LogLevel.DEBUG, returnStatMsg('6.0.1/05', gradleVersion,
+                            scalaVersionInsights.compilerVersion, '~2.13.9', normalized,
+                            scalaCompileOptions, compilerTargetArgs) +
+                                    ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags')
                 })
             }
         }
 
         // Otherwise
-        if (!containsFailOnWarnings(scalaCompileOptions)) {
-            return new Tuple2([], { gradleVersion -> new Tuple2(LogLevel.DEBUG,
-                returnStatMsg("'6.0.1/07'", gradleVersion, scalaVersionInsights.compilerVersion,
-                        ">=3", normalized, scalaCompileOptions, compilerTargetArgs) +
-                        ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags')
+        if (containsFailOnWarnings(scalaCompileOptions)) {
+            return new Tuple2([], { gradleVersion ->
+                new Tuple2(LogLevel.WARN, returnStatMsg('6.0.1/08', '6.0.1',
+                        scalaVersionInsights.compilerVersion, '>=3', normalized,
+                        scalaCompileOptions, compilerTargetArgs) +
+                            ' Cannot reconcile currently used Gradle version with its limited ScalaPlugin options' +
+                            ' and the requested Scala compiler version.' +
+                            ' Consider the following option: Try using later Gradle version')
             })
         } else {
-            return new Tuple2([], { gradleVersion -> new Tuple2(LogLevel.WARN,
-                        returnStatMsg('6.0.1/08', '6.0.1', scalaVersionInsights.compilerVersion,
-                                ">=3", normalized, scalaCompileOptions, compilerTargetArgs) +
-                                ' Cannot reconcile currently used Gradle version with its limited ScalaPlugin options' +
-                                ' and the requested Scala compiler version.' +
-                                ' Consider the following option: Try using later Gradle version')
+            return new Tuple2([], { gradleVersion ->
+                new Tuple2(LogLevel.DEBUG, returnStatMsg('6.0.1/07', gradleVersion,
+                        scalaVersionInsights.compilerVersion, '>=3', normalized,
+                        scalaCompileOptions, compilerTargetArgs) +
+                            ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags')
             })
         }
     }),
@@ -155,7 +156,6 @@ enum ScalaPluginCompileTargetCaseType {
                                        ScalaCompilerTargetStrategyType strategy,
                                        ScalaCompileOptions scalaCompileOptions,
                                        String targetCompatibility ->
-//        def t = ScalaCompilerTargetType.from(compilerVersion)
         def targetType = ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion)
 
         def compilerTargetArgs = targetType.getCompilerTargetJvmArgsWithStrategy(strategy, targetCompatibility)
@@ -165,8 +165,8 @@ enum ScalaPluginCompileTargetCaseType {
         def normalized = normalizeTargetCompatibility(targetCompatibility).toInteger()
         // Java 8
         if (normalized == JavaLanguageVersion.of(8).asInt()) {
-            return new Tuple2(compilerTargetArgs, { gradleVersion -> new Tuple2(LogLevel.DEBUG,
-                "Detected Toolchain JVM 8" +
+            return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                new Tuple2(LogLevel.DEBUG, 'Detected Toolchain JVM 8' +
                         " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
                         ', will be forced to prevent Scala compile from failing')
             })
@@ -174,18 +174,17 @@ enum ScalaPluginCompileTargetCaseType {
         // jvm greater then 8
         else {
             if (containsFailOnWarnings(scalaCompileOptions) && containsTarget(scalaCompileOptions)) {
-                return new Tuple2([], { gradleVersion -> new Tuple2(LogLevel.DEBUG,
-                    "Detected Gradle version: ${gradleVersion}," +
+                return new Tuple2([], { gradleVersion ->
+                    new Tuple2(LogLevel.DEBUG, "Detected Gradle version: ${gradleVersion}," +
                             " Scala compiler version: ${scalaVersionInsights.compilerVersion} (supports '-target' flag)" +
                             " and Toolchain version: $normalized." +
                             " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
                             ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags as they are compatible.')
                 })
             }
-            // compilerTargetArgs.find { it.startsWith('-release:') }
             else {
-                return new Tuple2(compilerTargetArgs, { gradleVersion -> new Tuple2(LogLevel.DEBUG,
-                    "Detected Gradle version: ${gradleVersion}," +
+                return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                    new Tuple2(LogLevel.DEBUG, "Detected Gradle version: ${gradleVersion}," +
                             " Scala compiler version: ${scalaVersionInsights.compilerVersion} ('-target' flag is deprecated or unsupported)" +
                             " and Toolchain version: $normalized." +
                             " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
@@ -195,18 +194,11 @@ enum ScalaPluginCompileTargetCaseType {
                 })
             }
         }
-//        if (isNullOrEmpty(scalaCompileOptions)) {
-//            return new Tuple2(compilerTargetArgs, null)
-//        }
-//        else {
-//
-//        }
     }),
     GRADLE_8_5(Semver.coerce('8.5'), { ScalaVersionInsights scalaVersionInsights,
                                        ScalaCompilerTargetStrategyType strategy,
                                        ScalaCompileOptions scalaCompileOptions,
                                        String targetCompatibility ->
-//        def t = ScalaCompilerTargetType.from(compilerVersion)
         def targetType = ScalaCompilerTargetType.from(scalaVersionInsights.compilerVersion)
 
         def compilerTargetArgs = targetType.getCompilerTargetJvmArgsWithStrategy(strategy, targetCompatibility)
@@ -216,8 +208,8 @@ enum ScalaPluginCompileTargetCaseType {
         def normalized = normalizeTargetCompatibility(targetCompatibility).toInteger()
 
         if (normalized == JavaLanguageVersion.of(8).asInt()) {
-            return new Tuple2(compilerTargetArgs, { gradleVersion -> new Tuple2(LogLevel.DEBUG,
-                "Detected Toolchain JVM 8" +
+            return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                new Tuple2(LogLevel.DEBUG, 'Detected Toolchain JVM 8' +
                         " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
                         ', will be forced to prevent Scala compile from failing')
             })
@@ -225,18 +217,17 @@ enum ScalaPluginCompileTargetCaseType {
         // jvm greater then 8
         else {
             if (containsFailOnWarnings(scalaCompileOptions) && containsTarget(scalaCompileOptions)) {
-                return new Tuple2([], { gradleVersion -> new Tuple2(LogLevel.DEBUG,
-                    "Detected Gradle version: ${gradleVersion}," +
+                return new Tuple2([], { gradleVersion ->
+                    new Tuple2(LogLevel.DEBUG, "Detected Gradle version: ${gradleVersion}," +
                             " Scala compiler version: ${scalaVersionInsights.compilerVersion} (supports '-target' flag)" +
                             " and Toolchain version: $normalized." +
                             " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
                             ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags as they are compatible.')
                 })
             }
-            // compilerTargetArgs.find { it.startsWith('-release:') }
             else {
-                return new Tuple2(compilerTargetArgs, { gradleVersion -> new Tuple2(LogLevel.DEBUG,
-                    "Detected Gradle version: ${gradleVersion}," +
+                return new Tuple2(compilerTargetArgs, { gradleVersion ->
+                    new Tuple2(LogLevel.DEBUG, "Detected Gradle version: ${gradleVersion}," +
                             " Scala compiler version: ${scalaVersionInsights.compilerVersion} ('-target' flag is deprecated or unsupported)" +
                             " and Toolchain version: $normalized." +
                             " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
@@ -246,116 +237,6 @@ enum ScalaPluginCompileTargetCaseType {
                 })
             }
         }
-//        if (Semver.parse(scalaVersionInsights.compilerVersion) < Semver.parse("2.12.16")) {
-//            if (normalized == 8) {
-//                return new Tuple2([], { String gradleVersion ->
-//                    returnStatMsg('8.5/01', gradleVersion, scalaVersionInsights.compilerVersion,
-//                            "<2.12.16", normalized, scalaCompileOptions, compilerTargetArgs) +
-//                            ', will be skipped in favor of Gradle\'s Scala Plugin own computed flags'
-//                })
-//            } else {
-//                return new Tuple2(compilerTargetArgs, { String gradleVersion ->
-//                    returnStatMsg('8.5/02', gradleVersion, scalaVersionInsights.compilerVersion,
-//                            "<2.12.16", normalized, scalaCompileOptions, compilerTargetArgs) +
-//                            ', will be forced to prevent Scala compile from failing'
-//                })
-//            }
-//        }
-//        // Scala 2.12.16+ (when this is the case compilerTargetArgs size is 2)
-//        else if (Semver.parse(scalaVersionInsights.compilerVersion) >= Semver.parse("2.12.16") &&
-//                Semver.parse(scalaVersionInsights.compilerVersion).diff("2.12.0-RC0") == Semver.VersionDiff.PATCH) {
-//            return new Tuple2(compilerTargetArgs, { String gradleVersion ->
-//                returnStatMsg('8.5/03', gradleVersion, scalaVersionInsights.compilerVersion,
-//                        "~2.12.16", normalized, scalaCompileOptions, compilerTargetArgs) +
-//                        ', will be forced to prevent Scala compile from failing'
-//            })
-//        }
-//        // Java 8
-//        if (normalized == 8) {
-//            return new Tuple2(compilerTargetArgs, { gradleVersion ->
-//                "Detected Toolchain JVM 8" +
-//                        " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
-//                        ', will be forced to prevent Scala compile from failing'
-//            })
-//        }
-//        // jvm greater then 8
-//        else {
-//            if (!containsFailOnWarnings(scalaCompileOptions)) {
-//                return new Tuple2([], null)
-//            } else {
-//                // Scala prior to 2.12.16
-//                // The plugin logic for default compiler flags are better suited, in this scenario, than Gradle's own
-//                // defaults
-//                if (Semver.parse(scalaVersionInsights.compilerVersion) < Semver.parse("2.12.16") &&
-//                        containsFailOnWarnings(scalaCompileOptions)) {
-//                    return new Tuple2(compilerTargetArgs, { gradleVersion ->
-//                        "Detected Gradle version: ${gradleVersion}," +
-//                                " Scala compiler version: ${scalaVersionInsights.compilerVersion} (<2.12.16)" +
-//                                " and Toolchain version: $normalized." +
-//                                " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
-//                                " includes '-Xfatal-warnings'." +
-//                                " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
-//                                ', will be forced to prevent Scala compile from failing'
-//                    })
-//                }
-//                // Scala 2.12.16+ (when this is the case compilerTargetArgs size is 2) and '-Xfatal-warnings'
-//                else if (Semver.parse(scalaVersionInsights.compilerVersion) >= Semver.parse("2.12.16") &&
-//                        Semver.parse(scalaVersionInsights.compilerVersion).diff("2.12.0-RC0") == Semver.VersionDiff.PATCH &&
-//                        containsFailOnWarnings(scalaCompileOptions)) {
-//                    return new Tuple2(compilerTargetArgs, { gradleVersion ->
-//                        "Detected Gradle version: ${gradleVersion}," +
-//                                " Scala compiler version: ${scalaVersionInsights.compilerVersion} (2.12.16+)" +
-//                                " and Toolchain version: $normalized." +
-//                                " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
-//                                " includes '-Xfatal-warnings'." +
-//                                " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
-//                                ', will be forced to prevent Scala compile from failing'
-//                    })
-//                }
-//                // Scala 2.13.x, up to 2.13.9.not included and '-Xfatal-warnings'
-//                else if (Semver.parse(scalaVersionInsights.compilerVersion) < Semver.parse("2.13.9") &&
-//                        Semver.parse(scalaVersionInsights.compilerVersion).diff("2.13.0-RC0") == Semver.VersionDiff.PATCH &&
-//                        containsFailOnWarnings(scalaCompileOptions)) {
-//                    return new Tuple2([], { gradleVersion ->
-//                        "Detected Gradle version: ${gradleVersion}," +
-//                                " Scala version: 2.13," +
-//                                " Scala compiler version: ${scalaVersionInsights.compilerVersion} (<2.13.9)" +
-//                                " and Toolchain version: $normalized." +
-//                                " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
-//                                " includes '-Xfatal-warnings'." +
-//                                " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
-//                                ", will be skipped in favor of Gradle's Scala Plugin own computed flags"
-//                    })
-//                }
-//                // Scala 2.13.9 and higher and '-Xfatal-warnings'
-//                else if (Semver.parse(scalaVersionInsights.compilerVersion) >= Semver.parse("2.13.9") &&
-//                        Semver.parse(scalaVersionInsights.compilerVersion).diff("2.13.0-RC0") == Semver.VersionDiff.PATCH &&
-//                        containsFailOnWarnings(scalaCompileOptions)) {
-//                    return new Tuple2(compilerTargetArgs, { gradleVersion ->
-//                        "Detected Gradle version: ${gradleVersion}," +
-//                                " Scala version: 2.13," +
-//                                " Scala compiler version: ${scalaVersionInsights.compilerVersion} (>=2.13.9)" +
-//                                " and Toolchain version: $normalized." +
-//                                " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
-//                                " includes '-Xfatal-warnings'." +
-//                                " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
-//                                ", will be forced to prevent Scala compile from failing"
-//                    })
-//                }
-//                // Scala 3
-//                else {
-//                    return new Tuple2([], { gradleVersion ->
-//                        "Detected Gradle version: ${gradleVersion}, Scala version: 3," +
-//                                " Scala compiler version: ${scalaVersionInsights.compilerVersion} (>3)" +
-//                                " and Toolchain version: $normalized." +
-//                                " User scalac flags: ${scalaCompileOptions.additionalParameters.join(', ')}" +
-//                                " includes '-Xfatal-warnings'." +
-//                                " CrossbuildScala Plugin recommended scalac flags: ${compilerTargetArgs.join(', ')}" +
-//                                ", will be skipped in favor of Gradle's Scala Plugin own computed flags"
-//                    })
-//                }
-//            }
-//        }
     })
 
     private static Map<Semver, ScalaPluginCompileTargetCaseType> mappings
@@ -402,11 +283,9 @@ enum ScalaPluginCompileTargetCaseType {
 
     static ScalaPluginCompileTargetCaseType from(String gradleVersion) {
         def sanitizedVersion = Semver.coerce(gradleVersion)
-        println(">>> sanitizedVersion: " + gradleVersion)
         def evens = [], odds = []
         values()*.gradleVersionClass.eachWithIndex { v, ix -> (ix & 1 ? odds : evens) << v }
         def ranges = [evens, odds].transpose() + [odds, evens[1..-1]].transpose()
-        println(">>> ranges: " + ranges)
         def range = ranges.find { v1, v2 -> sanitizedVersion < v2 && sanitizedVersion >= v1 }
         if (range != null) {
             def relevantVersion = range[0]
@@ -433,6 +312,7 @@ enum ScalaPluginCompileTargetCaseType {
         }
     }
 
+    @SuppressWarnings(['ParameterCount'])
     static String returnStatMsg(String id,
                                 String gradleVersion,
                                 String scalaCompilerVersion,

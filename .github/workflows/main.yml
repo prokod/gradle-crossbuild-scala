@@ -40,7 +40,7 @@ jobs:
   code_coverage:
     name: "Gradle Check + Code coverage"
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push'
     steps:
       - name: setup_jdk
         uses: actions/setup-java@v4
