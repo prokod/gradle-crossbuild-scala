@@ -13,7 +13,7 @@ group = 'com.github.prokod'
 version = '0.17.0'
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 task sourcesJar(type: Jar) {
@@ -128,10 +128,8 @@ publishing {
 }
 
 signing {
-    required = isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")
-    if (required) {
-        sign publishing.publications.pluginMaven
-    }
+    required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+    sign publishing.publications.pluginMaven
 }
 
 codenarc {
