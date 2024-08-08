@@ -16,50 +16,53 @@
 package com.github.prokod.gradle.crossbuild.model
 
 /**
- * DEFAULT - Choose default target JVM for the current Scala Compiler version
- * SMART - Use latest supported JVM for the given Scala Compiler version up-to user's requested target JVM
- * STRICT - Use requested JVM. If not supported raise exception
+ * <ul>
+ *  <li>DEFAULT - Choose user's requested target JVM otherwise, default target JVM for the current Scala Compiler
+ *  version</li>
+ *  <li>MAX     - Use latest supported JVM for the given Scala Compiler version up-to user's requested target JVM</li>
+ *  <li>FAIL    - Use requested JVM. If not supported raise exception</li>
+ * </ul>
  */
 @SuppressWarnings(['ThisReferenceEscapesConstructor',
         'PrivateFieldCouldBeFinal', 'Indentation', 'DuplicateListLiteral'])
 enum ScalaCompilerTargetStrategyType {
-    DEFAULT({ ScalaCompilerTargetType t, String targetCompatibility ->
+    TOOLCHAIN_OR_DEFAULT({ ScalaCompilerTargetType t, String targetCompatibility ->
         if (targetCompatibility.isEmpty()) {
-            return t.targetFunction.call(t.defaultTarget.toString())
+            return t.getCompilerTargetJvmValues(t.defaultTarget.toString())
         } else {
             def sanitized = sanitizeTargetCompatibility(targetCompatibility)
-            if (sanitized.second <= t.maxTarget) {
-                return t.targetFunction.call(sanitized.first)
+            if (sanitized.v2 <= t.maxTarget) {
+                return t.getCompilerTargetJvmValues(sanitized.v1)
             } else {
-                return t.targetFunction.call(t.defaultTarget.toString())
+                return t.getCompilerTargetJvmValues(t.defaultTarget.toString())
             }
         }
     }),
-    SMART({ ScalaCompilerTargetType t, String targetCompatibility ->
+    TOOLCHAIN_OR_MAX({ ScalaCompilerTargetType t, String targetCompatibility ->
         def sanitized = sanitizeTargetCompatibility(targetCompatibility)
-        if (sanitized.second <= t.maxTarget) {
-            return t.targetFunction.call(sanitized.first)
+        if (sanitized.v2 <= t.maxTarget) {
+            return t.getCompilerTargetJvmValues(sanitized.v1)
         } else {
-            return t.targetFunction.call(t.maxTarget.toString())
+            return t.getCompilerTargetJvmValues(t.maxTarget.toString())
         }
     }),
-    STRICT({ ScalaCompilerTargetType t, String targetCompatibility ->
+    TOOLCHAIN_OR_FAIL({ ScalaCompilerTargetType t, String targetCompatibility ->
         def sanitized = sanitizeTargetCompatibility(targetCompatibility)
-        if (sanitized.second <= t.maxTarget) {
-            t.targetFunction.call(sanitized.first)
+        if (sanitized.v2 <= t.maxTarget) {
+            t.getCompilerTargetJvmValues(sanitized.v1)
         } else {
             throw new IllegalArgumentException("Requested target JVM [${targetCompatibility}] is not supported " +
                     "in Scala Compilers range starting with ${t.compilerVersion}.")
         }
     })
 
-    private final Closure<String> strategyFunction
+    private final Closure<Tuple2<String, String>> strategyFunction
 
-    private ScalaCompilerTargetStrategyType(Closure<String> strategyFunction) {
+    private ScalaCompilerTargetStrategyType(Closure<Tuple2<String, String>> strategyFunction) {
         this.strategyFunction = strategyFunction
     }
 
-    Closure<String> getStrategyFunction() {
+    Closure<Tuple2<String, String>> getStrategyFunction() {
         this.strategyFunction
     }
 

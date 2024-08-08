@@ -226,10 +226,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.10'
-        '7.6.1'         | '2.11'
-        '8.3'           | '2.12'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 
     /**
@@ -361,10 +359,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.11'
-        '6.9.4'         | '2.11'
-        '7.6.1'         | '2.12'
-        '8.3'           | '2.12'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 
     @Requires({ instance.testMavenCentralAccess() })
@@ -614,10 +610,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.12'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 
     /**
@@ -628,9 +622,11 @@ dependencies {
      * This test is using 'implementation' configuration to express dependency graph between the modules.
      *
      * resource file/s for the test:
-     * 04-app_builds_resolved_configurations.json
-     * 04-pom_lib2-00.xml
-     * 04-pom_app-00.xml
+     * <ul>
+     *     <li>04-app_builds_resolved_configurations.json</li>
+     *     <li>04-pom_lib2-00.xml</li>
+     *     <li>04-pom_app-00.xml</li>
+     * </ul>
      */
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
@@ -837,8 +833,9 @@ dependencies {
 
         when:
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
-                defaultOrRuntime: gradleVersion.startsWith('4') ? 'default' : 'runtime',
-                defaultOrCompile: gradleVersion.startsWith('4') ? 'default' : 'compile',
+                _1_0_SNAPSHOT_: gradleVersion.substring(0,1).toInteger() == 7 ? '' : '-1.0-SNAPSHOT',
+                _DefaultProjectDependency_lib_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib''" : "identityPath=':lib'",
+                _DefaultProjectDependency_lib2_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib2''" : "identityPath=':lib2'",
                 _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
@@ -927,10 +924,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-//        '5.6.4'       | '2.11'
-//        '6.9.4'       | '2.12'
-//        '7.6.1'       | '2.11'
-        '8.3'        | '2.12'
+        '7.6.4'       | '2.11'
+        '8.7'         | '2.12'
     }
 
     /**
@@ -1256,10 +1251,8 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        '5.6.4'       | '2.11'
-        '6.9.4'       | '2.12'
-        '7.6.2'       | '2.11'
-        '8.2'         | '2.12'
+        '7.6.4'       | '2.11'
+        '8.7'         | '2.12'
     }
 
     /**
@@ -1510,9 +1503,7 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.12'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.12'
     }
 }

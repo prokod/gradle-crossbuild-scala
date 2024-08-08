@@ -151,8 +151,8 @@ class CrossBuildExtension {
                         lifecycle:'config',
                         msg:'`onEvent` callback triggered. Going to create source-sets accordingly.\n' +
                                 'Event source (build):\n-----------------\n' +
-                                "${event.source.toString()}\n" +
-                                "Current build:\n------------\n${build.toString()}\n" +
+                                "${event.source}\n" +
+                                "Current build:\n------------\n${build}\n" +
                                 "Resolved builds:\n------------\n${resolvedBuilds*.toString().join('\n')}"
                 ))
                 crossBuildSourceSets.fromBuilds(resolvedBuilds)

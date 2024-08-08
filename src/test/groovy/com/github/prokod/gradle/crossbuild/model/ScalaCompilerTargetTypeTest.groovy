@@ -17,8 +17,6 @@ package com.github.prokod.gradle.crossbuild.model
 
 import com.github.prokod.gradle.crossbuild.ScalaVersionInsights
 import com.github.prokod.gradle.crossbuild.ScalaVersions
-import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetStrategyType
-import com.github.prokod.gradle.crossbuild.model.ScalaCompilerTargetType
 import spock.lang.Specification
 
 class ScalaCompilerTargetTypeTest extends Specification {
@@ -29,23 +27,33 @@ class ScalaCompilerTargetTypeTest extends Specification {
         def insights = new ScalaVersionInsights(version, scalaVersions)
 
         then:
-        def calculatedTargetValue = ScalaCompilerTargetType.from(insights.compilerVersion)
-                .getCompilerTargetJvm(ScalaCompilerTargetStrategyType.valueOf(strategy), targetCompatibility)
+        def scalaCompilerTargetType = ScalaCompilerTargetType.from(insights.compilerVersion)
+        def calculatedTargetValue = scalaCompilerTargetType
+                .getCompilerTargetJvmValuesWithStrategy(ScalaCompilerTargetStrategyType.valueOf(strategy), targetCompatibility)
+        def calculatedParameter = scalaCompilerTargetType.getTargetParameter()
+        def calculatedTargetArg = scalaCompilerTargetType
+                .getCompilerTargetJvmArgsWithStrategy(ScalaCompilerTargetStrategyType.valueOf(strategy), targetCompatibility)
         calculatedTargetValue == targetValue
+        calculatedParameter == targetPaarameter
+        calculatedTargetArg == targetArgs
 
         where:
-        version   | strategy | targetCompatibility  | targetValue
-        '2.10.6'  | 'SMART'  | '8'                  | 'jvm-1.7'
-        '2.11.12' | 'SMART'  | '11'                 | 'jvm-1.8'
-        '2.11.12' | 'SMART'  | '8'                  | 'jvm-1.8'
-        '2.11.12' | 'SMART'  | '1.8'                | 'jvm-1.8'
-        '2.12.17' | 'SMART'  | '8'                  | 'jvm-1.8'
-        '2.12.17' | 'SMART'  | '1.8'                | 'jvm-1.8'
-        '2.12.10' | 'SMART'  | '8'                  | 'jvm-1.8'
-        '2.12.10' | 'SMART'  | '1.8'                | 'jvm-1.8'
-        '2.13.1'  | 'SMART'  | '12'                 | 'jvm-12'
-        '2.13.1'  | 'DEFAULT'| '12'                 | 'jvm-12'
-        '2.13.1'  | 'SMART'  | '17'                 | 'jvm-12'
-        '2.13.1'  | 'DEFAULT'| '17'                 | 'jvm-1.8'
+        version   | strategy              | targetCompatibility  | targetValue                   | targetPaarameter | targetArgs
+        '2.10.6'  | 'TOOLCHAIN_OR_MAX'    | '8'                  | new Tuple2('jvm-1.7', null)   | 'target'         | ['-target:jvm-1.7']
+        '2.11.12' | 'TOOLCHAIN_OR_MAX'    | '11'                 | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.11.12' | 'TOOLCHAIN_OR_DEFAULT'| '11'                 | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.11.12' | 'TOOLCHAIN_OR_MAX'    | '8'                  | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.11.12' | 'TOOLCHAIN_OR_DEFAULT'| '17'                 | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.11.12' | 'TOOLCHAIN_OR_MAX'    | '1.8'                | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.12.17' | 'TOOLCHAIN_OR_MAX'    | '8'                  | new Tuple2('8', '8')          | 'release'        | ['-target:8', '-release:8']
+        '2.12.17' | 'TOOLCHAIN_OR_MAX'    | '1.8'                | new Tuple2('8', '8')          | 'release'        | ['-target:8', '-release:8']
+        '2.12.19' | 'TOOLCHAIN_OR_MAX'    | '17'                 | new Tuple2('8', '17')         | 'release'        | ['-target:8', '-release:17']
+        '2.12.10' | 'TOOLCHAIN_OR_MAX'    | '8'                  | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.12.10' | 'TOOLCHAIN_OR_MAX'    | '1.8'                | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.13.1'  | 'TOOLCHAIN_OR_MAX'    | '12'                 | new Tuple2('jvm-12', null)    | 'target'         | ['-target:jvm-12']
+        '2.13.1'  | 'TOOLCHAIN_OR_DEFAULT'| '12'                 | new Tuple2('jvm-12', null)    | 'target'         | ['-target:jvm-12']
+        '2.13.1'  | 'TOOLCHAIN_OR_MAX'    | '17'                 | new Tuple2('jvm-12', null)    | 'target'         | ['-target:jvm-12']
+        '2.13.1'  | 'TOOLCHAIN_OR_DEFAULT'| '17'                 | new Tuple2('jvm-1.8', null)   | 'target'         | ['-target:jvm-1.8']
+        '2.13.10' | 'TOOLCHAIN_OR_DEFAULT'| '11'                 | new Tuple2(null, '11')        | 'release'        | ['-release:11']
     }
 }

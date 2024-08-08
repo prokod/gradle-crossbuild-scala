@@ -36,6 +36,29 @@ class CrossBuildPluginScalaVersionSpecificSourceTest extends CrossBuildGradleRun
         appScalaFile = file('app/src/main/scala/com/github/prokod/it/gradleCrossbuildSample/Main.scala')
     }
 
+    /**
+     * Test Properties:
+     * <ul>
+     *     <li>Plugin apply mode: Eager</li>
+     *     <li>Gradle compatibility matrix: 7.x, 8.x</li>
+     *     <li>Running tasks that triggers main sourceset configurations: Yes</li>
+     *     <li>Java Tool Chain Version: 8</li>
+     *     <li>scalac flags: -Xfatal-warnings</li>
+     * </ul>
+     * This test checks the following plugin behaviour:
+     * <ul>
+     *     <li>Leveraging of sourceSet.ext by cross compilation with jcp preprocess pre-step without any compile errors due to misalignment</li>
+     * </ul>
+     * Notes:
+     * <ul>
+     *     <li> As Gradle is well adapted to Java 8, including the scala plugin, there are no compilation errors
+     *     when scalac is set with -Xfatal-warnings argument. So this case is not being tested for this specific test</li>
+     *     <li> This test is limited to GHA runner with default spock test configuration. Otherwise,
+     *     with a custom configuration of spock for parallel test execution the test fails</li>
+     * </ul>
+     *
+     * @return
+     */
     @Requires({ System.getProperty("java.version").startsWith('1.8') })
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
@@ -69,7 +92,7 @@ subprojects {
     apply plugin: 'maven-publish'
 
     crossBuild {
-        scalaVersionsCatalog = ["2.13": "2.13.8", "2.12": "2.12.15"]
+        scalaVersionsCatalog = ["2.13": "${scalaVersionsCatalog['2.13']}", "2.12": "${scalaVersionsCatalog['2.12']}"]
 
         def sparkVersionsForBoth = ["3.3.0", "3.2.1", "3.2.0"]
         def sparkVersionsFor2_12 = ["3.1.3", "3.1.2", "3.1.1", "3.1.0", "3.0.3", "3.0.2", "3.0.1", "3.0.0"]
@@ -94,7 +117,7 @@ subprojects {
     }
     
     dependencies {
-        implementation "org.scala-lang:scala-library:2.13.8"
+        implementation "org.scala-lang:$defaultScalaLibModuleName:$defaultScalaVersion"
     }
 }
 """
@@ -169,7 +192,6 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         publications {
             create("crossBuild\${sparkStripped}_\${scalaCompatStripped}", MavenPublication) {
                 afterEvaluate {
-//                    artifact project.tasks.findByName("crossBuild\${sparkStripped}_\${scalaCompatStripped}Jar")
                     from components.findByName("crossBuild\${sparkStripped}_\${scalaCompatStripped}")
                 }
             }
@@ -206,7 +228,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         def classPaths = []
         def metadata = []
         def sparkVersionsForBoth = ["3.3.0", "3.2.1", "3.2.0"]
-        def scalaVersions = ['2.12.15', '2.13.8']
+        def scalaVersions = [scalaVersionsCatalog['2.12'], scalaVersionsCatalog['2.13']]
 
         and:
         for (spark in sparkVersionsForBoth) {
@@ -262,6 +284,9 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
             if (data[2] == '2.12') {
                 expected += "This doesn't work on scala 2.13: \${scala.collection.mutable.WrappedArray::class.qualifiedName}\n"
             }
+            // This construct responsible for capturing stdout while calling `main()` method
+            //  works on GHA runner with default spock test configuration, compared to custom configuration
+            //  for parallel testing
             def allWrittenLines = ''
             def stdOut = System.out
             new ByteArrayOutputStream().withCloseable {bo ->
@@ -272,8 +297,8 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
                 System.out = stdOut
             }
             new Tuple2(allWrittenLines.replaceAll("\\r\\n?", "\n"), expected)
-        }.each {tuple ->
-            assert tuple.first == tuple.second
+        }.each { tuple ->
+            assert tuple.v1 == tuple.v2
         }
 
         and:
@@ -292,28 +317,43 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         }
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.12'
-        '6.9.4'         | '2.13'
-        '7.6.2'         | '2.12'
-        '8.3'           | '2.13'
+        gradleVersion   | defaultScalaLibModuleName | defaultScalaVersion | scalaVersionsCatalog
+        '7.6.4'         | 'scala-library'           | '2.13.8'           | ["2.13": "2.13.8", "2.12": "2.12.15"]
+        '8.7'           | 'scala-library'           | '2.12.15'          | ["2.13": "2.13.8", "2.12": "2.12.15"]
     }
 
     /**
-     *
-     * NOTE:
+     * Test Properties:
      * <ul>
-     * <li>akka-actor_2.13 2.7.0 depends on scala library 2.13.10 - it means the final pom will contain scala lib 2.13.10 even if you state another version in your build
-     * <li>akka-actor_2.12 2.7.0 depends on scala library 2.12.17 - it means the final pom will contain scala lib 2.12.17 even if you state another version in your build
+     *     <li>Plugin apply mode: Eager</li>
+     *     <li>Gradle compatibility matrix: 7.x, 8.x</li>
+     *     <li>Running tasks that triggers main sourceset configurations: No</li>
+     *     <li>Java Tool Chain Version: 11, 17</li>
+     *     <li>scalac flags: -Xfatal-warnings</li>
+     * </ul>
+     * This test checks the following plugin behaviour:
+     * <ul>
+     *     <li>Leveraging of sourceSet.ext by cross compilation with jcp preprocess pre-step without any compile errors due to misalignment</li>
+     * </ul>
+     * Notes:
+     * <ul>
+     *     <li>As Scala plugin scalac opinionated default arguments are being applied to both main sourceset configurations
+     *     and crossbuild ones there is no real reason why to refrain from running tasks that triggers main sourceset configurations</li>
+     *     <li>akka-actor_2.13 2.7.0 depends on scala library 2.13.10 - it means the final pom will contain scala lib 2.13.10 even if you state another version in your build
+     *     <li>akka-actor_2.12 2.7.0 depends on scala library 2.12.17 - it means the final pom will contain scala lib 2.12.17 even if you state another version in your build
      * </ul>
      *
      * @return
      */
-    @Requires({ System.getProperty("java.version").startsWith('11.') })
+    @Requires({ System.getProperty("java.version").startsWith('11.') || System.getProperty("java.version").startsWith('17.') })
     @Requires({ instance.testMavenCentralAccess() })
     @Unroll
-    def "[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion] applying crossbuild plugin on a multi cross build aspects (scala2 + scala3 / akka) multi-module project with publishing dsl should produce expected: jars, pom files; and pom files content should be correct"() {
+    def """[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion | compiler-options:#compilerOptions]
+        applying crossbuild plugin on a multi cross build aspects (scala2 + scala3 / akka) multi-module project
+        with publishing dsl
+        should produce expected: jars, pom files; and pom files content should be correct"""() {
         given:
+        def javaToolchainVersion = System.getProperty("java.version").split('\\.')[0]
         // root project settings.gradle
         settingsFile << """
 include 'app'
@@ -343,12 +383,16 @@ subprojects {
     
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(11)
+            languageVersion = JavaLanguageVersion.of($javaToolchainVersion)
         }
     }
 
+    tasks.withType(ScalaCompile) {
+        scalaCompileOptions.additionalParameters = ['${compilerOptions.join(', ')}']
+    }
+
     crossBuild {
-        scalaVersionsCatalog = ["3": "3.2.2", "2.13": "2.13.10", "2.12": "2.12.17"]
+        scalaVersionsCatalog = ["3": "${scalaVersionsCatalog['3']}", "2.13": "${scalaVersionsCatalog['2.13']}", "2.12": "${scalaVersionsCatalog['2.12']}"]
 
         def akkaVersionsForAll = ["2.7.0"]
         def akkaVersionsForScala2 = ["2.6.15", "2.6.16"]
@@ -371,9 +415,8 @@ subprojects {
             }
         }
     }
-    
     dependencies {
-        implementation "org.scala-lang:scala3-library_3:3.2.2"
+        implementation "org.scala-lang:$defaultScalaLibModuleName:$defaultScalaVersion"
     }
 }
 """
@@ -455,7 +498,6 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
             create("crossBuild\${akkaStripped}_\${scalaCompatStripped}", MavenPublication) {
                 afterEvaluate {
                     from components.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}")
-//                    artifact project.tasks.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}Jar")
                 }
             }
         }
@@ -476,12 +518,12 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
                 .withProjectDir(dir.toFile())
                 .withPluginClasspath()
                 /*@withDebug@*/
-                .withArguments('tasks', 'build', 'publishToMavenLocal', '--info', '--stacktrace')
+                .withArguments('tasks', 'crossBuildAssemble', 'publishToMavenLocal', '--warn', '--stacktrace')
                 .build()
 
         then:
         result.task(":tasks").outcome == SUCCESS
-        result.task(":app:build").outcome == SUCCESS
+        result.task(":app:crossBuildAssemble").outcome == SUCCESS
         result.task(":app:publishToMavenLocal").outcome == SUCCESS
 
         when:
@@ -491,7 +533,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         def classPaths = []
         def metadata = []
         def akkaVersionsForAll = ["2.7.0"]
-        def scalaVersions = ['2.12.17', '2.13.10', '3.2.2']
+        def scalaVersions = [scalaVersionsCatalog['2.12'], scalaVersionsCatalog['2.13'], scalaVersionsCatalog['3']]
 
         and:
         for (akka in akkaVersionsForAll) {
@@ -514,7 +556,7 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
 
         and:
         def akkaVersionsForScala2 = ["2.6.15", "2.6.16"]
-        def scalaVersionsForScala2 = ['2.12.17', '2.13.10']
+        def scalaVersionsForScala2 = [scalaVersionsCatalog['2.12'], scalaVersionsCatalog['2.13']]
         for (akka in akkaVersionsForScala2) {
             for (scala in scalaVersionsForScala2) {
                 def akkaMinor = akka.substring(0, akka.lastIndexOf('.'))
@@ -581,9 +623,224 @@ sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
         }
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '6.9.4'         | '2.13'
-        '7.6.1'         | '2.12'
-        '8.3'           | '3'
+        gradleVersion   | defaultScalaLibModuleName | defaultScalaVersion | compilerOptions | scalaVersionsCatalog
+        '7.6.4'         | 'scala-library'           | '2.12.17'           | [] | ["3": "3.2.2", "2.13": "2.13.10", "2.12": "2.12.19"]
+        '7.6.4'         | 'scala-library'           | '2.13.13'           | [] | ["3": "3.2.2", "2.13": "2.13.10", "2.12": "2.12.19"]
+        '7.6.4'         | 'scala3-library_3'        | '3.3.3'             | [] | ["3": "3.3.3", "2.13": "2.13.10", "2.12": "2.12.19"]
+        '8.7'           | 'scala-library'           | '2.12.17'           | ['-Xfatal-warnings'] | ["3": "3.2.2", "2.13": "2.13.10", "2.12": "2.12.19"]
+        '8.7'           | 'scala-library'           | '2.13.13'           | ['-Xfatal-warnings'] | ["3": "3.2.2", "2.13": "2.13.10", "2.12": "2.12.19"]
+        '8.7'           | 'scala3-library_3'        | '3.3.3'             | ['-Xfatal-warnings'] | ["3": "3.3.3", "2.13": "2.13.10", "2.12": "2.12.19"]
+    }
+
+/**
+ * Test Properties:
+ * <ul>
+ *     <li>Plugin apply mode: Eager</li>
+ *     <li>Gradle compatibility matrix: 7.x, 8.x</li>
+ *     <li>Running tasks that triggers main sourceset configurations: No</li>
+ *     <li>Java Tool Chain Version: 11, 17</li>
+ *     <li>scalac flags: -Xfatal-warnings</li>
+ * </ul>
+ * This test checks the following plugin behaviour:
+ * <ul>
+ *     <li>Leveraging of sourceSet.ext by cross compilation with jcp preprocess pre-step without any compile errors due to misalignment</li>
+ * </ul>
+ * Notes:
+ * <ul>
+ *     <li>As Scala plugin scalac opinionated default arguments are being applied to both main sourceset configurations
+ *     and crossbuild ones there is no real reason why to refrain from running tasks that triggers main sourceset configurations</li>
+ *     <li>akka-actor_2.13 2.7.0 depends on scala library 2.13.10 - it means the final pom will contain scala lib 2.13.10 even if you state another version in your build
+ *     <li>akka-actor_2.12 2.7.0 depends on scala library 2.12.17 - it means the final pom will contain scala lib 2.12.17 even if you state another version in your build
+ * </ul>
+ *
+ * TODO: Move this test from this test file as this complex setup is not needed and it also makes it hard to catch the warning that the plugin issues prior to the exception thrown
+ * @return
+ */
+    @Requires({ System.getProperty("java.version").startsWith('11.') || System.getProperty("java.version").startsWith('17.') })
+    @Requires({ instance.testMavenCentralAccess() })
+    @Unroll
+    def """[gradle:#gradleVersion | default-scala-version:#defaultScalaVersion | compiler-options:#compilerOptions]
+        applying crossbuild plugin on a multi cross build aspects (scala2 + scala3 / akka) multi-module project
+        with publishing dsl
+        with gradle 7.x
+        with scalac flag -Xfatal-warnings
+        should fail with a prior proper warning"""() {
+        given:
+        def javaToolchainVersion = System.getProperty("java.version").split('\\.')[0]
+        // root project settings.gradle
+        settingsFile << """
+include 'app'
+"""
+
+        buildFile << """
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.igormaznitsa:jcp:7.0.5")
+    }
+}
+
+plugins {
+    id 'com.github.prokod.gradle-crossbuild' apply false
+}
+
+repositories {
+    mavenCentral()
+}
+
+subprojects {
+    apply plugin: 'com.github.prokod.gradle-crossbuild-scala'
+    apply plugin: 'maven-publish'
+    
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of($javaToolchainVersion)
+        }
+    }
+
+    tasks.withType(ScalaCompile) {
+        scalaCompileOptions.additionalParameters = ['${compilerOptions.join(', ')}']
+    }
+
+    crossBuild {
+        scalaVersionsCatalog = ["3": "${scalaVersionsCatalog['3']}", "2.13": "${scalaVersionsCatalog['2.13']}", "2.12": "${scalaVersionsCatalog['2.12']}"]
+
+        def akkaVersionsForAll = ["2.7.0"]
+        def akkaVersionsForScala2 = ["2.6.15", "2.6.16"]
+
+        builds {
+            for (akka in akkaVersionsForAll) {
+                create(akka) {
+                    scalaVersions = ["2.12", "2.13", "3"]
+                    archive.appendixPattern = "-\${akka}_?"
+                    ext = ['akkaVersion':akka]
+                }
+            }
+
+            for (akka in akkaVersionsForScala2) {
+                create(akka) {
+                    scalaVersions = ["2.12", "2.13"]
+                    archive.appendixPattern = "-\${akka}_?"
+                    ext = ['akkaVersion':akka]
+                }
+            }
+        }
+    }
+    dependencies {
+        implementation "org.scala-lang:$defaultScalaLibModuleName:$defaultScalaVersion"
+    }
+}
+"""
+        appScalaFile << """
+package com.github.prokod.it.gradleCrossbuildSample
+//#if scalaCompat == 2.12
+import scala.collection.mutable.WrappedArray
+//#endif
+
+object Main {
+
+    val scalaCompatVersion = /*\$"\\""+scalaCompat+"\\""\$*/ /*-*/ ""
+    val scalaVersion = /*\$"\\""+scala+"\\""\$*/ /*-*/ ""
+    val akkaVersion = /*\$"\\""+akka+"\\""\$*/ /*-*/ ""
+    val akkaMinorVersion = /*\$"\\""+akkaMinor+"\\""\$*/ /*-*/ ""
+
+    private def Main() = {
+        println(f"Read akka version as \$akkaVersion, scala version as \$scalaVersion, scala compat version as \$scalaCompatVersion, akka minor version as \$akkaMinorVersion")
+    
+        //#if scalaCompat == 2.12
+        val simpleArray: Array[Int] = Array(1, 2, 3, 4, 5)
+        val wrappedArray: WrappedArray[Int] = simpleArray
+        val r = wrappedArray.reverse
+        println("This works up to scala 2.12: \${scala.collection.mutable.WrappedArray::class.qualifiedName}")
+        //#endif
+    }
+    def main(args: Array[String]): Unit = Main()
+}
+"""
+
+        appBuildFile << """
+import com.igormaznitsa.jcp.gradle.JcpTask
+
+plugins {
+    id 'com.igormaznitsa.jcp'
+}
+
+group = 'com.github.prokod.it'
+version = "1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets.findAll { it.name.startsWith('crossBuild') }.each { sourceSet ->
+    def compileTaskName = sourceSet.getCompileTaskName('scala')
+
+    def akka = sourceSet.ext.akkaVersion
+    def akkaStripped = akka.replaceAll('\\\\.', '')
+    def scala = sourceSet.ext.scalaCompilerVersion
+    def akkaMinor = akka.substring(0, akka.lastIndexOf('.'))
+    def scalaCompat = scala.startsWith('3') ? '3' : scala.substring(0, scala.lastIndexOf('.'))
+    def scalaCompatStripped = scalaCompat.replaceAll('\\\\.', '')
+     
+    tasks.register("copy_\${sourceSet.name}", Copy) {
+        from configurations.findByName(sourceSet.getRuntimeClasspathConfigurationName())
+        into "\$buildDir/classpath-libs-\${sourceSet.name}"
+    }
+       
+    tasks.register("preprocess_\${sourceSet.name}", JcpTask) {
+        sources = sourceSets.main.scala.srcDirs
+        target = file("src/\${sourceSet.name}/scala")
+        clearTarget = true
+        fileExtensions = ["java", "scala"]
+
+        vars = ["akka": akka, "akkaMinor": akkaMinor, "scala": scala, "scalaCompat": scalaCompat]
+        outputs.upToDateWhen { target.get().exists() }
+    }
+
+    project.tasks.findByName(sourceSet.getCompileTaskName('scala')).with { ScalaCompile t ->
+        t.dependsOn tasks.findByName("preprocess_\${sourceSet.name}")
+        t.dependsOn tasks.findByName("copy_\${sourceSet.name}")
+    }
+
+    project.dependencies.add(sourceSet.getImplementationConfigurationName(), [group: "com.typesafe.akka", name: "akka-actor_\${scalaCompat}", version: "\${akka}"])
+
+    publishing {
+        publications {
+            create("crossBuild\${akkaStripped}_\${scalaCompatStripped}", MavenPublication) {
+                afterEvaluate {
+                    from components.findByName("crossBuild\${akkaStripped}_\${scalaCompatStripped}")
+                }
+            }
+        }
+    }
+
+    tasks.withType(GenerateMavenPom) { t ->
+        if (t.name.contains("CrossBuild\${akkaStripped}_\${scalaCompatStripped}")) {
+            t.destination = file("\$buildDir/generated-pom\${akkaStripped}_\${scalaCompatStripped}.xml")
+        }
+    }
+}
+
+"""
+
+        when:
+        def result = GradleRunner.create()
+                .withGradleVersion(gradleVersion)
+                .withProjectDir(dir.toFile())
+                .withPluginClasspath()
+                /*@withDebug@*/
+                .withArguments('tasks', 'crossBuildAssemble', 'publishToMavenLocal', '--warn', '--stacktrace')
+                .build()
+
+        then:
+        thrown(Exception)
+
+        where:
+        gradleVersion   | defaultScalaLibModuleName | defaultScalaVersion | compilerOptions | scalaVersionsCatalog
+        '7.6.4'         | 'scala-library'           | '2.12.17'           | ['-Xfatal-warnings'] | ["3": "3.2.2", "2.13": "2.13.10", "2.12": "2.12.19"]
+        '7.6.4'         | 'scala-library'           | '2.13.13'           | ['-Xfatal-warnings'] | ["3": "3.2.2", "2.13": "2.13.10", "2.12": "2.12.19"]
+        '7.6.4'         | 'scala3-library_3'        | '3.3.3'             | ['-Xfatal-warnings'] | ["3": "3.3.3", "2.13": "2.13.10", "2.12": "2.12.19"]
     }
 }

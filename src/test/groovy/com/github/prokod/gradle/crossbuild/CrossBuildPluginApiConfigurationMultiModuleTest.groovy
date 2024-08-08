@@ -112,7 +112,7 @@ allprojects {
     project.pluginManager.withPlugin('com.github.prokod.gradle-crossbuild') {
         crossBuild {
             
-            scalaVersionsCatalog = ['2.10':'2.10.6', '2.11':'2.11.11']
+            scalaVersionsCatalog = ['2.10': "${scalaVersionsCatalog['2.10']}", '2.11': "${scalaVersionsCatalog['2.11']}"]
 
             builds {
                 spark160_210 
@@ -241,11 +241,9 @@ dependencies {
         pom211.contains('3.0.1')
 
         where:
-        gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.11'
-        '6.9.4'         | '2.11'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.11'
+        gradleVersion   | defaultScalaVersion | scalaVersionsCatalog
+        '7.6.4'         | '2.11'              | ['2.10': '2.10.6', '2.11': '2.11.11']
+        '8.7'           | '2.11'              | ['2.10': '2.10.6', '2.11': '2.11.11']
     }
 
     /**
@@ -559,9 +557,7 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.10'
-        '6.9.4'         | '2.11'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.10'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.10'
     }
 }

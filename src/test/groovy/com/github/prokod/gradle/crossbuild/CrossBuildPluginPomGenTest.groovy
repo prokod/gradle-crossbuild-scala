@@ -165,10 +165,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.10'
-        '6.9.4'         | '2.11'
-        '7.6.2'         | '2.10'
-        '8.3'           | '2.11'
+        '7.6.4'         | '2.10'
+        '8.7'           | '2.11'
     }
 
     /**
@@ -321,10 +319,8 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion
-        '5.6.4'         | '2.10'
-        '6.9.4'         | '2.11'
-        '7.6.2'         | '2.11'
-        '8.3'           | '2.10'
+        '7.6.4'         | '2.11'
+        '8.7'           | '2.10'
     }
 
     /**
@@ -465,8 +461,6 @@ dependencies {
 
         where:
         gradleVersion   | defaultScalaVersion | defaultScalaCompilerVersion
-        '5.6.4'         | '2.12'              | '2.12.18'
-        '6.9.4'         | '2.13'              | '2.13.12'
         '7.6.4'         | '2.12'              | '2.12.19'
         '8.7'           | '2.13'              | '2.13.13'
     }

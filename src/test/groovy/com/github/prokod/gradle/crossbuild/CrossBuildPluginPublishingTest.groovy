@@ -285,9 +285,11 @@ dependencies {
         !fileExists(dir.resolve('app/build/libs/app_2.12*.jar'))
 
         when:
+        // Testing Gradle 8.3 will fail as the output is similar still to Gradle 7.x
         def expectedJsonAsText = loadResourceAsText(dsv: defaultScalaVersion,
-                defaultOrRuntime: 'runtime',
-                defaultOrCompile: 'compile',
+                _1_0_SNAPSHOT_: gradleVersion.substring(0,1).toInteger() == 7 ? '' : '-1.0-SNAPSHOT',
+                _DefaultProjectDependency_lib_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib''" : "identityPath=':lib'",
+                _DefaultProjectDependency_lib2_: gradleVersion.substring(0,1).toInteger() == 7 ? "dependencyProject='project ':lib2''" : "identityPath=':lib2'",
                 _2_11_12_: gradleVersion.substring(0,1).toInteger() >= 6 ? '-2.11.12' : '',
                 '/04-app_builds_resolved_configurations.json')
         def appResolvedConfigurationReportFile = findFile("*/app_builds_resolved_configurations.json")
@@ -376,8 +378,7 @@ dependencies {
 
         where:
         gradleVersion | defaultScalaVersion
-        '6.9.4'       | '2.12'
-        '7.6.2'       | '2.11'
-        '8.3'         | '2.11'
+        '7.6.4'       | '2.11'
+        '8.7'         | '2.11'
     }
 }

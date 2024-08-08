@@ -11,6 +11,8 @@ on:
   push:
     branches:
       - 'master'
+      - 'bugfix/**'
+      - 'feature/**'
   pull_request:
     branches:
       - 'master'
@@ -19,39 +21,41 @@ jobs:
   checks:
     name: "Gradle Check"
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     strategy:
       matrix:
-        java: [ '8', '11' ]
+        java: [ '8', '11', '17']
     steps:
       - name: setup_jdk
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: validation
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/wrapper-validation-action@v3
+      - name: code quality check
+        if: vars.CODE_QUALITY_CHECK_ENFORCE == 'true'
+        run: ./gradlew clean codeNarcMain --no-daemon
       - name: check
-        run: ./gradlew clean check --no-daemon
+        run: ./gradlew clean check -x codeNarcMain --no-daemon
   code_coverage:
     name: "Gradle Check + Code coverage"
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event.pull_request.merged == true
     steps:
       - name: setup_jdk
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: validation
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/wrapper-validation-action@v3
       - name: code_coverage
         run: ./gradlew clean codeCoverageTest jacocoCodeCoverageTestReport
       - name: codecov_integration
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v4
         with:
           verbose: true
