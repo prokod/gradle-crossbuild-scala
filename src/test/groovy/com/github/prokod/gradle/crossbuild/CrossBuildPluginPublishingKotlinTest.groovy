@@ -45,7 +45,7 @@ class CrossBuildPluginPublishingKotlinTest extends CrossBuildGradleRunnerSpec {
      * This test checks the following plugin behaviour:
      * <ul>
      *     <li>The following test ensures that the plugin handles publishing with kotlin scripting</li>
-     *     <li>Excluding main published artifacts using task {@code onlyIf} </li>
+     *     <li>Leveraging Multi-aspect cross building and Extra Properties to publish together with each cross build artifact also sources and scaladoc artifacts</li>
      * </ul>
      *
      * @see <a href="https://github.com/prokod/gradle-crossbuild-scala/issues/140">issue #140</a>
@@ -111,38 +111,37 @@ subprojects {
         }
     }
 
-    // Create Jar type task for custom scaladoc artifact
-    val scaladocJar by tasks.creating(Jar::class) {
-        from(tasks.getByName("scaladoc"))
-        archiveClassifier.set("scaladoc")
-    }
+    // Create Jar type task for custom sources/scaladoc artifacts
+    sourceSets.filter { it.name.startsWith("crossBuild") }.forEach { sourceSet ->
+        // Makes the sourceSet scalaCompilerVersion extra property available to configure the following tasks
+        val scalaCompilerVersion : String by sourceSet.extra
+        val scalaVersion = scalaCompilerVersion.substring(0, scalaCompilerVersion.lastIndexOf('.'))
 
-    // Exclude default artifact from publishing
-    tasks.withType<PublishToMavenLocal>().configureEach {
-        val predicate = provider {
-            publication != publishing.publications["mavenJava"]
+        tasks.register<Jar>("\${sourceSet.name}SourcesJar") {
+            from(sourceSet.allSource)
+            archiveBaseName.set("\${archiveBaseName.get()}_\${scalaVersion}")
+            archiveClassifier.set("sources")
         }
 
-        onlyIf("disable default maven publication") {
-            predicate.get()
+        tasks.register<Jar>("\${sourceSet.name}ScaladocJar") {
+            from(tasks.scaladoc)
+            archiveBaseName.set("\${archiveBaseName.get()}_\${scalaVersion}")
+            archiveClassifier.set("scaladoc")
         }
     }
 
     // Publish with both source and scaladoc
     publishing {
         publications {
-            create<MavenPublication>("mavenJava") {
-                from(components["java"])
-            }
             create<MavenPublication>("crossBuildScala_212") {
                 from(components["crossBuildScala_212"])
-                artifact(scaladocJar)
-                artifact(tasks["sourcesJar"])
+                artifact(tasks["crossBuildScala_212SourcesJar"])
+                artifact(tasks["crossBuildScala_212ScaladocJar"])
             }
             create<MavenPublication>("crossBuildScala_213") {
                 from(components["crossBuildScala_213"])
-                artifact(scaladocJar)
-                artifact(tasks["sourcesJar"])
+                artifact(tasks["crossBuildScala_213SourcesJar"])
+                artifact(tasks["crossBuildScala_213ScaladocJar"])
             }
         }
     }
@@ -175,7 +174,6 @@ class Example {
                 .build()
 
         then:
-        println(result.output)
         result.task(":tasks").outcome == SUCCESS
         result.task(":libraryA:crossBuildScala_212Jar").outcome == SUCCESS
         result.task(":libraryA:crossBuildScala_213Jar").outcome == SUCCESS
@@ -183,8 +181,10 @@ class Example {
 
         fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12-*.jar'))
         fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13-*.jar'))
-        fileExists(dir.resolve('libraryA/build/libs/libraryA*-sources.jar'))
-        fileExists(dir.resolve('libraryA/build/libs/libraryA*-javadoc.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12-*-sources.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.12-*-scaladoc.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13-*-sources.jar'))
+        fileExists(dir.resolve('libraryA/build/libs/libraryA_2.13-*-scaladoc.jar'))
 
         where:
         gradleVersion   | defaultScalaLibModuleName | defaultScalaLibVersion
